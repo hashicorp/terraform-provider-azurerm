@@ -15,9 +15,10 @@ import (
 func (Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name which should be used for this Network Manager Routing Configuration.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`^[a-zA-Z0-9\_\.\-]{1,64}$`),
 				"`name` must be between 1 and 64 characters long and can only contain letters, numbers, underscores(_), periods(.), and hyphens(-).",
@@ -27,12 +28,14 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		"network_manager_id": commonschema.ResourceIDReferenceRequiredForceNew(&networkmanagerroutingconfigurations.NetworkManagerId{}, "Network Manager"),
 
 		"description": {
+			Description:  "The description of the Network Manager Routing Configuration.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"route_table_usage_mode": {
+			Description:  "The Route Table usage mode for the Network Manager Routing Configuration.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(networkmanagerroutingconfigurations.RouteTableUsageModeManagedOnly),

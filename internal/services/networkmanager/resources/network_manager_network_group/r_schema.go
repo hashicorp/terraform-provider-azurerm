@@ -12,6 +12,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Network Manager Network Group.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -19,6 +20,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"network_manager_id": {
+			Description:  "The ID of the Network Manager.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -26,11 +28,13 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "A description of the Network Manager Network Group.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 
 		"member_type": {
+			Description:  "The member type for the network group.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(networkgroups.GroupMemberTypeVirtualNetwork),

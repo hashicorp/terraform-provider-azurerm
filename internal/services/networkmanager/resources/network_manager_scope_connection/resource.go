@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_network_manager_scope_connection"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Network Manager Scope Connection which may cross tenants."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return scopeconnections.ValidateScopeConnectionID
 }

@@ -38,6 +38,10 @@ func (r DataSource) ResourceType() string {
 	return "azurerm_network_manager_connectivity_configuration"
 }
 
+func (r DataSource) Description() string {
+	return "Use this data source to access information about an existing Network Manager Connectivity Configuration."
+}
+
 func (r DataSource) ModelObject() any {
 	return &ManagerConnectivityConfigurationDataSourceModel{}
 }
@@ -45,12 +49,14 @@ func (r DataSource) ModelObject() any {
 func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this Network Manager Connectivity Configuration.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"network_manager_id": {
+			Description:  "The ID of the Network Manager.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: connectivityconfigurations.ValidateNetworkManagerID,
@@ -66,51 +72,60 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"group_connectivity": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The group connectivity type.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"global_mesh_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Computed: true,
+						Description: "Whether global mesh is supported.",
+						Type:        pluginsdk.TypeBool,
+						Computed:    true,
 					},
 
 					"network_group_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The ID of the Network Manager Network Group.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"use_hub_gateway": {
-						Type:     pluginsdk.TypeBool,
-						Computed: true,
+						Description: "Whether hub gateway is used.",
+						Type:        pluginsdk.TypeBool,
+						Computed:    true,
 					},
 				},
 			},
 		},
 
 		"connected_group_address_overlap_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether connected group address overlap is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"connected_group_private_endpoints_scale": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The scale of Private Endpoints allowed in the connected group.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"connectivity_topology": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The connectivity topology type.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"delete_existing_peering_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether deleting existing Virtual Network Peering in the Connectivity Configuration affected scope is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The description of the Connectivity Configuration.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"hub": {
@@ -119,26 +134,30 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"resource_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The resource ID used as hub in Hub and Spoke topology.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"resource_type": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The resource type used as hub in Hub and Spoke topology.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},
 		},
 
 		"global_mesh_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether global mesh is supported.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"peering_enforcement_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether peering enforcement is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 	}
 }

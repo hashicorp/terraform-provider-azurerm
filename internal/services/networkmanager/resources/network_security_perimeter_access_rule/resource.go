@@ -17,6 +17,10 @@ func (Resource) ResourceType() string {
 	return "azurerm_network_security_perimeter_access_rule"
 }
 
+func (Resource) Description() string {
+	return "Manages a Network Security Perimeter Access Rule."
+}
+
 func (Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return networksecurityperimeteraccessrules.ValidateAccessRuleID
 }

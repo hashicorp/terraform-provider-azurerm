@@ -16,9 +16,10 @@ import (
 func (Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name which should be used for this Network Manager Routing Rule Collection.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`^[a-zA-Z0-9\_\.\-]{1,64}$`),
 				"`name` must be between 1 and 64 characters long and can only contain letters, numbers, underscores(_), periods(.), and hyphens(-).",
@@ -28,18 +29,21 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		"routing_configuration_id": commonschema.ResourceIDReferenceRequiredForceNew(&routingrulecollections.RoutingConfigurationId{}, "Network Manager Routing Configuration"),
 
 		"network_group_ids": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			Elem:     commonschema.ResourceIDReferenceElem(&networkgroups.NetworkGroupId{}),
+			Description: "A list of Network Group IDs which this Network Manager Routing Rule Collection applies to.",
+			Type:        pluginsdk.TypeList,
+			Required:    true,
+			Elem:        commonschema.ResourceIDReferenceElem(&networkgroups.NetworkGroupId{}),
 		},
 
 		"bgp_route_propagation_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether to enable the BGP route propagation.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"description": {
+			Description:  "The description of the Network Manager Routing Rule Collection.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,

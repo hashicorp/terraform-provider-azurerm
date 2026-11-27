@@ -13,6 +13,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Network Manager Admin Rule Collection.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,6 +21,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"security_admin_configuration_id": {
+			Description:  "The ID of the Network Manager Security Admin Configuration.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,8 +29,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"network_group_ids": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
+			Description: "A list of Network Group IDs which this Network Manager Admin Rule Collection applies to.",
+			Type:        pluginsdk.TypeList,
+			Required:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: networkgroups.ValidateNetworkGroupID,
@@ -36,8 +39,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "A description of the Network Manager Admin Rule Collection.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 	}
 }

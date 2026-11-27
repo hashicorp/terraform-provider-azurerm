@@ -19,9 +19,10 @@ import (
 func (Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name which should be used for this Network Security Perimeter Access Rule.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`(^[a-zA-Z0-9]+[a-zA-Z0-9_.-]{0,78}[a-zA-Z0-9_]+$)|(^[a-zA-Z0-9]$)`),
 				"`name` must be between 1 and 80 characters long, start with a letter or number, end with a letter, number, or underscore, and may contain only letters, numbers, underscores (_), periods (.), or hyphens (-).",
@@ -29,6 +30,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"network_security_perimeter_profile_id": {
+			Description:  "The ID of the Network Security Perimeter Profile within which this Access Rule is created.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -36,9 +38,10 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"direction": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The direction of the rule.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringInSlice(
 				networksecurityperimeteraccessrules.PossibleValuesForAccessRuleDirection(),
 				false,
@@ -46,6 +49,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"address_prefixes": {
+			Description:  "A list of CIDRs. Can only be specified when direction is set to `Inbound`.",
 			Type:         pluginsdk.TypeList,
 			Optional:     true,
 			MinItems:     1,
@@ -57,6 +61,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"fqdns": {
+			Description:  "A list of fully qualified domain names. Can only be specified when direction is set to `Outbound`.",
 			Type:         pluginsdk.TypeList,
 			Optional:     true,
 			MinItems:     1,
@@ -67,6 +72,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"service_tags": {
+			Description:  "A list of service tags. Can only be specified when direction is set to `Inbound`.",
 			Type:         pluginsdk.TypeList,
 			Optional:     true,
 			MinItems:     1,
@@ -77,6 +83,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"subscription_ids": {
+			Description:  "A list of subscription IDs this rule applies to. Can only be specified when direction is set to `Inbound`.",
 			Type:         pluginsdk.TypeList,
 			Optional:     true,
 			MinItems:     1,

@@ -47,6 +47,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Network Manager Connectivity Configuration.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -54,6 +55,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"network_manager_id": {
+			Description:  "The ID of the Network Manager.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -66,43 +68,50 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"group_connectivity": {
+						Description:  "The group connectivity type.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringInSlice(connectivityconfigurations.PossibleValuesForGroupConnectivity(), false),
 					},
 
 					"global_mesh_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
+						Description: "Whether global mesh is supported for this group.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
 					},
 
 					"network_group_id": {
+						Description:  "The resource ID of Network Group which the configuration applies to.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"use_hub_gateway": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
+						Description: "Whether the hub gateway is used.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
 					},
 				},
 			},
 		},
 
 		"connectivity_topology": {
+			Description:  "The connectivity topology type.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice(connectivityconfigurations.PossibleValuesForConnectivityTopology(), false),
 		},
 
 		"connected_group_address_overlap_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether connected group address overlap is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"connected_group_private_endpoints_scale": {
+			Description:  "The scale of Private Endpoints allowed in the connected group.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(connectivityconfigurations.ConnectedGroupPrivateEndpointsScaleStandard),
@@ -110,11 +119,13 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"delete_existing_peering_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
+			Description: "Whether to remove current existing Virtual Network Peering in the Connectivity Configuration affected scope.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
 		},
 
 		"description": {
+			Description:  "A description of the Connectivity Configuration.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -127,12 +138,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"resource_id": {
+						Description:  "The resource ID used as hub in Hub And Spoke topology.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: azure.ValidateResourceID,
 					},
 
 					"resource_type": {
+						Description:  "The resource Type used as hub in Hub And Spoke topology.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -142,14 +155,16 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"global_mesh_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
+			Description: "Whether global mesh is supported.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
 		},
 
 		"peering_enforcement_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether peering enforcement is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 	}
 }

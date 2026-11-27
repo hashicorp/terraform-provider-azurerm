@@ -20,3 +20,7 @@ func (Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 func (Resource) ResourceType() string {
 	return "azurerm_network_manager_ipam_pool_static_cidr"
 }
+
+func (Resource) Description() string {
+	return "Manages a Network Manager IPAM Pool Static CIDR."
+}

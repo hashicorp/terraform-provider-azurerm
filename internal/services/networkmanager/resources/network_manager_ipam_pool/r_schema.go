@@ -15,9 +15,10 @@ import (
 func (Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name which should be used for this Network Manager IPAM Pool.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`^[a-zA-Z0-9\_\.\-]{1,64}$`),
 				"`name` must be between 1 and 64 characters long and can only contain letters, numbers, underscores(_), periods(.), and hyphens(-).",
@@ -29,9 +30,10 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"address_prefixes": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			ForceNew: true,
+			Description: "A list of IPv4 or IPv6 IP address prefixes.",
+			Type:        pluginsdk.TypeList,
+			Required:    true,
+			ForceNew:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.IsCIDR,
@@ -39,8 +41,9 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"display_name": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The display name for the Network Manager IPAM Pool.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`^[a-zA-Z0-9\_\.\-]{1,64}$`),
 				"`display_name` must be between 1 and 64 characters long and can only contain letters, numbers, underscores(_), periods(.), and hyphens(-).",
@@ -48,9 +51,10 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"parent_pool_name": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
+			Description: "The name of the parent IPAM Pool.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`^[a-zA-Z0-9\_\.\-]{1,64}$`),
 				"`parent_pool_name` must be between 1 and 64 characters long and can only contain letters, numbers, underscores(_), periods(.), and hyphens(-).",
@@ -58,6 +62,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"description": {
+			Description:  "The description of the Network Manager IPAM Pool.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,

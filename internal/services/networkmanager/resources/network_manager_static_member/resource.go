@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_network_manager_static_member"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Network Manager Static Member."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return staticmembers.ValidateStaticMemberID
 }

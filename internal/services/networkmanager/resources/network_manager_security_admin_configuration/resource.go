@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_network_manager_security_admin_configuration"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Network Manager Security Admin Configuration."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return securityadminconfigurations.ValidateSecurityAdminConfigurationID
 }

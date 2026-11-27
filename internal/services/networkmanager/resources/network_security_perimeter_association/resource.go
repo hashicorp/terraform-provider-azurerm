@@ -17,6 +17,10 @@ func (Resource) ResourceType() string {
 	return "azurerm_network_security_perimeter_association"
 }
 
+func (Resource) Description() string {
+	return "Manages a Network Security Perimeter Association."
+}
+
 func (Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return networksecurityperimeterassociations.ValidateResourceAssociationID
 }

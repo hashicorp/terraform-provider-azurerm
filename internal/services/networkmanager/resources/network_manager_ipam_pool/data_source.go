@@ -26,6 +26,10 @@ func (r DataSource) ResourceType() string {
 	return "azurerm_network_manager_ipam_pool"
 }
 
+func (r DataSource) Description() string {
+	return "Use this data source to access information about an existing Network Manager IPAM Pool."
+}
+
 func (r DataSource) ModelObject() any {
 	return &ManagerIpamPoolDataSourceModel{}
 }
@@ -44,6 +48,7 @@ type ManagerIpamPoolDataSourceModel struct {
 func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this Network Manager IPAM Pool.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -56,28 +61,32 @@ func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"address_prefixes": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "A list of IPv4 or IPv6 IP address prefixes assigned to the Network Manager IPAM Pool.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"display_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The display name of the Network Manager IPAM Pool.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"location": commonschema.LocationComputed(),
 
 		"parent_pool_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The name of the parent IPAM Pool.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The description of the Network Manager IPAM Pool.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"tags": commonschema.TagsDataSource(),

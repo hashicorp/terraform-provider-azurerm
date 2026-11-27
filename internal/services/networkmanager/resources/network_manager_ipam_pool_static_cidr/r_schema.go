@@ -16,9 +16,10 @@ import (
 func (Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name which should be used for this Network Manager IPAM Pool Static CIDR.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`^[a-zA-Z0-9\_\.\-]{1,64}$`),
 				"`name` must be between 1 and 64 characters long and can only contain letters, numbers, underscores(_), periods(.), and hyphens(-).",
@@ -28,8 +29,9 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		"ipam_pool_id": commonschema.ResourceIDReferenceRequiredForceNew(&staticcidrs.IPamPoolId{}, "Network Manager IP Address Management (IPAM) Pool"),
 
 		"address_prefixes": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Description: "A list of IPv4 or IPv6 IP address prefixes which will be allocated to the Static CIDR.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
 			DiffSuppressFunc: func(_, old, new string, d *pluginsdk.ResourceData) bool {
 				// If `number_of_ip_addresses_to_allocate` is used instead of `address_prefixes` there is a perpetual diff
 				// due to the API returning a CIDR range provisioned by the IP Address Management Pool.
@@ -49,6 +51,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"number_of_ip_addresses_to_allocate": {
+			Description:  "The number of IP addresses to allocate to the Static CIDR.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validate.NumberOfIpAddresses,

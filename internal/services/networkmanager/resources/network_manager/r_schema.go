@@ -16,6 +16,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Network Manager.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -34,6 +35,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*schema.Schema{
 					"management_group_ids": {
+						Description:  "A list of Management Group IDs.",
 						Type:         pluginsdk.TypeList,
 						Optional:     true,
 						AtLeastOneOf: []string{"scope.0.management_group_ids", "scope.0.subscription_ids"},
@@ -43,6 +45,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						},
 					},
 					"subscription_ids": {
+						Description:  "A list of subscription IDs.",
 						Type:         pluginsdk.TypeList,
 						Optional:     true,
 						AtLeastOneOf: []string{"scope.0.management_group_ids", "scope.0.subscription_ids"},
@@ -56,9 +59,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"scope_accesses": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MinItems: 1,
+			Description: "A list of configuration deployment types.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
+			MinItems:    1,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -70,8 +74,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "A description of the Network Manager.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 
 		"tags": commonschema.Tags(),
@@ -86,19 +91,22 @@ func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*schema.Schema{
 					"tenant_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "Tenant ID.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"subscriptions": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
+						Description: "List of subscriptions.",
+						Type:        pluginsdk.TypeList,
+						Computed:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
 					},
 					"management_groups": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
+						Description: "List of Management Groups.",
+						Type:        pluginsdk.TypeList,
+						Computed:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},

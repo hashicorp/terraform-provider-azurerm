@@ -13,6 +13,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Network Subscription Network Manager Connection.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,6 +21,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"subscription_id": {
+			Description:  "The ID of the target Subscription.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,12 +29,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"network_manager_id": {
+			Description:  "The ID of the Network Manager which the Subscription is connected to.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: networkmanagers.ValidateNetworkManagerID,
 		},
 
 		"description": {
+			Description:  "A description of the Network Manager Subscription Connection.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -43,8 +47,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"connection_state": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The connection state of the Network Manager Subscription Connection.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

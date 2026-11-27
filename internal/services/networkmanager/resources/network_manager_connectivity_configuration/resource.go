@@ -20,6 +20,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_network_manager_connectivity_configuration"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Network Manager Connectivity Configuration."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return connectivityconfigurations.ValidateConnectivityConfigurationID
 }

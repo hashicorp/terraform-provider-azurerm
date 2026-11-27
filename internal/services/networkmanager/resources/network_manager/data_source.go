@@ -26,6 +26,10 @@ func (r DataSource) ResourceType() string {
 	return "azurerm_network_manager"
 }
 
+func (r DataSource) Description() string {
+	return "Use this data source to access information about a Network Manager."
+}
+
 func (r DataSource) ModelObject() any {
 	return &ManagerModel{}
 }
@@ -33,6 +37,7 @@ func (r DataSource) ModelObject() any {
 func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Network Manager.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -52,15 +57,17 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*schema.Schema{
 					"management_group_ids": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
+						Description: "A list of Management Group IDs used as the scope for the Network Manager.",
+						Type:        pluginsdk.TypeList,
+						Computed:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
 					},
 					"subscription_ids": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
+						Description: "A list of subscription IDs used as the scope for the Network Manager.",
+						Type:        pluginsdk.TypeList,
+						Computed:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
@@ -70,8 +77,9 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"scope_accesses": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "A list of configuration deployment type configured on the Network Manager.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
@@ -83,19 +91,22 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"tenant_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The tenant ID of the cross tenant scope.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"subscriptions": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
+						Description: "A list of subscriptions used as cross tenant scope for the Network Manager.",
+						Type:        pluginsdk.TypeList,
+						Computed:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
 					},
 					"management_groups": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
+						Description: "A list of Management Groups used as cross tenant scope for the Network Manager.",
+						Type:        pluginsdk.TypeList,
+						Computed:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
@@ -105,8 +116,9 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "A description of the Network Manager.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"tags": commonschema.TagsDataSource(),

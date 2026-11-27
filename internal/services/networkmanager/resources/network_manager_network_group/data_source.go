@@ -24,6 +24,10 @@ func (r DataSource) ResourceType() string {
 	return "azurerm_network_manager_network_group"
 }
 
+func (r DataSource) Description() string {
+	return "Use this data source to access information about a Network Manager Network Group."
+}
+
 func (r DataSource) ModelObject() any {
 	return &ManagerNetworkGroupModel{}
 }
@@ -31,12 +35,14 @@ func (r DataSource) ModelObject() any {
 func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Network Manager Network Group.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"network_manager_id": {
+			Description:  "The ID of the Network Manager.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: networkgroups.ValidateNetworkManagerID,
@@ -47,12 +53,14 @@ func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "A description of the Network Manager Network Group.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 		"member_type": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The member type of the Network Manager Network Group.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

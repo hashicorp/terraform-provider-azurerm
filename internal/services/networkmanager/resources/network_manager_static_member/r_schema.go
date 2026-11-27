@@ -13,6 +13,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Network Manager Static Member.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,6 +21,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"network_group_id": {
+			Description:  "The ID of the Network Manager Group.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,9 +29,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"target_virtual_network_id": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The Resource ID of the Virtual Network or Subnet used as the Static Member.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.Any(
 				commonids.ValidateVirtualNetworkID,
 				commonids.ValidateSubnetID,
@@ -41,8 +44,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"region": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The region of the Network Manager Static Member.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

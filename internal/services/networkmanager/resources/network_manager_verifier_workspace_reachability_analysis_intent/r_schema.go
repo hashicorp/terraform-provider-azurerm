@@ -18,9 +18,10 @@ import (
 func (Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name which should be used for this Network Manager Verifier Workspace Reachability Analysis Intent.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`^[a-zA-Z0-9\_\.\-]{1,64}$`),
 				"`name` must be between 1 and 64 characters long and can only contain letters, numbers, underscores(_), periods(.), and hyphens(-).",
@@ -30,9 +31,10 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		"verifier_workspace_id": commonschema.ResourceIDReferenceRequiredForceNew(&reachabilityanalysisintents.VerifierWorkspaceId{}, "Network Manager Verifier Workspace"),
 
 		"source_resource_id": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The ID of the source resource.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.Any(
 				commonids.ValidatePublicIPAddressID,
 				commonids.ValidateSubnetID,
@@ -41,9 +43,10 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"destination_resource_id": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The ID of the destination resource.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.Any(
 				commonids.ValidatePublicIPAddressID,
 				commonids.ValidateSqlServerID,
@@ -62,9 +65,10 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"destination_ips": {
-						Type:     pluginsdk.TypeList,
-						Required: true,
-						ForceNew: true,
+						Description: "A list of IPv4 or IPv6 addresses or ranges using CIDR notation of the source you want to verify.",
+						Type:        pluginsdk.TypeList,
+						Required:    true,
+						ForceNew:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 							ValidateFunc: validation.Any(
@@ -74,18 +78,20 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 						},
 					},
 					"destination_ports": {
-						Type:     pluginsdk.TypeList,
-						Required: true,
-						ForceNew: true,
+						Description: "A list of ports or ranges of the destination you want to verify. To specify any port, use `[\"*\"]`.",
+						Type:        pluginsdk.TypeList,
+						Required:    true,
+						ForceNew:    true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validate.IpTrafficPort,
 						},
 					},
 					"source_ips": {
-						Type:     pluginsdk.TypeList,
-						Required: true,
-						ForceNew: true,
+						Description: "A list of IPv4 or IPv6 addresses or ranges using CIDR notation of the source you want to verify.",
+						Type:        pluginsdk.TypeList,
+						Required:    true,
+						ForceNew:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 							ValidateFunc: validation.Any(
@@ -95,18 +101,20 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 						},
 					},
 					"source_ports": {
-						Type:     pluginsdk.TypeList,
-						Required: true,
-						ForceNew: true,
+						Description: "A list of ports or ranges of the source you want to verify. To specify any port, use `[\"*\"]`.",
+						Type:        pluginsdk.TypeList,
+						Required:    true,
+						ForceNew:    true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validate.IpTrafficPort,
 						},
 					},
 					"protocols": {
-						Type:     pluginsdk.TypeList,
-						Required: true,
-						ForceNew: true,
+						Description: "A list of network protocols.",
+						Type:        pluginsdk.TypeList,
+						Required:    true,
+						ForceNew:    true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringInSlice(reachabilityanalysisintents.PossibleValuesForNetworkProtocol(), false),
@@ -117,6 +125,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"description": {
+			Description:  "The description of the resource.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,

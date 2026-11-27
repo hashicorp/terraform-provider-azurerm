@@ -20,3 +20,7 @@ func (Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 func (Resource) ResourceType() string {
 	return "azurerm_network_manager_ipam_pool"
 }
+
+func (Resource) Description() string {
+	return "Manages a Network Manager IP Address Management (IPAM) Pool."
+}

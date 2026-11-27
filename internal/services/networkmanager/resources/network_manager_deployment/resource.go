@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_network_manager_deployment"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Network Manager Deployment."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.NetworkManagerDeploymentID
 }

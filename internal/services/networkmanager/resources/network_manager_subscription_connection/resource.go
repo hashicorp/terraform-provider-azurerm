@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_network_manager_subscription_connection"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Network Manager Subscription Connection which may cross tenants."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return networkmanagerconnections.ValidateNetworkManagerConnectionID
 }

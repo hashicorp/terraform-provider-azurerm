@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_network_manager_network_group"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Network Manager Network Group."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return networkgroups.ValidateNetworkGroupID
 }

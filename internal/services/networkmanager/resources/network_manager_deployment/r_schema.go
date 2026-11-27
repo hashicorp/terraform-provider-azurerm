@@ -14,6 +14,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"network_manager_id": {
+			Description:  "The ID of the Network Manager.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -23,9 +24,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"scope_access": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The configuration deployment type.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(networkmanagers.ConfigurationTypeConnectivity),
 				string(networkmanagers.ConfigurationTypeSecurityAdmin),
@@ -34,8 +36,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"configuration_ids": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
+			Description: "A list of Network Manager Configuration IDs which should be aligned with `scope_access`.",
+			Type:        pluginsdk.TypeList,
+			Required:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: azure.ValidateResourceID,
@@ -44,8 +47,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 
 		// TODO: look at removing this workaround for v6.0, see https://github.com/hashicorp/terraform-provider-azurerm/pull/20451#discussion_r1179646861 (manicminer)
 		"triggers": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
+			Description: "A mapping of key-value pairs that can be used to keep the deployment up with the Network Manager configurations and rules.",
+			Type:        pluginsdk.TypeMap,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},

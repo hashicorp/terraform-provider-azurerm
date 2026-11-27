@@ -20,3 +20,7 @@ func (Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 func (Resource) ResourceType() string {
 	return "azurerm_network_manager_routing_configuration"
 }
+
+func (Resource) Description() string {
+	return "Manages a Network Manager Routing Configuration."
+}
