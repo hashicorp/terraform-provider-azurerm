@@ -90,6 +90,8 @@ The following arguments are supported:
 
 * `git_repository` - (Optional) A `git_repository` block as defined below.
 
+* `oci_repository` - (Optional) An `oci_repository` block as defined below.
+
 * `scope` - (Optional) Specifies the scope at which the operator will be installed. Possible values are `cluster` and `namespace`. Defaults to `namespace`. Changing this forces a new Kubernetes Flux Configuration to be created.
 
 * `continuous_reconciliation_enabled` - (Optional) Whether the configuration will keep its reconciliation of its kustomizations and sources with the repository. Defaults to `true`.
@@ -179,6 +181,38 @@ A `bucket` block supports the following:
 * `sync_interval_in_seconds` - (Optional) Specifies the interval at which to re-reconcile the cluster git repository source with the remote. Defaults to `600`.
 
 * `timeout_in_seconds` - (Optional) Specifies the maximum time to attempt to reconcile the cluster git repository source with the remote. Defaults to `600`.
+
+---
+
+A `oci_repository` block supports the following:
+
+* `url` - (Required) Specifies the URL of the OCI repository to sync. It must start with `oci://`.
+
+* `reference_type` - (Required) Specifies the source reference type for the OCIRepository object. Possible values are `digest`, `semver` and `tag`.
+
+* `reference_value` - (Required) Specifies the source reference value for the OCIRepository object.
+
+* `layer_selector` - (Optional) A `layer_selector` block as defined below.
+
+* `local_auth_reference` - (Optional) Specifies the name of a local secret on the Kubernetes cluster to use as the authentication secret. Conflicts with `use_workload_identity`.
+
+* `service_account_name` - (Optional) Specifies the name of the Kubernetes service account used to authenticate with the registry.
+
+* `use_workload_identity` - (Optional) Whether to authenticate with the registry using workload identity. Conflicts with `local_auth_reference`.
+
+* `tls_enabled` - (Optional) Whether to communicate with the registry using TLS. Defaults to `true`.
+
+* `sync_interval_in_seconds` - (Optional) Specifies the interval at which to re-reconcile the OCI repository source with the remote. Defaults to `600`.
+
+* `timeout_in_seconds` - (Optional) Specifies the maximum time to attempt to reconcile the OCI repository source with the remote. Defaults to `600`.
+
+---
+
+A `layer_selector` block supports the following:
+
+* `media_type` - (Required) Specifies the media type of the OCI layer to select.
+
+* `operation` - (Optional) Specifies the operation to perform on the selected layer. Possible values are `copy` and `extract`.
 
 ---
 

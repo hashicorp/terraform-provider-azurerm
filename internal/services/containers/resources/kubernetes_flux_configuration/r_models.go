@@ -9,6 +9,7 @@ type KubernetesFluxConfigurationModel struct {
 	BlobStorage                     []AzureBlobDefinitionModel     `tfschema:"blob_storage"`
 	Bucket                          []BucketDefinitionModel        `tfschema:"bucket"`
 	GitRepository                   []GitRepositoryDefinitionModel `tfschema:"git_repository"`
+	OCIRepository                   []OCIRepositoryDefinitionModel `tfschema:"oci_repository"`
 	Kustomizations                  []KustomizationDefinitionModel `tfschema:"kustomizations"`
 	Namespace                       string                         `tfschema:"namespace"`
 	Scope                           string                         `tfschema:"scope"`
@@ -59,6 +60,24 @@ type GitRepositoryDefinitionModel struct {
 	SyncIntervalInSeconds int64  `tfschema:"sync_interval_in_seconds"`
 	TimeoutInSeconds      int64  `tfschema:"timeout_in_seconds"`
 	Url                   string `tfschema:"url"`
+}
+
+type OCIRepositoryDefinitionModel struct {
+	LayerSelector         []LayerSelectorDefinitionModel `tfschema:"layer_selector"`
+	LocalAuthRef          string                         `tfschema:"local_auth_reference"`
+	ReferenceType         string                         `tfschema:"reference_type"`
+	ReferenceValue        string                         `tfschema:"reference_value"`
+	ServiceAccountName    string                         `tfschema:"service_account_name"`
+	SyncIntervalInSeconds int64                          `tfschema:"sync_interval_in_seconds"`
+	TimeoutInSeconds      int64                          `tfschema:"timeout_in_seconds"`
+	TlsEnabled            bool                           `tfschema:"tls_enabled"`
+	Url                   string                         `tfschema:"url"`
+	UseWorkloadIdentity   bool                           `tfschema:"use_workload_identity"`
+}
+
+type LayerSelectorDefinitionModel struct {
+	MediaType string `tfschema:"media_type"`
+	Operation string `tfschema:"operation"`
 }
 
 type KustomizationDefinitionModel struct {
