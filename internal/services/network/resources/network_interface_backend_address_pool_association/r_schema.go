@@ -13,6 +13,7 @@ import (
 func networkInterfaceBackendAddressPoolAssociationSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"network_interface_id": {
+			Description:  "The ID of the Network Interface.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,6 +21,7 @@ func networkInterfaceBackendAddressPoolAssociationSchema() map[string]*pluginsdk
 		},
 
 		"ip_configuration_name": {
+			Description:  "The Name of the IP Configuration within the Network Interface which should be connected to the Backend Address Pool.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,6 +29,7 @@ func networkInterfaceBackendAddressPoolAssociationSchema() map[string]*pluginsdk
 		},
 
 		"backend_address_pool_id": {
+			Description:  "The ID of the Load Balancer Backend Address Pool which this Network Interface should be connected to.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

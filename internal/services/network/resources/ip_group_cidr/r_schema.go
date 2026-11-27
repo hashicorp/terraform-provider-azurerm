@@ -12,12 +12,14 @@ import (
 func ipGroupCidrSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"ip_group_id": {
+			Description:  "The ID of the destination IP Group.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: ipgroups.ValidateIPGroupID,
 		},
 		"cidr": {
+			Description:  "The `CIDR` that should be added to the IP Group.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

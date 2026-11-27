@@ -12,6 +12,7 @@ import (
 func subnetNetworkSecurityGroupAssociationSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"subnet_id": {
+			Description:  "The ID of the Subnet.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -19,6 +20,7 @@ func subnetNetworkSecurityGroupAssociationSchema() map[string]*pluginsdk.Schema 
 		},
 
 		"network_security_group_id": {
+			Description:  "The ID of the Network Security Group which should be associated with the Subnet.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

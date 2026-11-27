@@ -15,6 +15,7 @@ import (
 func resourceNatGatewaySchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the NAT Gateway.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -26,6 +27,7 @@ func resourceNatGatewaySchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"idle_timeout_in_minutes": {
+			Description:  "The idle timeout which should be used in minutes.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Default:      4,
@@ -33,6 +35,7 @@ func resourceNatGatewaySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"sku_name": {
+			Description:  "The SKU which should be used.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -41,9 +44,10 @@ func resourceNatGatewaySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"zones": {
-			Type:     schema.TypeSet,
-			Optional: true,
-			ForceNew: true,
+			Description: "A list of Availability Zones in which this NAT Gateway should be located.",
+			Type:        schema.TypeSet,
+			Optional:    true,
+			ForceNew:    true,
 			DiffSuppressFunc: func(_, _, _ string, d *schema.ResourceData) bool {
 				return d.Get("sku_name").(string) == string(natgateways.NatGatewaySkuNameStandardVTwo)
 			},
@@ -55,8 +59,9 @@ func resourceNatGatewaySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"resource_guid": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The resource GUID property of the NAT Gateway.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"tags": commonschema.Tags(),

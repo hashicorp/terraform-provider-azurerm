@@ -17,10 +17,11 @@ var networkSecurityGroupResourceName = "azurerm_network_security_group"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceNetworkSecurityGroupCreate,
-		Read:   resourceNetworkSecurityGroupRead,
-		Update: resourceNetworkSecurityGroupUpdate,
-		Delete: resourceNetworkSecurityGroupDelete,
+		Description: "Manages a Network Security Group that contains a list of Network Security Rules. Network Security Groups enable inbound or outbound traffic to be enabled or denied.",
+		Create:      resourceNetworkSecurityGroupCreate,
+		Read:        resourceNetworkSecurityGroupRead,
+		Update:      resourceNetworkSecurityGroupUpdate,
+		Delete:      resourceNetworkSecurityGroupDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&networksecuritygroups.NetworkSecurityGroupId{}),
 

@@ -19,7 +19,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceNetAppSnapshotPolicyRead,
+		Description: "Use this data source to access information about an existing NetApp Snapshot Policy.",
+		Read:        dataSourceNetAppSnapshotPolicyRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -27,6 +28,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the NetApp Snapshot Policy.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.SnapshotName,
@@ -37,60 +39,70 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"location": commonschema.LocationComputed(),
 
 			"account_name": {
+				Description:  "The name of the NetApp account where the NetApp Snapshot Policy exists.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.AccountName,
 			},
 
 			"enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether the NetApp Snapshot Policy is enabled.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"hourly_schedule": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "Hourly snapshot schedule.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"snapshots_to_keep": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
+							Description: "How many hourly snapshots to keep.",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
 						},
 
 						"minute": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
+							Description: "Minute of the hour that the snapshots will be created.",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
 						},
 					},
 				},
 			},
 
 			"daily_schedule": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "Daily snapshot schedule.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"snapshots_to_keep": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
+							Description: "How many hourly snapshots to keep.",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
 						},
 
 						"hour": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
+							Description: "Hour of the day that the snapshots will be created.",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
 						},
 
 						"minute": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
+							Description: "Minute of the hour that the snapshots will be created.",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
 						},
 					},
 				},
 			},
 
 			"weekly_schedule": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "Weekly snapshot schedule.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"snapshots_to_keep": {
@@ -120,8 +132,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"monthly_schedule": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "Monthly snapshot schedule.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"snapshots_to_keep": {

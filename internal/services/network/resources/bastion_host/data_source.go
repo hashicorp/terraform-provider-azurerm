@@ -21,7 +21,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceBastionHostRead,
+		Description: "Use this data source to access information about an existing Bastion Host.",
+		Read:        dataSourceBastionHostRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -29,19 +30,22 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Bastion Host.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.BastionHostName,
 			},
 
 			"copy_paste_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether the copy/paste feature is enabled for the Bastion Host.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"file_copy_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether the file copy feature is enabled for the Bastion Host.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"ip_configuration": {
@@ -50,59 +54,70 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of the IP configuration.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"subnet_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "Reference to the subnet in which this Bastion Host has been created.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"public_ip_address_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "Reference to a Public IP Address associated to this Bastion Host.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
 			},
 
 			"ip_connect_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether the IP connect feature is enabled for the Bastion Host.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"private_only_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether Private-Only deployment is enabled for the Bastion Host.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"scale_units": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The number of scale units provisioned for the Bastion Host.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"shareable_link_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether the shareable link feature is enabled for the Bastion Host.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"sku": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The SKU of the Bastion Host.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"tunneling_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether the tunneling feature is enabled for the Bastion Host.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"session_recording_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether the session recording feature is enabled for the Bastion Host.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"dns_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The FQDN for the Bastion Host.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"location": commonschema.LocationComputed(),

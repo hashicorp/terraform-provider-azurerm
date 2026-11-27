@@ -12,9 +12,10 @@ import (
 func ipGroupSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the IP group.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 
 		"location": commonschema.Location(),
@@ -22,25 +23,28 @@ func ipGroupSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"firewall_ids": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "A list of Firewall IDs.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"firewall_policy_ids": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "A list of Firewall Policy IDs.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"cidrs": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
-			Set:      pluginsdk.HashString,
+			Description: "A list of CIDRs or IP addresses.",
+			Type:        pluginsdk.TypeSet,
+			Optional:    true,
+			Set:         pluginsdk.HashString,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,

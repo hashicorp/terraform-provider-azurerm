@@ -12,14 +12,16 @@ import (
 func mysqlFlexibleServerConfigurationSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the MySQL Flexible Server Configuration, which needs [to be a valid MySQL configuration name](https://dev.mysql.com/doc/refman/5.7/en/server-configuration.html).",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"server_name": {
+			Description:  "The name of the MySQL Flexible Server.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,8 +29,9 @@ func mysqlFlexibleServerConfigurationSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"value": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The value of the MySQL Flexible Server Configuration. See the MySQL documentation for valid values.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 		},
 	}
 }

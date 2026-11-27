@@ -27,6 +27,10 @@ func (r DataSource) ResourceType() string {
 	return "azurerm_netapp_volume_quota_rule"
 }
 
+func (r DataSource) Description() string {
+	return "Use this data source to access information about an existing Volume Quota Rule."
+}
+
 func (r DataSource) ModelObject() any {
 	return &models.NetAppVolumeQuotaRuleDataSourceModel{}
 }
@@ -38,11 +42,13 @@ func (r DataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The name of this Volume Quota Rule.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 		},
 
 		"volume_id": {
+			Description:  "The NetApp volume ID where the Volume Quota Rule is assigned to.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -56,18 +62,21 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"location": commonschema.LocationComputed(),
 
 		"quota_target": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The quota Target.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"quota_size_in_kib": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The quota size in kibibytes.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"quota_type": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The quota type.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

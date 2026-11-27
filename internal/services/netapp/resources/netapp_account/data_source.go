@@ -21,7 +21,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceNetAppAccountRead,
+		Description: "Use this data source to access information about an existing NetApp Account.",
+		Read:        dataSourceNetAppAccountRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -29,6 +30,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the NetApp Account.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.AccountName,

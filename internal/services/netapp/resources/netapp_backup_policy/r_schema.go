@@ -13,6 +13,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the NetApp Backup Policy.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -24,6 +25,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"account_name": {
+			Description:  "The name of the NetApp account in which the NetApp Policy should be created under.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -33,6 +35,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"tags": commonschema.Tags(),
 
 		"daily_backups_to_keep": {
+			Description:  "Provides the number of daily backups to keep.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Default:      2,
@@ -40,25 +43,28 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"weekly_backups_to_keep": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
+			Description: "Provides the number of weekly backups to keep.",
+			Type:        pluginsdk.TypeInt,
+			Optional:    true,
 			// Default in API is 0 but initially set to 1 so keeping to avoid breaking changes
 			Default:      1,
 			ValidateFunc: validation.IntBetween(0, 1019),
 		},
 
 		"monthly_backups_to_keep": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
+			Description: "Provides the number of monthly backups to keep.",
+			Type:        pluginsdk.TypeInt,
+			Optional:    true,
 			// Default in API is 0 but initially set to 1 so keeping to avoid breaking changes
 			Default:      1,
 			ValidateFunc: validation.IntBetween(0, 1019),
 		},
 
 		"enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether the Backup Policy is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 	}
 }

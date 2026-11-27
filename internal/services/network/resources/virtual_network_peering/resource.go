@@ -15,10 +15,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceVirtualNetworkPeeringCreate,
-		Read:   resourceVirtualNetworkPeeringRead,
-		Update: resourceVirtualNetworkPeeringUpdate,
-		Delete: resourceVirtualNetworkPeeringDelete,
+		Description: "Manages a Virtual Network peering which allows resources to access other resources in the linked Virtual Network.",
+		Create:      resourceVirtualNetworkPeeringCreate,
+		Read:        resourceVirtualNetworkPeeringRead,
+		Update:      resourceVirtualNetworkPeeringUpdate,
+		Delete:      resourceVirtualNetworkPeeringDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&virtualnetworkpeerings.VirtualNetworkPeeringId{}),
 

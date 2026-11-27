@@ -26,6 +26,10 @@ func (r DataSource) ResourceType() string {
 	return "azurerm_netapp_volume_bucket_with_server"
 }
 
+func (r DataSource) Description() string {
+	return "Use this data source to access information about an existing NetApp Files Volume Bucket, including its bucket server configuration."
+}
+
 func (r DataSource) ModelObject() any {
 	return &models.NetAppVolumeBucketWithServerDataSourceModel{}
 }

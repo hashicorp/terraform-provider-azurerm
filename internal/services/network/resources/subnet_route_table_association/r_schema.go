@@ -12,6 +12,7 @@ import (
 func subnetRouteTableAssociationSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"subnet_id": {
+			Description:  "The ID of the Subnet.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -19,6 +20,7 @@ func subnetRouteTableAssociationSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"route_table_id": {
+			Description:  "The ID of the Route Table which should be associated with the Subnet.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

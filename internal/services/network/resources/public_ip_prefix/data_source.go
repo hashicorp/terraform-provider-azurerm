@@ -22,7 +22,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourcePublicIpPrefixRead,
+		Description: "Use this data source to access information about an existing Public IP Prefix.",
+		Read:        dataSourcePublicIpPrefixRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -30,8 +31,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The name of the public IP prefix.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"location": commonschema.LocationComputed(),
@@ -39,33 +41,39 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"custom_ip_prefix_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Custom IP Prefix ID associated with the Public IP Prefix.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"ip_version": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The IP Version in use.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"sku": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The SKU of the Public IP Prefix.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"sku_tier": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The SKU Tier of the Public IP.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"prefix_length": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The number of bits of the prefix.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"ip_prefix": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Public IP address range, in CIDR notation.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"zones": commonschema.ZonesMultipleComputed(),

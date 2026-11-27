@@ -13,9 +13,10 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceNetworkInterfaceBackendAddressPoolAssociationCreate,
-		Read:   resourceNetworkInterfaceBackendAddressPoolAssociationRead,
-		Delete: resourceNetworkInterfaceBackendAddressPoolAssociationDelete,
+		Description: "Manages the association between a Network Interface and a Load Balancer's Backend Address Pool.",
+		Create:      resourceNetworkInterfaceBackendAddressPoolAssociationCreate,
+		Read:        resourceNetworkInterfaceBackendAddressPoolAssociationRead,
+		Delete:      resourceNetworkInterfaceBackendAddressPoolAssociationDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := commonids.ParseCompositeResourceID(id, &commonids.NetworkInterfaceIPConfigurationId{}, &loadbalancers.BackendAddressPoolId{})
 			return err

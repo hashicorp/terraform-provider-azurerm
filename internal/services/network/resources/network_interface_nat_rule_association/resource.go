@@ -13,9 +13,10 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceNetworkInterfaceNatRuleAssociationCreate,
-		Read:   resourceNetworkInterfaceNatRuleAssociationRead,
-		Delete: resourceNetworkInterfaceNatRuleAssociationDelete,
+		Description: "Manages the association between a Network Interface and a Load Balancer's NAT Rule.",
+		Create:      resourceNetworkInterfaceNatRuleAssociationCreate,
+		Read:        resourceNetworkInterfaceNatRuleAssociationRead,
+		Delete:      resourceNetworkInterfaceNatRuleAssociationDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := commonids.ParseCompositeResourceID(id, &commonids.NetworkInterfaceIPConfigurationId{}, &loadbalancers.InboundNatRuleId{})
 			return err

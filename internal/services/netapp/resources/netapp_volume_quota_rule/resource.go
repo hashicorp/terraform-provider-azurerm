@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_netapp_volume_quota_rule"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Volume Quota Rule."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return volumequotarules.ValidateVolumeQuotaRuleID
 }

@@ -21,7 +21,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceNetAppVolumeRead,
+		Description: "Use this data source to access information about an existing NetApp Volume.",
+		Read:        dataSourceNetAppVolumeRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -29,6 +30,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the NetApp Volume.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.VolumeName,
@@ -41,12 +43,14 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"zone": commonschema.ZoneSingleComputed(),
 
 			"account_name": {
+				Description:  "The name of the NetApp account where the NetApp pool exists.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.AccountName,
 			},
 
 			"pool_name": {
+				Description:  "The name of the NetApp pool where the NetApp volume exists.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.PoolName,
@@ -58,110 +62,129 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"ip_address": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The IP address of the mount target.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"smb_server_fqdn": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The SMB server's Fully Qualified Domain Name (FQDN). This value is populated when the volume's `protocols` include `CIFS`; otherwise, it is empty.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
 			},
 
 			"volume_path": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The unique file path of the volume.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"service_level": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The service level of the file system.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"subnet_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ID of a Subnet in which the NetApp Volume resides.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"network_features": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "Network features in use `Basic` or `Standard`.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"storage_quota_in_gb": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The maximum Storage Quota in Gigabytes allowed for a file system.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"protocols": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Description: "A list of protocol types enabled on volume.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
+				Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
 			"security_style": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
+				Description: "Volume security style.",
+				Type:        pluginsdk.TypeString,
+				Optional:    true,
 			},
 
 			"data_protection_replication": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "Volume data protection replication block.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"endpoint_type": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The endpoint type.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"remote_volume_location": commonschema.LocationComputed(),
 
 						"remote_volume_resource_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "Resource ID of the primary volume.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"replication_frequency": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "Frequency of replication.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
 			},
 
 			"data_protection_backup_policy": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "A data protection backup policy block.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"backup_policy_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The Resource ID of the backup policy.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"policy_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Backup policy is enabled.",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 
 						"backup_vault_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The Resource ID of the backup Backup Vault.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
 			},
 
 			"data_protection_advanced_ransomware": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "An Advanced Ransomware Protection (ARP) data protection block.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"protection_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Whether the Advanced Ransomware Protection feature is enabled.",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 					},
 				},
@@ -178,23 +201,27 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"smb_non_browsable_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Limits clients from browsing for an SMB share.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"smb_access_based_enumeration_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Limits enumeration of files and folders (that is, listing the contents) in SMB only to users with allowed access on the share.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"large_volume_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether the volume is a large volume.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"breakthrough_mode_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether the large volume runs in Breakthrough Mode, placing it on dedicated capacity that provides higher throughput and greater capacity.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"accept_grow_capacity_pool_for_short_term_clone_split": {

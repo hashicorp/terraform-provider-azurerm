@@ -22,13 +22,15 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceNatGatewayRead,
+		Description: "Use this data source to access information about an existing NAT Gateway.",
+		Read:        dataSourceNatGatewayRead,
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The Name of the NAT Gateway.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.NatGatewayName,
@@ -39,36 +41,41 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"location": commonschema.LocationComputed(),
 
 			"idle_timeout_in_minutes": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The idle timeout in minutes which is used for the NAT Gateway.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"public_ip_address_ids": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Computed: true, // azignore:AZS007 - pre-existing violation
+				Description: "A list of existing Public IP Address resource IDs which the NAT Gateway is using.",
+				Type:        pluginsdk.TypeList,
+				Optional:    true,
+				Computed:    true, // azignore:AZS007 - pre-existing violation
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"public_ip_prefix_ids": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Computed: true, // azignore:AZS007 - pre-existing violation
+				Description: "A list of existing Public IP Prefix resource IDs which the NAT Gateway is using.",
+				Type:        pluginsdk.TypeList,
+				Optional:    true,
+				Computed:    true, // azignore:AZS007 - pre-existing violation
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"resource_guid": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Resource GUID of the NAT Gateway.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The SKU used by the NAT Gateway.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"zones": commonschema.ZonesMultipleComputed(),

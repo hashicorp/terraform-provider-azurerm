@@ -17,6 +17,7 @@ import (
 func networkWatcherFlowLogSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"network_watcher_name": {
+			Description:  "The name of the Network Watcher.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,6 +28,7 @@ func networkWatcherFlowLogSchema() map[string]*pluginsdk.Schema {
 
 		// lintignore: S013
 		"name": {
+			Description:  "The name of the Network Watcher Flow Log.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -34,8 +36,9 @@ func networkWatcherFlowLogSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"target_resource_id": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The ID of the Resource for which to enable flow logs for.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 			ValidateFunc: validation.Any(
 				networksecuritygroups.ValidateNetworkSecurityGroupID,
 				commonids.ValidateVirtualNetworkID,
@@ -45,14 +48,16 @@ func networkWatcherFlowLogSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"storage_account_id": {
+			Description:  "The ID of the Storage Account where flow logs are stored.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: commonids.ValidateStorageAccountID,
 		},
 
 		"enabled": {
-			Type:     pluginsdk.TypeBool,
-			Required: true,
+			Description: "Whether Network Flow Logging should be Enabled.",
+			Type:        pluginsdk.TypeBool,
+			Required:    true,
 		},
 
 		"retention_policy": {
@@ -62,12 +67,14 @@ func networkWatcherFlowLogSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"enabled": {
+						Description:      "Boolean flag to enable/disable retention.",
 						Type:             pluginsdk.TypeBool,
 						Required:         true,
 						DiffSuppressFunc: azureRMSuppressFlowLogRetentionPolicyEnabledDiff,
 					},
 
 					"days": {
+						Description:      "The number of days to retain flow log records.",
 						Type:             pluginsdk.TypeInt,
 						Required:         true,
 						DiffSuppressFunc: azureRMSuppressFlowLogRetentionPolicyDaysDiff,
@@ -83,17 +90,20 @@ func networkWatcherFlowLogSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"enabled": {
-						Type:     pluginsdk.TypeBool,
-						Required: true,
+						Description: "Boolean flag to enable/disable traffic analytics.",
+						Type:        pluginsdk.TypeBool,
+						Required:    true,
 					},
 
 					"workspace_id": {
+						Description:  "The resource GUID of the attached workspace.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.IsUUID,
 					},
 
 					"workspace_region": {
+						Description:      "The location of the attached workspace.",
 						Type:             pluginsdk.TypeString,
 						Required:         true,
 						StateFunc:        location.StateFunc,
@@ -101,13 +111,15 @@ func networkWatcherFlowLogSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"workspace_resource_id": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "The resource ID of the attached workspace.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 						// TODO: check to see if empty values should be allowed (the previous validator permitted them)
 						ValidateFunc: validation.Any(validation.StringIsEmpty, workspaces.ValidateWorkspaceID),
 					},
 
 					"interval_in_minutes": {
+						Description:  "How frequently service should do flow analytics in minutes.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Default:      60,
@@ -118,15 +130,17 @@ func networkWatcherFlowLogSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"version": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
-			Default:  1,
+			Description: "The version (revision) of the flow log.",
+			Type:        pluginsdk.TypeInt,
+			Optional:    true,
+			Default:     1,
 			// NOTE: the Azure Flow Log API currently supports versions 1, 2 and 5 - this list should be
 			// updated as the service adds support for additional versions.
 			ValidateFunc: validation.IntInSlice([]int{1, 2, 5}),
 		},
 
 		"location": {
+			Description:      "The location where the Network Watcher Flow Log resides.",
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
 			Computed:         true, // azignore:AZS007 - pre-existing violation

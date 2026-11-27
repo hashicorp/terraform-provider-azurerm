@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_netapp_account_encryption"
 }
 
+func (r Resource) Description() string {
+	return "Manages a NetApp Account Encryption Resource."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return netappaccounts.ValidateNetAppAccountID
 }

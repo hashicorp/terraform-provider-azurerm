@@ -17,10 +17,11 @@ var mysqlFlexibleServerFirewallResourceName = "azurerm_mysql_flexible_server_fir
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceMySqlFlexibleServerFirewallRuleCreateUpdate,
-		Read:   resourceMySqlFlexibleServerFirewallRuleRead,
-		Update: resourceMySqlFlexibleServerFirewallRuleCreateUpdate,
-		Delete: resourceMySqlFlexibleServerFirewallRuleDelete,
+		Description: "Manages a Firewall Rule for a MySQL Flexible Server.",
+		Create:      resourceMySqlFlexibleServerFirewallRuleCreateUpdate,
+		Read:        resourceMySqlFlexibleServerFirewallRuleRead,
+		Update:      resourceMySqlFlexibleServerFirewallRuleCreateUpdate,
+		Delete:      resourceMySqlFlexibleServerFirewallRuleDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&firewallrules.FirewallRuleId{}),
 

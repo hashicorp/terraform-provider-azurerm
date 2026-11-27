@@ -13,9 +13,10 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceNATGatewayPublicIpAssociationCreate,
-		Read:   resourceNATGatewayPublicIpAssociationRead,
-		Delete: resourceNATGatewayPublicIpAssociationDelete,
+		Description: "Manages a NAT Gateway Public IP Address association.",
+		Create:      resourceNATGatewayPublicIpAssociationCreate,
+		Read:        resourceNATGatewayPublicIpAssociationRead,
+		Delete:      resourceNATGatewayPublicIpAssociationDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := commonids.ParseCompositeResourceID(id, &natgateways.NatGatewayId{}, &commonids.PublicIPAddressId{})

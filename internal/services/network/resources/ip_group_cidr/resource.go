@@ -12,9 +12,10 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceIpGroupCidrCreate,
-		Read:   resourceIpGroupCidrRead,
-		Delete: resourceIpGroupCidrDelete,
+		Description: "Manages IP Group CIDR records.",
+		Create:      resourceIpGroupCidrCreate,
+		Read:        resourceIpGroupCidrRead,
+		Delete:      resourceIpGroupCidrDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.IpGroupCidrID(id)

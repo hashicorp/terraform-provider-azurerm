@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceNetworkWatcherCreate,
-		Read:   resourceNetworkWatcherRead,
-		Update: resourceNetworkWatcherUpdate,
-		Delete: resourceNetworkWatcherDelete,
+		Description: "Manages a Network Watcher.",
+		Create:      resourceNetworkWatcherCreate,
+		Read:        resourceNetworkWatcherRead,
+		Update:      resourceNetworkWatcherUpdate,
+		Delete:      resourceNetworkWatcherDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := networkwatchers.ParseNetworkWatcherID(id)
 			return err

@@ -20,6 +20,7 @@ import (
 func NetAppBucketResourceCommonArguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The S3-compatible name of the bucket.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,6 +28,7 @@ func NetAppBucketResourceCommonArguments() map[string]*pluginsdk.Schema {
 		},
 
 		"volume_id": {
+			Description:  "The ARM ID of the parent NetApp Volume the bucket attaches to.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -41,11 +43,13 @@ func NetAppBucketResourceCommonArguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"group_id": {
+						Description:  "The POSIX group ID used by the bucket when accessing volume data over NFS.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntAtLeast(0),
 					},
 					"user_id": {
+						Description:  "The POSIX user ID used by the bucket when accessing volume data over NFS.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntAtLeast(0),
@@ -55,6 +59,7 @@ func NetAppBucketResourceCommonArguments() map[string]*pluginsdk.Schema {
 		},
 
 		"file_system_cifs_username": {
+			Description:  "The CIFS username used by the bucket when accessing volume data over SMB.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -62,27 +67,32 @@ func NetAppBucketResourceCommonArguments() map[string]*pluginsdk.Schema {
 		},
 
 		"key_vault": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
+			Description: "Used to store the generated bucket credentials in Azure Key Vault.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
+			MaxItems:    1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"certificate_key_vault_uri": {
+						Description:  "The URI of the Azure Key Vault that stores the bucket server certificate.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.IsURLWithHTTPS,
 					},
 					"certificate_name": {
+						Description:  "The name of the certificate object inside the Key Vault.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"credentials_key_vault_uri": {
+						Description:  "The URI of the Azure Key Vault used to store the generated bucket access and secret keys. May be the same vault as `certificate_key_vault_uri` but the documentation recommends using two separate vaults.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.IsURLWithHTTPS,
 					},
 					"credentials_secret_name": {
+						Description:  "The name of the secret in `credentials_key_vault_uri` that stores the generated bucket credentials. The Key Vault Secret value is a JSON document with `access_key_id` and `secret_access_key` properties.", // azignore:AZS020 - This describes expected JSON object fields rather than provider fields
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -92,6 +102,7 @@ func NetAppBucketResourceCommonArguments() map[string]*pluginsdk.Schema {
 		},
 
 		"path": {
+			Description:  "The volume sub-path mounted inside the bucket.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -100,6 +111,7 @@ func NetAppBucketResourceCommonArguments() map[string]*pluginsdk.Schema {
 		},
 
 		"permissions": {
+			Description:  "The bucket permission level.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(buckets.BucketPermissionsReadOnly),
@@ -113,23 +125,27 @@ func NetAppBucketResourceCommonArguments() map[string]*pluginsdk.Schema {
 func NetAppBucketResourceCommonAttributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"server_certificate_common_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Common Name (CN) of the bucket server certificate.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"server_certificate_expiry_date": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The expiry date of the bucket server certificate, in RFC3339 format.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"server_ip_address": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The IP address that backs the bucket endpoint.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"status": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The credentials status of the bucket.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }
@@ -139,12 +155,14 @@ func NetAppBucketResourceCommonAttributes() map[string]*pluginsdk.Schema {
 func NetAppBucketDataSourceArguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the NetApp Volume Bucket.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.BucketName,
 		},
 
 		"netapp_volume_id": {
+			Description:  "The ARM ID of the parent NetApp Volume.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: volumes.ValidateVolumeID,
@@ -158,13 +176,15 @@ func NetAppBucketDataSourceArguments() map[string]*pluginsdk.Schema {
 func NetAppBucketDataSourceCommonAttributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"path": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The volume sub-path mounted inside the bucket.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"permissions": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The bucket permission level (`ReadOnly` or `ReadWrite`).",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"file_system_nfs_user": {
@@ -173,20 +193,23 @@ func NetAppBucketDataSourceCommonAttributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"group_id": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "The POSIX group ID used by the bucket.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 					"user_id": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "The POSIX user ID used by the bucket.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 				},
 			},
 		},
 
 		"file_system_cifs_username": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The CIFS username used by the bucket (only set when the bucket is configured for CIFS).",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"key_vault": {
@@ -195,43 +218,51 @@ func NetAppBucketDataSourceCommonAttributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"certificate_key_vault_uri": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The URI of the Azure Key Vault that stores the bucket server certificate.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"certificate_name": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The name of the certificate object inside the Key Vault.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"credentials_key_vault_uri": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The URI of the Azure Key Vault used to store the generated bucket access and secret keys.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"credentials_secret_name": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The name of the secret in `credentials_key_vault_uri` that stores the generated bucket credentials.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},
 		},
 
 		"server_certificate_common_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Common Name (CN) of the bucket server certificate.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"server_certificate_expiry_date": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The expiry date of the bucket server certificate, in RFC3339 format.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"server_ip_address": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The IP address that backs the bucket endpoint.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"status": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The credentials status of the bucket.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

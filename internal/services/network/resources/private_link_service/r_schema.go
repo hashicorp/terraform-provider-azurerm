@@ -16,6 +16,7 @@ import (
 func privateLinkServiceSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this Private Link Service.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,9 +28,10 @@ func privateLinkServiceSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"auto_approval_subscription_ids": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
-			Set:      pluginsdk.HashString,
+			Description: "A list of Subscription UUID/GUID's that will be automatically be able to use this Private Link Service.",
+			Type:        pluginsdk.TypeSet,
+			Optional:    true,
+			Set:         pluginsdk.HashString,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.IsUUID,
@@ -37,6 +39,7 @@ func privateLinkServiceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"destination_ip_address": {
+			Description:  "The destination IP address of the Private Link Service.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.IsIPv4Address,
@@ -44,15 +47,17 @@ func privateLinkServiceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"proxy_protocol_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether the Private Link Service should support the proxy protocol.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"visibility_subscription_ids": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
-			Set:      pluginsdk.HashString,
+			Description: "A list of Subscription UUID/GUID's that will be able to see this Private Link Service.",
+			Type:        pluginsdk.TypeSet,
+			Optional:    true,
+			Set:         pluginsdk.HashString,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.Any(validation.IsUUID, validation.StringInSlice([]string{"*"}, false)),
@@ -60,8 +65,9 @@ func privateLinkServiceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"fqdns": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Description: "List of FQDNs allowed for the Private Link Service.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -78,11 +84,13 @@ func privateLinkServiceSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "The name which should be used for the NAT IP Configuration.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validate.PrivateLinkName,
 					},
 					"private_ip_address": {
+						Description:  "A Private Static IP Address for this IP Configuration.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.IsIPv4Address,
@@ -90,27 +98,31 @@ func privateLinkServiceSchema() map[string]*pluginsdk.Schema {
 					// Only IPv4 is supported by the API, but I am exposing this
 					// as they will support IPv6 in a future release.
 					"private_ip_address_version": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  string(privatelinkservices.IPVersionIPvFour),
+						Description: "The version of the IP Protocol which should be used. At this time the only.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						Default:     string(privatelinkservices.IPVersionIPvFour),
 						ValidateFunc: validation.StringInSlice([]string{
 							string(privatelinkservices.IPVersionIPvFour),
 						}, false),
 					},
 					"subnet_id": {
+						Description:  "The ID of the Subnet which should be used for the Private Link Service.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: commonids.ValidateSubnetID,
 					},
 					"primary": {
-						Type:     pluginsdk.TypeBool,
-						Required: true,
+						Description: "Whether this is the primary IP configuration.",
+						Type:        pluginsdk.TypeBool,
+						Required:    true,
 					},
 				},
 			},
 		},
 
 		"load_balancer_frontend_ip_configuration_ids": {
+			Description:  "A list of Frontend IP Configuration IDs from a Standard Load Balancer, where traffic from the Private Link Service should be routed. You can use Load Balancer Rules to direct this traffic to appropriate backend pools where your applications are running.",
 			Type:         pluginsdk.TypeSet,
 			Optional:     true,
 			ForceNew:     true,
@@ -123,8 +135,9 @@ func privateLinkServiceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"alias": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "A globally unique DNS Name for your Private Link Service. You can use this alias to request a connection to your Private Link Service.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"tags": commonschema.Tags(),

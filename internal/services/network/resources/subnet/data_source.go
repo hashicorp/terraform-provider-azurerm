@@ -20,7 +20,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceSubnetRead,
+		Description: "Use this data source to access information about an existing Subnet within a Virtual Network.",
+		Read:        dataSourceSubnetRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -28,12 +29,14 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Subnet.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"virtual_network_name": {
+				Description:  "The name of the Virtual Network this Subnet is located within.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -47,34 +50,40 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"address_prefixes": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Description: "The address prefixes for the subnet.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
+				Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
 			"network_security_group_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ID of the Network Security Group associated with the subnet.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"route_table_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ID of the Route Table associated with this subnet.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"default_outbound_access_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether the default outbound access is enabled for the subnet.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"private_endpoint_network_policies": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "Whether network policies are enabled for the Private Endpoint on the subnet.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"private_link_service_network_policies_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether network policies are enabled for the Private Link Service on the subnet.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"service_endpoint": {
@@ -83,12 +92,14 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"service": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The type of the Service Endpoint.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"network_identifier": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The ID of the network resource associated with the Service Endpoint.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},

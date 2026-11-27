@@ -14,6 +14,7 @@ import (
 func publicIpPrefixSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Public IP Prefix resource.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -25,6 +26,7 @@ func publicIpPrefixSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"custom_ip_prefix_id": {
+			Description:  "The Custom IP Prefix ID associated with the Public IP Prefix.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -32,6 +34,7 @@ func publicIpPrefixSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"sku": {
+			Description:  "The SKU of the Public IP Prefix.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(publicipprefixes.PublicIPPrefixSkuNameStandard),
@@ -39,6 +42,7 @@ func publicIpPrefixSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"sku_tier": {
+			Description:  "The SKU Tier that should be used for the Public IP Prefix.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -47,6 +51,7 @@ func publicIpPrefixSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"prefix_length": {
+			Description:  "The number of bits of the prefix.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			ForceNew:     true,
@@ -55,6 +60,7 @@ func publicIpPrefixSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"ip_version": {
+			Description:  "The IP Version to use, `IPv6` or `IPv4`.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -65,8 +71,9 @@ func publicIpPrefixSchema() map[string]*pluginsdk.Schema {
 		"zones": commonschema.ZonesMultipleOptionalForceNew(),
 
 		"ip_prefix": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The IP address prefix value that was allocated.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"tags": commonschema.Tags(),

@@ -28,6 +28,10 @@ func (r DataSource) ResourceType() string {
 	return "azurerm_netapp_volume_group_oracle"
 }
 
+func (r DataSource) Description() string {
+	return "Use this data source to access information about an existing Application Volume Group for Oracle application."
+}
+
 func (r DataSource) ModelObject() any {
 	return &models.NetAppVolumeGroupOracleDataSourceModel{}
 }
@@ -39,6 +43,7 @@ func (r DataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this Application Volume Group for Oracle application.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.VolumeGroupName,
@@ -47,6 +52,7 @@ func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"account_name": {
+			Description:  "Name of the account where the application volume group belongs to.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.AccountName,
@@ -59,13 +65,15 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"location": commonschema.LocationComputed(),
 
 		"group_description": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "Volume group description.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"application_identifier": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The application identifier.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"volume": {
@@ -74,45 +82,53 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "Volume ID.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"name": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The name of this volume.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"capacity_pool_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The ID of the Capacity Pool.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"proximity_placement_group_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The ID of the Proximity Placement Group.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"zone": commonschema.ZoneSingleComputed(),
 
 					"volume_spec_name": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "Volume spec name.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"volume_path": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "A unique file path for the volume.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"service_level": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The target performance of the file system.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"subnet_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The ID of the Subnet the NetApp Volume resides in.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"protocols": {
@@ -124,18 +140,21 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 					},
 
 					"security_style": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "Volume security style.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"storage_quota_in_gb": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "The maximum Storage Quota allowed for a file system in Gigabytes.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 
 					"throughput_in_mibps": {
-						Type:     pluginsdk.TypeFloat,
-						Computed: true,
+						Description: "Throughput of this volume in Mibps.",
+						Type:        pluginsdk.TypeFloat,
+						Computed:    true,
 					},
 
 					"export_policy_rule": {
@@ -144,38 +163,45 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"rule_index": {
-									Type:     pluginsdk.TypeInt,
-									Computed: true,
+									Description: "The index number of the rule.",
+									Type:        pluginsdk.TypeInt,
+									Computed:    true,
 								},
 
 								"allowed_clients": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "A list of allowed clients IPv4 addresses.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 
 								"nfsv3_enabled": {
-									Type:     pluginsdk.TypeBool,
-									Computed: true,
+									Description: "Whether the NFSv3 protocol is enabled.",
+									Type:        pluginsdk.TypeBool,
+									Computed:    true,
 								},
 
 								"nfsv41_enabled": {
-									Type:     pluginsdk.TypeBool,
-									Computed: true,
+									Description: "Whether the NFSv4.1 is enabled.",
+									Type:        pluginsdk.TypeBool,
+									Computed:    true,
 								},
 
 								"unix_read_only": {
-									Type:     pluginsdk.TypeBool,
-									Computed: true,
+									Description: "Whether the unix filesystem is read-only.",
+									Type:        pluginsdk.TypeBool,
+									Computed:    true,
 								},
 
 								"unix_read_write": {
-									Type:     pluginsdk.TypeBool,
-									Computed: true,
+									Description: "Whether the unix filesystem is read-write.",
+									Type:        pluginsdk.TypeBool,
+									Computed:    true,
 								},
 
 								"root_access_enabled": {
-									Type:     pluginsdk.TypeBool,
-									Computed: true,
+									Description: "Whether root access is permitted to this volume.",
+									Type:        pluginsdk.TypeBool,
+									Computed:    true,
 								},
 							},
 						},
@@ -184,8 +210,9 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 					"tags": commonschema.TagsDataSource(),
 
 					"snapshot_directory_visible": {
-						Type:     pluginsdk.TypeBool,
-						Computed: true,
+						Description: "Whether the .snapshot (NFS clients) path of a volume is visible.",
+						Type:        pluginsdk.TypeBool,
+						Computed:    true,
 					},
 
 					"mount_ip_addresses": {
@@ -202,20 +229,23 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"endpoint_type": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The endpoint type.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 
 								"remote_volume_location": commonschema.LocationComputed(),
 
 								"remote_volume_resource_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "Resource ID of the primary volume.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 
 								"replication_frequency": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "Replication frequency.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 							},
 						},
@@ -227,26 +257,30 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"snapshot_policy_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "Resource ID of the snapshot policy to apply to the volume.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 							},
 						},
 					},
 
 					"encryption_key_source": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The encryption key source.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"key_vault_private_endpoint_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The Private Endpoint ID for Key Vault when using customer managed keys.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"network_features": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "Network feature in use at the time of volume creation.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},

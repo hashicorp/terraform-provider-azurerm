@@ -20,7 +20,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceNetworkServiceTagsRead,
+		Description: "Use this data source to access information about Service Tags.",
+		Read:        dataSourceNetworkServiceTagsRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -30,36 +31,41 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"service": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The type of the service for which address prefixes will be fetched. Available service tags can be found here: [Available service tags](https://learn.microsoft.com/azure/virtual-network/service-tags-overview#available-service-tags).",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The name of this Service Tags block.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"location_filter": commonschema.LocationOptional(),
 
 			"address_prefixes": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "List of address prefixes for the service type (and optionally a specific region).",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"ipv4_cidrs": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "List of IPv4 addresses for the service type (and optionally a specific region).",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"ipv6_cidrs": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "List of IPv6 addresses for the service type (and optionally a specific region).",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},

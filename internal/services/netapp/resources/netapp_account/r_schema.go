@@ -15,6 +15,7 @@ import (
 func netappAccountSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the NetApp Account.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -34,35 +35,40 @@ func netappAccountSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"dns_servers": {
-						Type:     pluginsdk.TypeList,
-						Required: true,
+						Description: "A list of DNS server IP addresses for the Active Directory domain. Only allows `IPv4` addresses.",
+						Type:        pluginsdk.TypeList,
+						Required:    true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.IsIPv4Address,
 						},
 					},
 					"domain": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "The name of the Active Directory domain.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 						ValidateFunc: validation.StringMatch(
 							regexp.MustCompile(`^[(\da-zA-Z-).]{1,255}$`),
 							`The domain name must end with a letter or number before dot and start with a letter or number after dot and can not be longer than 255 characters in length.`,
 						),
 					},
 					"smb_server_name": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "The NetBIOS name which should be used for the NetApp SMB Server, which will be registered as a computer account in the AD and used to mount volumes.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 						ValidateFunc: validation.StringMatch(
 							regexp.MustCompile(`^[\da-zA-Z\-]{1,10}$`),
 							`smb_server_name can contain a mix of numbers, upper/lowercase letters, dashes, and be no longer than 10 characters.`,
 						),
 					},
 					"username": {
+						Description:  "The Username of Active Directory Domain Administrator.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"password": {
+						Description:  "The password associated with the `username`.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						Sensitive:    true,

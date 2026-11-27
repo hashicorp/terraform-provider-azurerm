@@ -17,6 +17,7 @@ import (
 func (Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the NetApp Snapshot Policy.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -28,6 +29,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"account_name": {
+			Description:  "The name of the NetApp Account in which the NetApp Snapshot Policy should be created.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -35,23 +37,27 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"enabled": {
-			Type:     pluginsdk.TypeBool,
-			Required: true,
+			Description: "Whether the NetApp Snapshot Policy is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Required:    true,
 		},
 
 		"hourly_schedule": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
+			Description: "Sets an hourly snapshot schedule.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
+			MaxItems:    1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"snapshots_to_keep": {
+						Description:  "How many hourly snapshots to keep, valid range is from 0 to 255.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntBetween(0, 255),
 					},
 
 					"minute": {
+						Description:  "Minute of the hour that the snapshots will be created, valid range is from 0 to 59.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntBetween(0, 59),
@@ -61,24 +67,28 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"daily_schedule": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
+			Description: "Sets a daily snapshot schedule.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
+			MaxItems:    1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"snapshots_to_keep": {
+						Description:  "How many hourly snapshots to keep, valid range is from 0 to 255.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntBetween(0, 255),
 					},
 
 					"hour": {
+						Description:  "Hour of the day that the snapshots will be created, valid range is from 0 to 23.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntBetween(0, 23),
 					},
 
 					"minute": {
+						Description:  "Minute of the hour that the snapshots will be created, valid range is from 0 to 59.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntBetween(0, 59),
@@ -88,21 +98,24 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"weekly_schedule": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
+			Description: "Sets a weekly snapshot schedule.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
+			MaxItems:    1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"snapshots_to_keep": {
+						Description:  "How many hourly snapshots to keep, valid range is from 0 to 255.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntBetween(0, 255),
 					},
 
 					"days_of_week": {
-						Type:     pluginsdk.TypeSet,
-						Required: true,
-						MaxItems: 7,
+						Description: "List of the week days using English names when the snapshots will be created.",
+						Type:        pluginsdk.TypeSet,
+						Required:    true,
+						MaxItems:    7,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.IsDayOfTheWeek(false),
@@ -110,12 +123,14 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"hour": {
+						Description:  "Hour of the day that the snapshots will be created, valid range is from 0 to 23.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntBetween(0, 23),
 					},
 
 					"minute": {
+						Description:  "Minute of the hour that the snapshots will be created, valid range is from 0 to 59.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntBetween(0, 59),
@@ -125,21 +140,24 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"monthly_schedule": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
+			Description: "Sets a monthly snapshot schedule.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
+			MaxItems:    1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"snapshots_to_keep": {
+						Description:  "How many hourly snapshots to keep, valid range is from 0 to 255.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntBetween(0, 255),
 					},
 
 					"days_of_month": {
-						Type:     pluginsdk.TypeSet,
-						Required: true,
-						MaxItems: 30,
+						Description: "List of the days of the month when the snapshots will be created, valid range is from 1 to 30.",
+						Type:        pluginsdk.TypeSet,
+						Required:    true,
+						MaxItems:    30,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeInt,
 							ValidateFunc: validation.IntBetween(1, 30),
@@ -147,12 +165,14 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"hour": {
+						Description:  "Hour of the day that the snapshots will be created, valid range is from 0 to 23.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntBetween(0, 23),
 					},
 
 					"minute": {
+						Description:  "Minute of the hour that the snapshots will be created, valid range is from 0 to 59.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntBetween(0, 59),

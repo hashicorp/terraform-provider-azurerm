@@ -17,11 +17,12 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create:   resourceSubnetCreate,
-		Read:     resourceSubnetRead,
-		Update:   resourceSubnetUpdate,
-		Delete:   resourceSubnetDelete,
-		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.SubnetId{}),
+		Description: "Manages a subnet. Subnets represent network segments within the IP space defined by the Virtual Network.",
+		Create:      resourceSubnetCreate,
+		Read:        resourceSubnetRead,
+		Update:      resourceSubnetUpdate,
+		Delete:      resourceSubnetDelete,
+		Importer:    pluginsdk.ImporterValidatingIdentity(&commonids.SubnetId{}),
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v any) error {

@@ -26,6 +26,10 @@ func (r DataSource) ResourceType() string {
 	return "azurerm_netapp_backup_vault"
 }
 
+func (r DataSource) Description() string {
+	return "Use this data source to access information about an existing NetApp Backup Vault."
+}
+
 func (r DataSource) ModelObject() any {
 	return &models.NetAppBackupVaultModel{}
 }
@@ -37,15 +41,17 @@ func (r DataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The name of the NetApp Backup Vault.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"account_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The name of the NetApp Account in which the NetApp Vault exists.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 		},
 	}
 }

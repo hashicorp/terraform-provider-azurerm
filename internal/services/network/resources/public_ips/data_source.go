@@ -21,7 +21,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourcePublicIPsRead,
+		Description: "Use this data source to access information about a set of existing Public IP Addresses.",
+		Read:        dataSourcePublicIPsRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -36,13 +37,15 @@ func dataSourcePublicIPSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 		"name_prefix": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "A prefix match used for the IP Addresses `name` field, case sensitive.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 
 		"attachment_status": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "Filter to include IP Addresses which are attached to a device, such as a VM/LB (`Attached`) or unattached (`Unattached`).",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				"Attached",
 				"Unattached",
@@ -50,6 +53,7 @@ func dataSourcePublicIPSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"allocation_type": {
+			Description:  "The Allocation Type for the Public IP Address.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringInSlice(publicipaddresses.PossibleValuesForIPAllocationMethod(), false),

@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_netapp_volume_group_oracle"
 }
 
+func (r Resource) Description() string {
+	return "Manages an Application Volume Group for Oracle application."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return volumegroups.ValidateVolumeGroupID
 }

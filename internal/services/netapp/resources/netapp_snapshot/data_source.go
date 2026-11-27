@@ -19,7 +19,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceNetAppSnapshotRead,
+		Description: "Use this data source to access information about an existing NetApp Snapshot.",
+		Read:        dataSourceNetAppSnapshotRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -27,6 +28,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the NetApp Snapshot.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.SnapshotName,
@@ -37,18 +39,21 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"location": commonschema.LocationComputed(),
 
 			"account_name": {
+				Description:  "The name of the NetApp Account where the NetApp Pool exists.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.AccountName,
 			},
 
 			"pool_name": {
+				Description:  "The name of the NetApp Pool where the NetApp Volume exists.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.PoolName,
 			},
 
 			"volume_name": {
+				Description:  "The name of the NetApp Volume where the NetApp Snapshot exists.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.VolumeName,

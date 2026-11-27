@@ -18,11 +18,12 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create:   resourcePublicIpPrefixCreate,
-		Read:     resourcePublicIpPrefixRead,
-		Update:   resourcePublicIpPrefixUpdate,
-		Delete:   resourcePublicIpPrefixDelete,
-		Importer: pluginsdk.ImporterValidatingIdentity(&publicipprefixes.PublicIPPrefixId{}),
+		Description: "Manages a Public IP Prefix.",
+		Create:      resourcePublicIpPrefixCreate,
+		Read:        resourcePublicIpPrefixRead,
+		Update:      resourcePublicIpPrefixUpdate,
+		Delete:      resourcePublicIpPrefixDelete,
+		Importer:    pluginsdk.ImporterValidatingIdentity(&publicipprefixes.PublicIPPrefixId{}),
 
 		Identity: &schema.ResourceIdentity{
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(&publicipprefixes.PublicIPPrefixId{}),

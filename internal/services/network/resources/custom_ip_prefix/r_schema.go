@@ -17,6 +17,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Custom IP Prefix.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -28,6 +29,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"cidr": {
+			Description:  "The `cidr` of the Custom IP Prefix, either IPv4 or IPv6.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -35,6 +37,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"parent_custom_ip_prefix_id": {
+			Description:  "The ID of the parent prefix. Only needed when creating a regional/child IPv6 prefix.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -42,9 +45,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"roa_validity_end_date": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
+			Description: "The expiration date of the Route Origin Authorization (ROA) document which has been filed with the Routing Internet Registry (RIR) for this prefix. The expected format is `YYYY-MM-DD`.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			ForceNew:    true,
 			ValidateFunc: func(i any, k string) (warnings []string, errors []error) {
 				v, ok := i.(string)
 				if !ok {
@@ -61,6 +65,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"wan_validation_signed_message": {
+			Description:  "The signed base64-encoded authorization message, which will be sent to Microsoft for WAN verification. Refer to [Azure documentation](https://learn.microsoft.com/azure/virtual-network/ip-services/create-custom-ip-address-prefix-cli#certificate-readiness) for more details about the process for your RIR.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -68,15 +73,17 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"commissioning_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "The custom IP prefix should be commissioned after provisioning in Azure.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"internet_advertising_disabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "The custom IP prefix should not be publicly advertised on the Internet when commissioned (regional commissioning feature).",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"tags": commonschema.Tags(),
