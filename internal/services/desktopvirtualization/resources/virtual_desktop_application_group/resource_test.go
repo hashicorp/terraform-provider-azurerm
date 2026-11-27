@@ -18,6 +18,17 @@ import (
 
 type VirtualDesktopApplicationGroupResource struct{}
 
+func TestAccVirtualDesktopApplicationGroup_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_application_group", "test")
+	r := VirtualDesktopApplicationGroupResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccVirtualDesktopApplicationGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_application_group", "test")
 	r := VirtualDesktopApplicationGroupResource{}

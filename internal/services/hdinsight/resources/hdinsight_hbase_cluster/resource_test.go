@@ -18,6 +18,16 @@ import (
 
 type HDInsightHBaseClusterResource struct{}
 
+func TestAccHDInsightHBaseCluster_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hbase_cluster", "test")
+	r := HDInsightHBaseClusterResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccHDInsightHBaseCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hbase_cluster", "test")
 	r := HDInsightHBaseClusterResource{}

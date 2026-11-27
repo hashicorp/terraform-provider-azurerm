@@ -12,6 +12,19 @@ import (
 
 type MonitorsDataSource struct{}
 
+func TestAccDynatraceMonitorsDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_dynatrace_monitor", "test")
+	d := MonitorsDataSource{}
+	r := NewDynatraceMonitorResource()
+	r.preCheck(t)
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: d.basic(data, r),
+		},
+	}, "")
+}
+
 func TestAccDynatraceMonitorsDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_dynatrace_monitor", "test")
 	d := MonitorsDataSource{}

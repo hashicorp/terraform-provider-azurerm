@@ -13,6 +13,17 @@ import (
 
 type DevCenterGalleryDataSource struct{}
 
+func TestAccDevCenterGalleryDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_dev_center_gallery", "test")
+	r := DevCenterGalleryDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDevCenterGalleryDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_dev_center_gallery", "test")
 	r := DevCenterGalleryDataSource{}

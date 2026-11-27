@@ -14,6 +14,17 @@ import (
 
 type DesktopVirtualizationWorkspaceDataSource struct{}
 
+func TestAccDesktopVirtualizationWorkspaceDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_virtual_desktop_workspace", "test")
+	d := DesktopVirtualizationWorkspaceDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: d.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDesktopVirtualizationWorkspaceDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_virtual_desktop_workspace", "test")
 	d := DesktopVirtualizationWorkspaceDataSource{}

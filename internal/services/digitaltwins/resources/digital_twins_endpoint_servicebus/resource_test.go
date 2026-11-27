@@ -19,6 +19,17 @@ import (
 
 type DigitalTwinsEndpointServiceBusResource struct{}
 
+func TestAccDigitalTwinsEndpointServicebus_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_digital_twins_endpoint_servicebus", "test")
+	r := DigitalTwinsEndpointServiceBusResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDigitalTwinsEndpointServicebus_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_digital_twins_endpoint_servicebus", "test")
 	r := DigitalTwinsEndpointServiceBusResource{}

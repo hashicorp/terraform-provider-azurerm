@@ -13,6 +13,17 @@ import (
 
 type AzureRMDNSZoneDataSource struct{}
 
+func TestAccAzureRMDNSZoneDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_dns_zone", "test")
+	r := AzureRMDNSZoneDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccAzureRMDNSZoneDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_dns_zone", "test")
 	r := AzureRMDNSZoneDataSource{}

@@ -18,6 +18,17 @@ import (
 
 type DevTestPolicyResource struct{}
 
+func TestAccDevTestPolicy_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dev_test_policy", "test")
+	r := DevTestPolicyResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDevTestPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_policy", "test")
 	r := DevTestPolicyResource{}

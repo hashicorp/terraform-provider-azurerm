@@ -19,6 +19,16 @@ import (
 
 type DataProtectionBackupPolicyCosmosdbAccountResource struct{}
 
+func TestAccDataProtectionBackupPolicyCosmosdbAccount_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_cosmosdb_account", "test")
+	r := DataProtectionBackupPolicyCosmosdbAccountResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDataProtectionBackupPolicyCosmosdbAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_cosmosdb_account", "test")
 	r := DataProtectionBackupPolicyCosmosdbAccountResource{}

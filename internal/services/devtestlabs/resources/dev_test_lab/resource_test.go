@@ -18,6 +18,17 @@ import (
 
 type DevTestLabResource struct{}
 
+func TestAccDevTestLab_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dev_test_lab", "test")
+	r := DevTestLabResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDevTestLab_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_lab", "test")
 	r := DevTestLabResource{}

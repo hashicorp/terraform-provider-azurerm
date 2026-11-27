@@ -18,6 +18,17 @@ import (
 
 type DevTestLabScheduleResource struct{}
 
+func TestAccDevTestLabSchedule_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dev_test_schedule", "test")
+	r := DevTestLabScheduleResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.autoStartupBasic(data),
+		},
+	}, "")
+}
+
 func TestAccDevTestLabSchedule_autoShutdownBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_schedule", "test")
 	r := DevTestLabScheduleResource{}

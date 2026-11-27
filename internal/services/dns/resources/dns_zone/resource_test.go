@@ -18,6 +18,17 @@ import (
 
 type DnsZoneResource struct{}
 
+func TestAccDnsZone_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dns_zone", "test")
+	r := DnsZoneResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDnsZone_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_zone", "test")
 	r := DnsZoneResource{}

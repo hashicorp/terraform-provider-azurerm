@@ -42,6 +42,18 @@ func NewDynatraceMonitorResource() MonitorsResource {
 	}
 }
 
+func TestAccDynatraceMonitor_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dynatrace_monitor", "test")
+	r := NewDynatraceMonitorResource()
+	r.preCheck(t)
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDynatraceMonitor_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dynatrace_monitor", "test")
 	r := NewDynatraceMonitorResource()

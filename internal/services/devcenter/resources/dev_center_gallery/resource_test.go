@@ -21,6 +21,17 @@ import (
 
 type DevCenterGalleryTestResource struct{}
 
+func TestAccDevCenterGallery_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dev_center_gallery", "test")
+	r := DevCenterGalleryTestResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDevCenterGallery_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_gallery", "test")
 	r := DevCenterGalleryTestResource{}

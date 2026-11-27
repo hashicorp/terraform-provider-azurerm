@@ -18,6 +18,16 @@ import (
 
 type HDInsightKafkaClusterResource struct{}
 
+func TestAccHDInsightKafkaCluster_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_kafka_cluster", "test")
+	r := HDInsightKafkaClusterResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccHDInsightKafkaCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_kafka_cluster", "test")
 	r := HDInsightKafkaClusterResource{}

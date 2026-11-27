@@ -20,6 +20,21 @@ import (
 
 type VirtualDesktopHostPoolRegistrationInfoResource struct{}
 
+func TestAccVirtualDesktopHostPoolRegInfo_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_host_pool_registration_info", "test")
+	r := VirtualDesktopHostPoolRegistrationInfoResource{}
+
+	// Set the expiration times
+	timeNow := time.Now().UTC()
+	expirationTimeComplete := timeNow.AddDate(0, 0, 2).Format(time.RFC3339)
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data, expirationTimeComplete),
+		},
+	}, "")
+}
+
 func TestAccVirtualDesktopHostPoolRegInfo_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_host_pool_registration_info", "test")
 	r := VirtualDesktopHostPoolRegistrationInfoResource{}

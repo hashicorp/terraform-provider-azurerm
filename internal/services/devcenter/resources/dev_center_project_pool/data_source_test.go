@@ -13,6 +13,17 @@ import (
 
 type DevCenterProjectPoolDataSource struct{}
 
+func TestAccDevCenterProjectPoolDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_dev_center_project_pool", "test")
+	r := DevCenterProjectPoolDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDevCenterProjectPoolDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_dev_center_project_pool", "test")
 	r := DevCenterProjectPoolDataSource{}

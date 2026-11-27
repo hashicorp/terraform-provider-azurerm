@@ -18,6 +18,17 @@ import (
 
 type DevTestGlobalVMShutdownScheduleResource struct{}
 
+func TestAccDevTestGlobalVMShutdownSchedule_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dev_test_global_vm_shutdown_schedule", "test")
+	r := DevTestGlobalVMShutdownScheduleResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.autoShutdownComplete(data),
+		},
+	}, "")
+}
+
 func TestAccDevTestGlobalVMShutdownSchedule_autoShutdownBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_global_vm_shutdown_schedule", "test")
 	r := DevTestGlobalVMShutdownScheduleResource{}

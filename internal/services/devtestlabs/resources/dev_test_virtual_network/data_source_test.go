@@ -14,6 +14,17 @@ import (
 
 type ArmDevTestVirtualNetworkDataSource struct{}
 
+func TestAccArmDevTestVirtualNetworkDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_dev_test_virtual_network", "test")
+	r := ArmDevTestVirtualNetworkDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccArmDevTestVirtualNetworkDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_dev_test_virtual_network", "test")
 	r := ArmDevTestVirtualNetworkDataSource{}

@@ -18,6 +18,17 @@ import (
 
 type AzureRMDesktopVirtualizationWorkspaceResource struct{}
 
+func TestAccAzureRMDesktopVirtualizationWorkspace_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_workspace", "test")
+	r := AzureRMDesktopVirtualizationWorkspaceResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccAzureRMDesktopVirtualizationWorkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_workspace", "test")
 	r := AzureRMDesktopVirtualizationWorkspaceResource{}

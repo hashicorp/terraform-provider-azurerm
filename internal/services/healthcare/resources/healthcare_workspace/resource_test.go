@@ -18,6 +18,17 @@ import (
 
 type HealthCareWorkspaceResource struct{}
 
+func TestAccHealthCareWorkspace_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_healthcare_workspace", "test")
+	r := HealthCareWorkspaceResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccHealthCareWorkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_healthcare_workspace", "test")
 	r := HealthCareWorkspaceResource{}

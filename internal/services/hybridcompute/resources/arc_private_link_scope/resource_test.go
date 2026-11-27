@@ -19,6 +19,16 @@ import (
 
 type ArcPrivateLinkScopeResource struct{}
 
+func TestAccArcPrivateLinkScope_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_arc_private_link_scope", "test")
+	r := ArcPrivateLinkScopeResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccArcPrivateLinkScope_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_arc_private_link_scope", "test")
 	r := ArcPrivateLinkScopeResource{}

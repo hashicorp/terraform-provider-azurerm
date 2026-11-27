@@ -13,6 +13,17 @@ import (
 
 type HealthCareDicomServiceDataSource struct{}
 
+func TestAccHealthCareDicomDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_healthcare_dicom_service", "test")
+	r := HealthCareDicomServiceDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccHealthCareDicomDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_healthcare_dicom_service", "test")
 	r := HealthCareDicomServiceDataSource{}

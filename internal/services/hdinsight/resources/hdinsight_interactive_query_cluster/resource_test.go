@@ -18,6 +18,16 @@ import (
 
 type HDInsightInteractiveQueryClusterResource struct{}
 
+func TestAccHDInsightInteractiveQueryCluster_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_interactive_query_cluster", "test")
+	r := HDInsightInteractiveQueryClusterResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccHDInsightInteractiveQueryCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_interactive_query_cluster", "test")
 	r := HDInsightInteractiveQueryClusterResource{}

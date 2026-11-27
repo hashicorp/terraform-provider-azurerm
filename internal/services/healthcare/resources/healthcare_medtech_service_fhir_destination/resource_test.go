@@ -18,6 +18,17 @@ import (
 
 type HealthCareMedTechServiceFhirDestinationResource struct{}
 
+func TestAccHealthCareMedTechServiceFhirDestination_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_healthcare_medtech_service_fhir_destination", "test")
+	r := HealthCareMedTechServiceFhirDestinationResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccHealthCareMedTechServiceFhirDestination_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_healthcare_medtech_service_fhir_destination", "test")
 	r := HealthCareMedTechServiceFhirDestinationResource{}

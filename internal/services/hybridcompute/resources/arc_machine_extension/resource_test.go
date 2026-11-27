@@ -22,6 +22,17 @@ import (
 
 type ArcMachineExtensionResource struct{}
 
+func TestAccArcMachineExtension_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_arc_machine_extension", "test")
+	r := ArcMachineExtensionResource{}
+	template := r.template(data)
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data, template),
+		},
+	}, "")
+}
+
 func TestAccArcMachineExtension_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_arc_machine_extension", "test")
 	r := ArcMachineExtensionResource{}

@@ -47,6 +47,17 @@ func TestValidateDevTestVirtualNetworkName(t *testing.T) {
 	}
 }
 
+func TestAccDevTestVirtualNetwork_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dev_test_virtual_network", "test")
+	r := DevTestVirtualNetworkResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDevTestVirtualNetwork_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_virtual_network", "test")
 	r := DevTestVirtualNetworkResource{}

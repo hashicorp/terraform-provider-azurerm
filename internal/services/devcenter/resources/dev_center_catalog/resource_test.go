@@ -32,6 +32,17 @@ func (r DevCenterCatalogsResource) Exists(ctx context.Context, client *clients.C
 	return pointer.To(resp.Model != nil), nil
 }
 
+func TestAccDevCenterCatalogs_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dev_center_catalog", "test")
+	r := DevCenterCatalogsResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDevCenterCatalogs_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_catalog", "test")
 	r := DevCenterCatalogsResource{}

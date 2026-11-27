@@ -18,6 +18,17 @@ import (
 
 type HealthCareServiceResource struct{}
 
+func TestAccHealthCareService_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_healthcare_service", "test")
+	r := HealthCareServiceResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccHealthCareService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_healthcare_service", "test")
 	r := HealthCareServiceResource{}
