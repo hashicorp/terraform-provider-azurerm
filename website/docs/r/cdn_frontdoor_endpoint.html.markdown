@@ -46,6 +46,8 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Specifies if this Front Door Endpoint is enabled? Defaults to `true`.
 
+* `domain_name_label_reuse_scope` - (Optional) Specifies the scope level of the endpoint's domain reuse behaviour. Possible values are `NoReuse`, `ResourceGroupReuse`, `SubscriptionReuse` and `TenantReuse`. Changing this forces a new Front Door Endpoint to be created.
+
 * `tags` - (Optional) Specifies a mapping of tags which should be assigned to the Front Door Endpoint.
 
 ## Attributes Reference
