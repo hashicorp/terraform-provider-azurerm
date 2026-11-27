@@ -16,31 +16,31 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:         pluginsdk.TypeString,
 			Description:  "The name of the API definition.",
+			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.Name(),
 		},
 
 		"api_center_api_version_id": {
-			Type:         pluginsdk.TypeString,
 			Description:  "The ID of the API version to which this API definition belongs.",
+			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: apiversions.ValidateVersionID,
 		},
 
 		"description": {
-			Type:         pluginsdk.TypeString,
 			Description:  "The description of the API definition.",
+			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"display_name": {
-			Type:        pluginsdk.TypeString,
 			Description: "The display name of the API definition.",
+			Type:        pluginsdk.TypeString,
 			Optional:    true,
 			// Note: O+C if display name is not set, it will default to the name of the API definition
 			Computed:     true,
@@ -54,8 +54,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
-						Type:        pluginsdk.TypeString,
 						Description: "The name of the Specification.",
+						Type:        pluginsdk.TypeString,
 						Required:    true,
 						ValidateFunc: validation.StringInSlice([]string{
 							"openapi", "wsdl", "wadl", "graphql", "grpc", "asyncapi", "raml",
@@ -64,8 +64,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"content": {
-						Type:        pluginsdk.TypeString,
 						Description: "The content of the Specification.",
+						Type:        pluginsdk.TypeString,
 						Optional:    true,
 						// Note: O+C if URL is set, Azure will be used to fetch the specification content and only return that
 						Computed:      true,
@@ -75,8 +75,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"url": {
-						Type:          pluginsdk.TypeString,
 						Description:   "The URL containing the Specification content.",
+						Type:          pluginsdk.TypeString,
 						Optional:      true,
 						ValidateFunc:  validation.IsURLWithHTTPS,
 						ConflictsWith: []string{"specification.0.content"},
@@ -84,8 +84,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"version": {
-						Type:        pluginsdk.TypeString,
 						Description: "The version of the Specification.",
+						Type:        pluginsdk.TypeString,
 						Optional:    true,
 					},
 				},

@@ -15,34 +15,34 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:         pluginsdk.TypeString,
 			Description:  "The name of the deployment.",
+			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.Name(),
 		},
 
 		"api_center_api_definition_id": {
-			Type:         pluginsdk.TypeString,
 			Description:  "The ID of the API definition to deploy.",
+			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: apidefinitions.ValidateDefinitionID,
 		},
 
 		"api_center_environment_id": {
-			Type:         pluginsdk.TypeString,
 			Description:  "The ID of the environment for this deployment.",
+			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: environments.ValidateEnvironmentID,
 		},
 
 		"server_runtime_url": {
-			Type:        pluginsdk.TypeSet,
 			Description: "A set of server runtime URLs for this deployment.",
+			Type:        pluginsdk.TypeSet,
 			Required:    true,
 			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
 				Description:  "A URL for a server runtime.",
+				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 			},
 		},
@@ -50,15 +50,15 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"custom_properties_json": helpers.CustomPropertiesSchema(),
 
 		"description": {
-			Type:         pluginsdk.TypeString,
 			Description:  "A description of the deployment.",
+			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringLenBetween(1, 500),
 		},
 
 		"display_name": {
-			Type:        pluginsdk.TypeString,
 			Description: "The display name of the deployment.",
+			Type:        pluginsdk.TypeString,
 			Optional:    true,
 			// Note: O+C if display name is not set, it will default to the name of the deployment
 			Computed:     true,

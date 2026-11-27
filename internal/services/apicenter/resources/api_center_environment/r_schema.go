@@ -15,24 +15,24 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:         pluginsdk.TypeString,
 			Description:  "The name of the environment.",
+			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.Name(),
 		},
 
 		"api_center_service_id": {
-			Type:         pluginsdk.TypeString,
 			Description:  "The ID of the API Center service.",
+			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: services.ValidateServiceID,
 		},
 
 		"environment_type": {
-			Type:        pluginsdk.TypeString,
 			Description: "The type of the environment.",
+			Type:        pluginsdk.TypeString,
 			Required:    true,
 			ValidateFunc: validation.StringInSlice(
 				environments.PossibleValuesForEnvironmentKind(),
@@ -42,22 +42,22 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"custom_properties_json": helpers.CustomPropertiesSchema(),
 
 		"description": {
-			Type:         pluginsdk.TypeString,
 			Description:  "A description of the environment.",
+			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"development_portal_url": {
-			Type:         pluginsdk.TypeString,
 			Description:  "The HTTPS URL of the development portal.",
+			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 		},
 
 		"display_name": {
-			Type:        pluginsdk.TypeString,
 			Description: "The display name of the environment.",
+			Type:        pluginsdk.TypeString,
 			Optional:    true,
 			// Note: O+C if display name is not set, it will default to the name of the environment
 			Computed:     true,
@@ -65,22 +65,22 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"instructions": {
-			Type:         pluginsdk.TypeString,
 			Description:  "Instructions for using the environment.",
+			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"management_portal_url": {
-			Type:         pluginsdk.TypeString,
 			Description:  "The HTTPS URL of the management portal.",
+			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 		},
 
 		"server_type": {
-			Type:        pluginsdk.TypeString,
 			Description: "The type of server used by the environment.",
+			Type:        pluginsdk.TypeString,
 			Optional:    true,
 			ValidateFunc: validation.StringInSlice(
 				environments.PossibleValuesForEnvironmentServerType(),

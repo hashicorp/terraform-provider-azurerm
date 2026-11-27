@@ -5,6 +5,7 @@ package helpers
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -14,8 +15,8 @@ import (
 
 func CustomPropertiesSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:             pluginsdk.TypeString,
 		Description:      "A JSON object containing custom properties.",
+		Type:             pluginsdk.TypeString,
 		Optional:         true,
 		Default:          "{}",
 		ValidateFunc:     validation.StringIsJSON,
@@ -29,7 +30,7 @@ func ExpandCustomProperties(input string) (*any, error) {
 		return nil, fmt.Errorf("unmarshalling `custom_properties`: %+v", err)
 	}
 	if properties == nil {
-		return nil, fmt.Errorf("`custom_properties` must be a JSON object")
+		return nil, errors.New("`custom_properties` must be a JSON object")
 	}
 
 	return pointer.To[any](properties), nil

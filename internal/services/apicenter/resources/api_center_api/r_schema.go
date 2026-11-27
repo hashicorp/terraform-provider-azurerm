@@ -15,24 +15,24 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:         pluginsdk.TypeString,
 			Description:  "The name of the API.",
+			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.Name(),
 		},
 
 		"api_center_service_id": {
-			Type:         pluginsdk.TypeString,
 			Description:  "The ID of the API Center service.",
+			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: services.ValidateServiceID,
 		},
 
 		"api_type": {
-			Type:         pluginsdk.TypeString,
 			Description:  "The type of API.",
+			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice(apis.PossibleValuesForApiKind(), false),
 		},
@@ -44,22 +44,22 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"email": {
-						Type:         pluginsdk.TypeString,
 						Description:  "The email address of the API contact.",
+						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringLenBetween(1, 100),
 					},
 
 					"name": {
-						Type:         pluginsdk.TypeString,
 						Description:  "The name of the API contact.",
+						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringLenBetween(1, 100),
 					},
 
 					"url": {
-						Type:         pluginsdk.TypeString,
 						Description:  "The URL for the API contact.",
+						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 					},
@@ -70,15 +70,15 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"custom_properties_json": helpers.CustomPropertiesSchema(),
 
 		"description": {
-			Type:         pluginsdk.TypeString,
 			Description:  "A description of the API.",
+			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringLenBetween(1, 1000),
 		},
 
 		"display_name": {
-			Type:        pluginsdk.TypeString,
 			Description: "The display name of the API.",
+			Type:        pluginsdk.TypeString,
 			Optional:    true,
 			// Note: O+C if display name is not set, it will default to the name of the API
 			Computed:     true,
@@ -93,22 +93,22 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"url": {
-						Type:         pluginsdk.TypeString,
 						Description:  "The URL of the external documentation.",
+						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 					},
 
 					"description": {
-						Type:         pluginsdk.TypeString,
 						Description:  "A description of the external documentation.",
+						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringLenBetween(1, 500),
 					},
 
 					"title": {
-						Type:         pluginsdk.TypeString,
 						Description:  "The title of the external documentation.",
+						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringLenBetween(1, 50),
 					},
@@ -123,23 +123,23 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"identifier": {
-						Type:          pluginsdk.TypeString,
 						Description:   "The SPDX identifier for the API license.",
+						Type:          pluginsdk.TypeString,
 						Optional:      true,
 						ValidateFunc:  validation.StringLenBetween(1, 50),
 						ConflictsWith: []string{"license.0.url"},
 					},
 
 					"name": {
-						Type:         pluginsdk.TypeString,
 						Description:  "The name of the API license.",
+						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringLenBetween(1, 100),
 					},
 
 					"url": {
-						Type:          pluginsdk.TypeString,
 						Description:   "The URL of the API license.",
+						Type:          pluginsdk.TypeString,
 						Optional:      true,
 						ValidateFunc:  validation.IsURLWithHTTPorHTTPS,
 						ConflictsWith: []string{"license.0.identifier"},
@@ -149,15 +149,15 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"summary": {
-			Type:         pluginsdk.TypeString,
 			Description:  "A short summary of the API.",
+			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringLenBetween(1, 200),
 		},
 
 		"terms_of_service_url": {
-			Type:         pluginsdk.TypeString,
 			Description:  "The URL of the API's terms of service.",
+			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 		},
@@ -167,8 +167,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"lifecycle_stage": {
-			Type:        pluginsdk.TypeString,
 			Description: "The lifecycle stage of the API.",
+			Type:        pluginsdk.TypeString,
 			Computed:    true,
 		},
 	}
