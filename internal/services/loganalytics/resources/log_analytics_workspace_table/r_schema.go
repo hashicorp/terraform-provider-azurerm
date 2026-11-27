@@ -34,17 +34,17 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
+		"name": {
+			Description: "The name of a table in a Log Analytics Workspace.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+		},
+
 		"workspace_id": {
 			Description:  "The object ID of the Log Analytics Workspace that contains the table.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: workspaces.ValidateWorkspaceID,
-		},
-
-		"name": {
-			Description: "The name of a table in a Log Analytics Workspace.",
-			Type:        pluginsdk.TypeString,
-			Required:    true,
 		},
 
 		"plan": {

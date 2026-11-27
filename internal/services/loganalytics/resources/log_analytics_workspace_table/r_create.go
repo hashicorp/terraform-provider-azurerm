@@ -50,6 +50,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			updateInput.Properties.TotalRetentionInDays = pointer.To(int64(-1))
 			if model.TotalRetentionInDays != 0 {
 				updateInput.Properties.TotalRetentionInDays = pointer.To(model.TotalRetentionInDays)
 			}

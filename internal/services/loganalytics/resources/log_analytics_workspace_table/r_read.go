@@ -21,13 +21,10 @@ func (r Resource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			id, err := tables.ParseTableID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("while parsing resource ID: %+v", err)
+				return err
 			}
 
-			workspaceId, err := workspaces.ParseWorkspaceID(metadata.ResourceData.Get("workspace_id").(string))
-			if err != nil {
-				return fmt.Errorf("while parsing resource ID: %+v", err)
-			}
+			workspaceId := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
 
 			client := metadata.Client.LogAnalytics.TablesClient
 
@@ -46,10 +43,14 @@ func (r Resource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					if pointer.From(props.Plan) == tables.TablePlanEnumAnalytics {
+					if !pointer.From(props.RetentionInDaysAsDefault) && pointer.From(props.Plan) == tables.TablePlanEnumAnalytics {
 						state.RetentionInDays = pointer.From(props.RetentionInDays)
 					}
-					state.TotalRetentionInDays = pointer.From(props.TotalRetentionInDays)
+
+					if !pointer.From(props.TotalRetentionInDaysAsDefault) {
+						state.TotalRetentionInDays = pointer.From(props.TotalRetentionInDays)
+					}
+
 					state.Plan = pointer.FromEnum(props.Plan)
 				}
 			}
