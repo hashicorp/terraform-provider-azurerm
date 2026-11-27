@@ -5,6 +5,7 @@ package data_protection_backup_instance_kubernetes_cluster
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -15,7 +16,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupinstanceresources"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupvaultresources"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/basebackuppolicyresources"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -98,6 +101,25 @@ func (r Resource) Create() sdk.ResourceFunc {
 				},
 			}
 
+			instanceJSON, err := json.Marshal(parameters.Properties)
+			if err != nil {
+				return fmt.Errorf("marshalling backup instance for validation: %+v", err)
+			}
+
+			var validationInstance backupvaultresources.BackupInstance
+			if err := json.Unmarshal(instanceJSON, &validationInstance); err != nil {
+				return fmt.Errorf("unmarshalling backup instance for validation: %+v", err)
+			}
+
+			rbacContext, cancel := context.WithTimeout(ctx, 10*time.Minute)
+			defer cancel()
+
+			rbacPollerType := custompollers.NewDataProtectionBackupInstanceRBACPoller(metadata.Client.DataProtection.BackupVaultClient, *vaultId, validationInstance)
+			rbacPoller := pollers.NewPoller(rbacPollerType, 0, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+			if err := rbacPoller.PollUntilDone(rbacContext); err != nil {
+				return fmt.Errorf("waiting for RBAC permissions before creating %s: %+v", id, err)
+			}
+
 			if err := client.BackupInstancesCreateOrUpdateCallbackThenPoll(ctx, id, parameters, backupinstanceresources.DefaultBackupInstancesCreateOrUpdateOperationOptions(), metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
@@ -106,6 +128,17 @@ func (r Resource) Create() sdk.ResourceFunc {
 			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
 				return err
 			}
+
+			// the built-in poller is for the LRO to be finished, but the service requires additional time to finish the configure for backup
+			// Tracked on https://github.com/Azure/azure-rest-api-specs/issues/41986
+			pollerType := custompollers.NewDataProtectionBackupInstancePoller(client, id, backupinstanceresources.CurrentProtectionStateProtectionConfigured, []backupinstanceresources.CurrentProtectionState{
+				backupinstanceresources.CurrentProtectionStateConfiguringProtection,
+			})
+			poller := pollers.NewPoller(pollerType, 1*time.Minute, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return fmt.Errorf("waiting for %s to become available: %+v", id, err)
+			}
+
 			return nil
 		},
 	}

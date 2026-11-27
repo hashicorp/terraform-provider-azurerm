@@ -179,7 +179,7 @@ resource "azurerm_data_protection_backup_instance_kubernetes_cluster" "example" 
     cluster_scoped_resources_enabled = true
     included_namespaces              = ["test-included-namespaces"]
     included_resource_types          = ["involumesnapshotcontents.snapshot.storage.k8s.io"]
-    label_selectors                  = ["kubernetes.io/metadata.name:test"]
+    label_selectors                  = ["kubernetes.io/metadata.name=test"]
     volume_snapshot_enabled          = true
   }
 
@@ -212,6 +212,8 @@ The following arguments are supported:
 * `snapshot_resource_group_name` - (Required) The name of the Resource Group where snapshots are stored. Changing this forces a new resource to be created.
 
 * `backup_datasource_parameters` - (Optional) A `backup_datasource_parameters` block as defined below. Changing this forces a new resource to be created.
+
+~> **Note:** The `backup_datasource_parameters` block must be specified for the Backup Instance Kubernetes Cluster to be configured successfully.
 
 ---
 
