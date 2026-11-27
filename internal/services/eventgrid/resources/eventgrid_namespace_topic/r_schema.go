@@ -42,6 +42,12 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Default:      7,
 			ValidateFunc: validation.IntBetween(1, 7),
 		},
+
+		"routing_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
 	}
 }
 

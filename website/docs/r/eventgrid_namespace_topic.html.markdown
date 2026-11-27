@@ -43,6 +43,10 @@ The following arguments are supported:
 
 * `event_retention_in_days` - (Optional) Event retention for the namespace topic expressed in days. Defaults to `7`.
 
+* `routing_enabled` - (Optional) Whether to route event to this Event Grid Namespace Topic from topic spaces under a namespace. Defaults to `false`.
+
+~> **Note:** `routing_enabled` should be set to `false` when `route_topic_id` of `azurerm_eventgrid_namespace` resource is set to avoid perpetual change due to different topic IDs set via the two methods.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
@@ -70,4 +74,4 @@ terraform import azurerm_eventgrid_namespace_topic.example /subscriptions/000000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.EventGrid` - 2025-02-15
+* `Microsoft.EventGrid` - 2025-02-15, 2023-12-15-preview

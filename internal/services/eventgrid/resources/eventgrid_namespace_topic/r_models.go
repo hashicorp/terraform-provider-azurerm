@@ -7,6 +7,7 @@ type EventGridNamespaceTopicResourceModel struct {
 	Name                 string `tfschema:"name"`
 	EventgridNamespaceId string `tfschema:"eventgrid_namespace_id"`
 	EventRetentionInDays int64  `tfschema:"event_retention_in_days"`
+	RoutingEnabled       bool   `tfschema:"routing_enabled"`
 }
 
 func (r Resource) ModelObject() any {

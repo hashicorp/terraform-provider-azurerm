@@ -6,10 +6,12 @@ package eventgrid_namespace_topic
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2023-12-15-preview/namespaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/namespacetopics"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -20,6 +22,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.EventGrid.NamespaceTopicsClient
+			namespacesClient := metadata.Client.EventGrid.NamespacesClient
 
 			id, err := namespacetopics.ParseNamespaceTopicID(metadata.ResourceData.Id())
 			if err != nil {
@@ -42,6 +45,16 @@ func (r Resource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
 					state.EventRetentionInDays = pointer.From(props.EventRetentionInDays)
+				}
+			}
+
+			namespaceId := namespaces.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
+			existing, err := namespacesClient.Get(ctx, namespaceId)
+			if err == nil && existing.Model != nil && existing.Model.Properties != nil {
+				if topicSpacesConfiguration := existing.Model.Properties.TopicSpacesConfiguration; topicSpacesConfiguration != nil {
+					if routeTopicResourceId := topicSpacesConfiguration.RouteTopicResourceId; routeTopicResourceId != nil && strings.EqualFold(id.ID(), pointer.From(routeTopicResourceId)) {
+						state.RoutingEnabled = true
+					}
 				}
 			}
 

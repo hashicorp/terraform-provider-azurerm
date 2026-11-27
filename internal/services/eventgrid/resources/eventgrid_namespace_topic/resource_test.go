@@ -140,6 +140,7 @@ resource "azurerm_eventgrid_namespace_topic" "test" {
   name                    = "acctest-egnt-%d"
   eventgrid_namespace_id  = azurerm_eventgrid_namespace.test.id
   event_retention_in_days = 1
+  routing_enabled         = true
 }
 `, r.template(data), data.RandomInteger)
 }
