@@ -124,6 +124,15 @@ func resourceBatchUpdate(d *pluginsdk.ResourceData, meta any) error {
 		parameters.Properties.TargetNodeCommunicationMode = pointer.ToEnum[pool.NodeCommunicationMode](d.Get("target_node_communication_mode").(string))
 	}
 
+	if d.HasChange("application_package") {
+		v := d.Get("application_package")
+		applicationPackageReference, err := ExpandBatchPoolApplicationPackages(v.([]any))
+		if err != nil {
+			return fmt.Errorf("expanding `application_package`: %+v", err)
+		}
+		parameters.Properties.ApplicationPackages = &applicationPackageReference
+	}
+
 	result, err := client.Update(ctx, *id, parameters, pool.UpdateOperationOptions{})
 	if err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
