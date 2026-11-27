@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/manageddatabases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstancelongtermretentionpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2026-08-01-preview/managedbackupshorttermretentionpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
@@ -71,6 +72,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 
 			if shortTermRetentionResp.Model != nil && shortTermRetentionResp.Model.Properties != nil {
 				model.ShortTermRetentionDays = pointer.From(shortTermRetentionResp.Model.Properties.RetentionDays)
+				model.ShortTermRetentionImmutabilityLocked = pointer.From(shortTermRetentionResp.Model.Properties.ImmutabilityStatus) == managedbackupshorttermretentionpolicies.ImmutabilityStatusLocked
 			}
 
 			d := metadata.ResourceData

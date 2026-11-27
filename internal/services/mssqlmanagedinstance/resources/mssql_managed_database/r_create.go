@@ -11,10 +11,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedbackupshorttermretentionpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/manageddatabases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstancelongtermretentionpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstances"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2026-08-01-preview/managedbackupshorttermretentionpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/parse"
 )
@@ -94,9 +94,25 @@ func (r Resource) Create() sdk.ResourceFunc {
 			}
 
 			if model.ShortTermRetentionDays > 0 {
+				if model.ShortTermRetentionImmutabilityLocked {
+					existingPolicy, err := shortTermRetentionClient.Get(ctx, id)
+					if err != nil {
+						return fmt.Errorf("retrieving Short Term Retention Policy for %s: %+v", id, err)
+					}
+
+					var immutabilityStatus managedbackupshorttermretentionpolicies.ImmutabilityStatus
+					if existingPolicy.Model != nil && existingPolicy.Model.Properties != nil {
+						immutabilityStatus = pointer.From(existingPolicy.Model.Properties.ImmutabilityStatus)
+					}
+					if immutabilityStatus != managedbackupshorttermretentionpolicies.ImmutabilityStatusEnabled {
+						return fmt.Errorf("`short_term_retention_immutability_locked` cannot be set to `true` when `immutabilityStatus` is `%s` (must be `%s`)", immutabilityStatus, managedbackupshorttermretentionpolicies.ImmutabilityStatusEnabled)
+					}
+				}
+
 				shortTermRetentionPolicy := managedbackupshorttermretentionpolicies.ManagedBackupShortTermRetentionPolicy{
 					Properties: &managedbackupshorttermretentionpolicies.ManagedBackupShortTermRetentionPolicyProperties{
-						RetentionDays: pointer.To(model.ShortTermRetentionDays),
+						RetentionDays:    pointer.To(model.ShortTermRetentionDays),
+						LockImmutability: pointer.To(model.ShortTermRetentionImmutabilityLocked),
 					},
 				}
 				if err = shortTermRetentionClient.CreateOrUpdateThenPoll(ctx, id, shortTermRetentionPolicy); err != nil {

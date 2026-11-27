@@ -63,6 +63,12 @@ func RegisterResource() *pluginsdk.Resource {
 
 				return false
 			}),
+			pluginsdk.ForceNewIfChange("short_term_retention_policy.0.immutability_locked", func(ctx context.Context, old, new, _ any) bool {
+				oldLocked, ok1 := old.(bool)
+				newLocked, ok2 := new.(bool)
+				// the service does not support unlock.
+				return ok1 && ok2 && oldLocked && !newLocked
+			}),
 			func(ctx context.Context, d *schema.ResourceDiff, meta any) error {
 				transparentDataEncryption := d.Get("transparent_data_encryption_enabled").(bool)
 				skuName := d.Get("sku_name").(string)
