@@ -84,6 +84,13 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			}, false),
 		},
 
+		"upgrade_preference": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(appserviceenvironments.UpgradePreferenceNone),
+			ValidateFunc: validation.StringInSlice(appserviceenvironments.PossibleValuesForUpgradePreference(), false),
+		},
+
 		"remote_debugging_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,

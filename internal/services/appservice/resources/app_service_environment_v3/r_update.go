@@ -46,6 +46,10 @@ func (r Resource) Update() sdk.ResourceFunc {
 				model.Properties.ClusterSettings = expandClusterSettingsModel(state.ClusterSetting)
 			}
 
+			if metadata.ResourceData.HasChange("upgrade_preference") {
+				model.Properties.UpgradePreference = pointer.ToEnum[appserviceenvironments.UpgradePreference](state.UpgradePreference)
+			}
+
 			if metadata.ResourceData.HasChange("tags") {
 				model.Tags = pointer.To(state.Tags)
 			}

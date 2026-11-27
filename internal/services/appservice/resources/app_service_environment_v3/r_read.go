@@ -47,6 +47,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					state.SubnetId = props.VirtualNetwork.Id
 					state.InternalLoadBalancingMode = pointer.FromEnum(props.InternalLoadBalancingMode)
+					state.UpgradePreference = pointer.FromEnum(props.UpgradePreference)
 					state.DedicatedHostCount = pointer.From(props.DedicatedHostCount)
 					state.PricingTier = pointer.From(props.MultiSize)
 					state.ClusterSetting = flattenClusterSettingsModel(props.ClusterSettings)

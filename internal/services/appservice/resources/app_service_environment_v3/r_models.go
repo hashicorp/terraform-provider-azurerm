@@ -16,6 +16,7 @@ type AppServiceEnvironmentV3Model struct {
 	ClusterSetting                     []ClusterSettingModel             `tfschema:"cluster_setting"`
 	DedicatedHostCount                 int64                             `tfschema:"dedicated_host_count"`
 	InternalLoadBalancingMode          string                            `tfschema:"internal_load_balancing_mode"`
+	UpgradePreference                  string                            `tfschema:"upgrade_preference"`
 	RemoteDebuggingEnabled             bool                              `tfschema:"remote_debugging_enabled"`
 	ZoneRedundant                      bool                              `tfschema:"zone_redundant"`
 	Tags                               map[string]string                 `tfschema:"tags"`
