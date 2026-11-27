@@ -6,15 +6,15 @@ package eventhub_namespace_customer_managed_key
 import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2026-01-01/ehnamespaces"
 )
 
-func expandEventHubNamespaceKeyVaultKeyIds(input []any) (*[]namespaces.KeyVaultProperties, error) {
+func expandEventHubNamespaceKeyVaultKeyIds(input []any) (*[]ehnamespaces.KeyVaultProperties, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
 
-	results := make([]namespaces.KeyVaultProperties, 0)
+	results := make([]ehnamespaces.KeyVaultProperties, 0)
 
 	for _, item := range input {
 		keyId, err := keyvault.ParseNestedItemID(item.(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
@@ -22,7 +22,7 @@ func expandEventHubNamespaceKeyVaultKeyIds(input []any) (*[]namespaces.KeyVaultP
 			return nil, err
 		}
 
-		results = append(results, namespaces.KeyVaultProperties{
+		results = append(results, ehnamespaces.KeyVaultProperties{
 			KeyName:     pointer.To(keyId.Name),
 			KeyVaultUri: pointer.To(keyId.KeyVaultBaseURL),
 			KeyVersion:  pointer.To(keyId.Version),

@@ -6,9 +6,10 @@ package eventhub_namespace
 import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/eventhubsclusters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/namespaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/networkrulesets"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2026-01-01/clusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2026-01-01/ehnamespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2026-01-01/networkrulesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -33,7 +34,7 @@ func eventhubNamespaceSchema() map[string]*pluginsdk.Schema {
 			Description:  "Which tier to use. Setting this field to `Premium` will force the creation of a new resource.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validation.StringInSlice(namespaces.PossibleValuesForSkuName(), false),
+			ValidateFunc: validation.StringInSlice(ehnamespaces.PossibleValuesForSkuName(), false),
 		},
 
 		"capacity": {
@@ -55,7 +56,54 @@ func eventhubNamespaceSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: eventhubsclusters.ValidateClusterID,
+			ValidateFunc: clusters.ValidateClusterID,
+		},
+
+		"geo_replication": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"maximum_replication_lag_in_seconds": {
+						Type:     pluginsdk.TypeInt,
+						Required: true,
+						ValidateFunc: validation.Any(
+							validation.IntInSlice([]int{0}),
+							validation.IntBetween(300, 86400),
+						),
+					},
+
+					"replica": {
+						Type:     pluginsdk.TypeSet,
+						Required: true,
+						MinItems: 2,
+						Set:      resourceGeoReplicationReplicaHash,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"location": {
+									Type:             pluginsdk.TypeString,
+									Required:         true,
+									ValidateFunc:     location.EnhancedValidate,
+									DiffSuppressFunc: location.DiffSuppressFunc,
+								},
+
+								"role": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(ehnamespaces.PossibleValuesForGeoDRRoleType(), false),
+								},
+
+								"dedicated_cluster_id": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									ValidateFunc: clusters.ValidateClusterID,
+								},
+							},
+						},
+					},
+				},
+			},
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
@@ -159,9 +207,9 @@ func eventhubNamespaceSchema() map[string]*pluginsdk.Schema {
 			Description: "The minimum supported TLS version for this EventHub Namespace.",
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
-			Default:     string(namespaces.TlsVersionOnePointTwo),
+			Default:     string(ehnamespaces.TlsVersionOnePointTwo),
 			ValidateFunc: validation.StringInSlice([]string{
-				string(namespaces.TlsVersionOnePointTwo),
+				string(ehnamespaces.TlsVersionOnePointTwo),
 			}, false),
 		},
 
