@@ -98,6 +98,13 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"secondary_type": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.StringInSlice(
+				failovergroups.PossibleValuesForFailoverGroupDatabasesSecondaryType(), false),
+		},
+
 		"tags": commonschema.Tags(),
 	}
 }

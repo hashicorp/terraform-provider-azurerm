@@ -70,6 +70,10 @@ func (r Resource) Create() sdk.ResourceFunc {
 				Tags: pointer.To(model.Tags),
 			}
 
+			if model.SecondaryType != "" {
+				properties.Properties.SecondaryType = pointer.To(failovergroups.FailoverGroupDatabasesSecondaryType(model.SecondaryType))
+			}
+
 			if rwPolicy := model.ReadWriteEndpointFailurePolicy; len(rwPolicy) > 0 {
 				properties.Properties.ReadWriteEndpoint.FailoverPolicy = failovergroups.ReadWriteEndpointFailoverPolicy(rwPolicy[0].Mode)
 				if rwPolicy[0].Mode == string(failovergroups.ReadWriteEndpointFailoverPolicyAutomatic) {

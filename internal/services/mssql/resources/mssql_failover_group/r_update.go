@@ -52,6 +52,10 @@ func (r Resource) Update() sdk.ResourceFunc {
 				properties.Properties.ReadWriteEndpoint.FailoverWithDataLossGracePeriodMinutes = pointer.To(state.ReadWriteEndpointFailurePolicy[0].GraceMinutes)
 			}
 
+			if state.SecondaryType != "" {
+				properties.Properties.SecondaryType = pointer.To(failovergroups.FailoverGroupDatabasesSecondaryType(state.SecondaryType))
+			}
+
 			// client.Update doesn't support changing the PartnerServers
 			if err = client.CreateOrUpdateThenPoll(ctx, *id, properties); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)

@@ -4,14 +4,14 @@
 package mssql_failover_group
 
 type MsSqlFailoverGroupModel struct {
-	Databases                            []string             `tfschema:"databases"`
-	Name                                 string               `tfschema:"name"`
-	PartnerServers                       []PartnerServerModel `tfschema:"partner_server"`
-	ReadonlyEndpointFailurePolicyEnabled bool                 `tfschema:"readonly_endpoint_failover_policy_enabled"`
-	ServerId                             string               `tfschema:"server_id"`
-	Tags                                 map[string]string    `tfschema:"tags"`
-
-	ReadWriteEndpointFailurePolicy []ReadWriteEndpointFailurePolicyModel `tfschema:"read_write_endpoint_failover_policy"`
+	Databases                            []string                              `tfschema:"databases"`
+	Name                                 string                                `tfschema:"name"`
+	PartnerServers                       []PartnerServerModel                  `tfschema:"partner_server"`
+	ReadonlyEndpointFailurePolicyEnabled bool                                  `tfschema:"readonly_endpoint_failover_policy_enabled"`
+	ServerId                             string                                `tfschema:"server_id"`
+	Tags                                 map[string]string                     `tfschema:"tags"`
+	SecondaryType                        string                                `tfschema:"secondary_type"`
+	ReadWriteEndpointFailurePolicy       []ReadWriteEndpointFailurePolicyModel `tfschema:"read_write_endpoint_failover_policy"`
 }
 
 type PartnerServerModel struct {

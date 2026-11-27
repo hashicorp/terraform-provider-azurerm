@@ -63,6 +63,10 @@ func (r Resource) Read() sdk.ResourceFunc {
 					}}
 
 					model.ReadWriteEndpointFailurePolicy[0].GraceMinutes = pointer.From(props.ReadWriteEndpoint.FailoverWithDataLossGracePeriodMinutes)
+
+					// The API does not return the value of secondary_type.
+					// Tracking issue:https://github.com/Azure/azure-rest-api-specs/issues/35500
+					model.SecondaryType = metadata.ResourceData.Get("secondary_type").(string)
 				}
 			}
 
