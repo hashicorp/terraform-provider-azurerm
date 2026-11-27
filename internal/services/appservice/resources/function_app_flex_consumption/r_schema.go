@@ -120,6 +120,13 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"key_vault_reference_identity_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+		},
+
 		"site_config": helpers.SiteConfigSchemaFunctionAppFlexConsumption(),
 
 		"sticky_settings": helpers.StickySettingsSchema(),

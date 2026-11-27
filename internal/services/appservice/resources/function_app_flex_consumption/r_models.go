@@ -25,6 +25,7 @@ type FunctionAppFlexConsumptionModel struct {
 	ConnectionStrings                []helpers.ConnectionString `tfschema:"connection_string"`
 	PublicNetworkAccess              bool                       `tfschema:"public_network_access_enabled"`
 	HttpsOnly                        bool                       `tfschema:"https_only"`
+	KeyVaultReferenceIdentityID      string                     `tfschema:"key_vault_reference_identity_id"`
 	VirtualNetworkSubnetID           string                     `tfschema:"virtual_network_subnet_id"`
 	ZipDeployFile                    string                     `tfschema:"zip_deploy_file"`
 	PublishingDeployBasicAuthEnabled bool                       `tfschema:"webdeploy_publish_basic_authentication_enabled"`

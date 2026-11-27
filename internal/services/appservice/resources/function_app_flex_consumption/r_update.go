@@ -93,6 +93,10 @@ func (r Resource) Update() sdk.ResourceFunc {
 				model.Identity = expandedIdentity
 			}
 
+			if metadata.ResourceData.HasChange("key_vault_reference_identity_id") {
+				model.Properties.KeyVaultReferenceIdentity = pointer.To(state.KeyVaultReferenceIdentityID)
+			}
+
 			if metadata.ResourceData.HasChange("tags") {
 				model.Tags = pointer.To(state.Tags)
 			}

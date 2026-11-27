@@ -188,6 +188,10 @@ func (r Resource) Create() sdk.ResourceFunc {
 			siteEnvelope.Properties.PublicNetworkAccess = pointer.To(pna)
 			siteEnvelope.Properties.SiteConfig.PublicNetworkAccess = siteEnvelope.Properties.PublicNetworkAccess
 
+			if functionAppFlexConsumption.KeyVaultReferenceIdentityID != "" {
+				siteEnvelope.Properties.KeyVaultReferenceIdentity = pointer.To(functionAppFlexConsumption.KeyVaultReferenceIdentityID)
+			}
+
 			if functionAppFlexConsumption.VirtualNetworkSubnetID != "" {
 				siteEnvelope.Properties.VirtualNetworkSubnetId = pointer.To(functionAppFlexConsumption.VirtualNetworkSubnetID)
 				locks.ByID(functionAppFlexConsumption.VirtualNetworkSubnetID)
