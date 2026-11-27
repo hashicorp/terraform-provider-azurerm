@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appgateway/resources/application_gateway"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appgateway/resources/web_application_firewall_policy"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -45,16 +47,16 @@ func (r Registration) Resources() []sdk.Resource {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_application_gateway":             dataSourceApplicationGateway(),
-		"azurerm_web_application_firewall_policy": dataWebApplicationFirewallPolicy(),
+		"azurerm_application_gateway":             application_gateway.RegisterDataSource(),
+		"azurerm_web_application_firewall_policy": web_application_firewall_policy.RegisterDataSource(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_application_gateway":             resourceApplicationGateway(),
-		"azurerm_web_application_firewall_policy": resourceWebApplicationFirewallPolicy(),
+		"azurerm_application_gateway":             application_gateway.RegisterResource(),
+		"azurerm_web_application_firewall_policy": web_application_firewall_policy.RegisterResource(),
 	}
 }
 
@@ -64,8 +66,8 @@ func (r Registration) Actions() []func() action.Action {
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
-		ApplicationGatewayListResource{},
-		WebApplicationFirewallPolicyListResource{},
+		application_gateway.ListResource{},
+		web_application_firewall_policy.ListResource{},
 	}
 }
 
