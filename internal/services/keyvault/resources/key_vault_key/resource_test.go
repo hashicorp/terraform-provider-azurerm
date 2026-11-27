@@ -546,6 +546,13 @@ func (r KeyVaultKeyResource) Exists(ctx context.Context, clients *clients.Client
 }
 
 func (KeyVaultKeyResource) destroyParentKeyVault(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
+	if _, ok := ctx.Deadline(); !ok {
+		// set timeout if not already set because the new client requires deadline on the ctx
+		ctx2, cancel := context.WithTimeout(ctx, time.Minute*5)
+		defer cancel()
+		ctx = ctx2
+	}
+
 	ok, err := KeyVaultResource{}.Destroy(ctx, client, state)
 	if err != nil {
 		return err
