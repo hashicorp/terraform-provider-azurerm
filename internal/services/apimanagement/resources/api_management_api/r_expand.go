@@ -56,6 +56,8 @@ func expandApiManagementApiImport(importVs []any, apiType api.ApiType, soapApiTy
 		apiParams.Properties.ApiVersionSetId = pointer.To(versionSetId)
 	}
 
+	apiParams.Properties.TranslateRequiredQueryParameters = pointer.ToEnum[api.TranslateRequiredQueryParametersConduct](importV["translate_required_query_parameters"].(string))
+
 	return &apiParams
 }
 

@@ -138,6 +138,13 @@ func apiManagementApiSchema() map[string]*pluginsdk.Schema {
 						}, false),
 					},
 
+					"translate_required_query_parameters": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Default:      string(api.TranslateRequiredQueryParametersConductTemplate),
+						ValidateFunc: validation.StringInSlice(api.PossibleValuesForTranslateRequiredQueryParametersConduct(), false),
+					},
+
 					"wsdl_selector": {
 						Description: "This can only be specified when `content_format` is `wsdl` or `wsdl-link`.",
 						Type:        pluginsdk.TypeList,
