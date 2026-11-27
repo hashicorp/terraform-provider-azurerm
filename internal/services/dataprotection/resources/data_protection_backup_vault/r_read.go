@@ -37,10 +37,14 @@ func resourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta any) 
 		}
 		return fmt.Errorf("retrieving DataProtection BackupVault (%q): %+v", id, err)
 	}
+	return resourceDataProtectionBackupVaultFlatten(d, id, resp.Model)
+}
+
+func resourceDataProtectionBackupVaultFlatten(d *pluginsdk.ResourceData, id *backupvaultresources.BackupVaultId, model *backupvaultresources.BackupVaultResource) error {
 	d.Set("name", id.BackupVaultName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		d.Set("location", location.NormalizeNilable(pointer.To(model.Location)))
 		props := model.Properties
 

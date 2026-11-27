@@ -36,6 +36,7 @@ func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
 		data_protection_backup_instance_cosmosdb_account.ListResource{},
 		data_protection_backup_policy_cosmosdb_account.ListResource{},
+		data_protection_backup_vault.ListResource{},
 		data_protection_backup_vault_resource_guard_association.ListResource{},
 	}
 }

@@ -39,7 +39,7 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 				}
 			}
 			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_data_protection_backup_vault", id.ID())
+				return tf.ImportAsExistsError(azureDataProtectionBackupVaultResourceName, id.ID())
 			}
 		}
 	}
