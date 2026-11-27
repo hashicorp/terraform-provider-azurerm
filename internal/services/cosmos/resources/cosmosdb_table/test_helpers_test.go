@@ -32,7 +32,7 @@ resource "azurerm_cosmosdb_account" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   offer_type          = "Standard"
-  kind                = "cosmosdb_table/test_helpers_test.go:15"
+  kind                = "GlobalDocumentDB"
 
   consistency_policy {
     consistency_level = "Strong"
