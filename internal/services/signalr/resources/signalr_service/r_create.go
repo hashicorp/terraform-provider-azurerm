@@ -90,10 +90,10 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta any) error 
 
 	if expandSignalRServiceSku(sku).Name == "Free_F1" {
 		if publicNetworkAcc == "Disabled" {
-			return fmt.Errorf("SKU Free_F1 does not support disabling public network access")
+			return errors.New("SKU Free_F1 does not support disabling public network access")
 		}
 		if tlsClientCertEnabled {
-			return fmt.Errorf("SKU Free_F1 does not support enabling tls client cert")
+			return errors.New("SKU Free_F1 does not support enabling tls client cert")
 		}
 	}
 

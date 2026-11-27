@@ -5,6 +5,7 @@ package service_fabric_managed_cluster
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"maps"
 	"strconv"
@@ -317,7 +318,7 @@ const (
 
 func parsePortRange(input string) (int64, int64, error) {
 	if len(input) == 0 {
-		return 0, 0, fmt.Errorf("port range is an empty string")
+		return 0, 0, errors.New("port range is an empty string")
 	}
 	toks := strings.Split(input, "-")
 	if len(toks) != 2 {

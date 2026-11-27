@@ -5,6 +5,7 @@ package servicebus_namespace
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -42,7 +43,7 @@ func resourceServiceBusNamespaceRead(d *pluginsdk.ResourceData, meta any) error 
 func servicebusTLSVersionDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ any) (err error) {
 	old, new := d.GetChange("minimum_tls_version")
 	if old != "" && new == "" {
-		err = fmt.Errorf("`minimum_tls_version` has been set before, please set a valid value for this property ")
+		err = errors.New("`minimum_tls_version` has been set before, please set a valid value for this property ")
 	}
 	return
 }

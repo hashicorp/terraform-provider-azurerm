@@ -5,6 +5,7 @@ package synapse
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -192,7 +193,7 @@ func synapseSqlPoolCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff,
 	storageAccountType := synapse.StorageAccountType(value.(string))
 
 	if storageAccountType == synapse.StorageAccountTypeLRS && geoBackupEnabled {
-		return fmt.Errorf("`geo_backup_policy_enabled` cannot be `true` if the `storage_account_type` is `LRS`")
+		return errors.New("`geo_backup_policy_enabled` cannot be `true` if the `storage_account_type` is `LRS`")
 	}
 
 	return nil
@@ -379,7 +380,7 @@ func resourceSynapseSqlPoolUpdate(d *pluginsdk.ResourceData, meta any) error {
 		if d.HasChange("sku_name") {
 			deadline, ok := ctx.Deadline()
 			if !ok {
-				return fmt.Errorf("internal-error: context had no deadline")
+				return errors.New("internal-error: context had no deadline")
 			}
 
 			stateConf := &pluginsdk.StateChangeConf{

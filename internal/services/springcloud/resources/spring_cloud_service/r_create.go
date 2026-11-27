@@ -4,6 +4,7 @@
 package spring_cloud_service
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -94,7 +95,7 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta any) error
 
 	skuName := d.Get("sku_name").(string)
 	if skuName == "E0" && gitProperty != nil {
-		return fmt.Errorf("`config_server_git_setting` is not supported for sku `E0`")
+		return errors.New("`config_server_git_setting` is not supported for sku `E0`")
 	}
 
 	if skuName != "E0" {

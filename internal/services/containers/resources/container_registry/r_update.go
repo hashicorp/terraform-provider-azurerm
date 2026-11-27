@@ -52,7 +52,7 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta any) error 
 	if d.HasChange("network_rule_set") {
 		networkRuleSet := expandNetworkRuleSet(d.Get("network_rule_set").([]any))
 		if networkRuleSet != nil && isBasicSku {
-			return fmt.Errorf("`network_rule_set` can only be specified for a Premium Sku. If you are reverting from a Premium to Basic SKU please set network_rule_set = []")
+			return errors.New("`network_rule_set` can only be specified for a Premium Sku. If you are reverting from a Premium to Basic SKU please set network_rule_set = []")
 		}
 
 		payload.Properties.NetworkRuleSet = networkRuleSet

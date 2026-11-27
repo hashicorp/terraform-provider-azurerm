@@ -4,6 +4,7 @@
 package data_factory_dataset_binary
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -48,7 +49,7 @@ func resourceDataFactoryDatasetBinaryCreateUpdate(d *pluginsdk.ResourceData, met
 
 	location := helpers.ExpandDataFactoryDatasetLocation(d)
 	if location == nil {
-		return fmt.Errorf("one of `http_server_location`, `azure_blob_storage_location` or `sftp_server_location`, must be specified to create a DataFactory Binary Dataset")
+		return errors.New("one of `http_server_location`, `azure_blob_storage_location` or `sftp_server_location`, must be specified to create a DataFactory Binary Dataset")
 	}
 
 	binaryDatasetProperties := datafactory.BinaryDatasetTypeProperties{

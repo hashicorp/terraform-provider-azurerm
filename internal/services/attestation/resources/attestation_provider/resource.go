@@ -5,7 +5,7 @@ package attestation_provider
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -42,19 +42,19 @@ func RegisterResource() *pluginsdk.Resource {
 
 		CustomizeDiff: func(ctx context.Context, diff *schema.ResourceDiff, i any) error {
 			if o, n := diff.GetChange("open_enclave_policy_base64"); o.(string) != "" && n.(string) == "" {
-				return fmt.Errorf("`open_enclave_policy_base64` can not be removed, add it to `ignore_changes` block to keep the default values")
+				return errors.New("`open_enclave_policy_base64` can not be removed, add it to `ignore_changes` block to keep the default values")
 			}
 
 			if o, n := diff.GetChange("sgx_enclave_policy_base64"); o.(string) != "" && n.(string) == "" {
-				return fmt.Errorf("`sgx_enclave_policy_base64` can not be removed, add it to `ignore_changes` block to keep the default values")
+				return errors.New("`sgx_enclave_policy_base64` can not be removed, add it to `ignore_changes` block to keep the default values")
 			}
 
 			if o, n := diff.GetChange("tpm_policy_base64"); o.(string) != "" && n.(string) == "" {
-				return fmt.Errorf("`tpm_policy_base64` can not be removed, add it to `ignore_changes` block to keep the default values")
+				return errors.New("`tpm_policy_base64` can not be removed, add it to `ignore_changes` block to keep the default values")
 			}
 
 			if o, n := diff.GetChange("sev_snp_policy_base64"); o.(string) != "" && n.(string) == "" {
-				return fmt.Errorf("`sev_snp_policy_base64` can not be removed, add it to `ignore_changes` block to keep the default values")
+				return errors.New("`sev_snp_policy_base64` can not be removed, add it to `ignore_changes` block to keep the default values")
 			}
 
 			return nil

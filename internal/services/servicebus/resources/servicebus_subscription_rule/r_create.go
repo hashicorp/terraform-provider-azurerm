@@ -4,6 +4,7 @@
 package servicebus_subscription_rule
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -97,11 +98,11 @@ func resourceServiceBusSubscriptionRuleCreateUpdate(d *pluginsdk.ResourceData, m
 func expandAzureRmServiceBusCorrelationFilter(d *pluginsdk.ResourceData) (*rules.CorrelationFilter, error) {
 	configs := d.Get("correlation_filter").([]any)
 	if len(configs) == 0 {
-		return nil, fmt.Errorf("`correlation_filter` is required when `filter_type` is set to `CorrelationFilter`")
+		return nil, errors.New("`correlation_filter` is required when `filter_type` is set to `CorrelationFilter`")
 	}
 
 	if configs[0] == nil {
-		return nil, fmt.Errorf("at least one property must not be empty in the `correlation_filter` block")
+		return nil, errors.New("at least one property must not be empty in the `correlation_filter` block")
 	}
 	config := configs[0].(map[string]any)
 
@@ -117,7 +118,7 @@ func expandAzureRmServiceBusCorrelationFilter(d *pluginsdk.ResourceData) (*rules
 	properties := expandProperties(config["properties"].(map[string]any))
 
 	if contentType == "" && correlationID == "" && label == "" && messageID == "" && replyTo == "" && replyToSessionID == "" && sessionID == "" && to == "" && len(*properties) == 0 {
-		return nil, fmt.Errorf("at least one property must be set in the `correlation_filter` block")
+		return nil, errors.New("at least one property must be set in the `correlation_filter` block")
 	}
 
 	correlationFilter := rules.CorrelationFilter{}

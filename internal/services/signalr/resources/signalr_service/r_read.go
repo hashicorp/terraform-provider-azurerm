@@ -5,6 +5,7 @@ package signalr_service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -79,6 +80,6 @@ func signalrServiceProvisioningStateRefreshFunc(ctx context.Context, client *sig
 			}
 		}
 
-		return nil, "", fmt.Errorf("unable to read provisioning state")
+		return nil, "", errors.New("unable to read provisioning state")
 	}
 }

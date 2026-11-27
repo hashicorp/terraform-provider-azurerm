@@ -4,6 +4,7 @@
 package security_center_automation
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2019-01-01-preview/automations"
@@ -26,10 +27,10 @@ func flattenSecurityCenterAutomationSources(sources *[]automations.AutomationSou
 
 				for _, rule := range *ruleSet.Rules {
 					if rule.PropertyJPath == nil {
-						return nil, fmt.Errorf("'Security Center Automation' API returned a rule with an empty PropertyJPath")
+						return nil, errors.New("'Security Center Automation' API returned a rule with an empty PropertyJPath")
 					}
 					if rule.ExpectedValue == nil {
-						return nil, fmt.Errorf("'Security Center Automation' API returned a rule with empty ExpectedValue")
+						return nil, errors.New("'Security Center Automation' API returned a rule with empty ExpectedValue")
 					}
 					ruleMap := map[string]string{
 						"property_path":  *rule.PropertyJPath,
@@ -65,7 +66,7 @@ func flattenSecurityCenterAutomationScopes(scopes *[]automations.AutomationScope
 	resultSlice := make([]string, 0)
 	for _, scope := range *scopes {
 		if scope.ScopePath == nil {
-			return nil, fmt.Errorf("'Security Center Automation' API returned a scope with an empty ScopePath")
+			return nil, errors.New("'Security Center Automation' API returned a scope with an empty ScopePath")
 		}
 
 		resultSlice = append(resultSlice, *scope.ScopePath)
@@ -87,7 +88,7 @@ func flattenSecurityCenterAutomationActions(actions *[]automations.AutomationAct
 		actionLogicApp, isLogicApp := action.(automations.AutomationActionLogicApp)
 		if isLogicApp {
 			if actionLogicApp.LogicAppResourceId == nil {
-				return nil, fmt.Errorf("'Security Center Automation' API returned an action with empty logicAppResourceId")
+				return nil, errors.New("'Security Center Automation' API returned an action with empty logicAppResourceId")
 			}
 			actionMap := map[string]string{
 				"resource_id": *actionLogicApp.LogicAppResourceId,
@@ -107,7 +108,7 @@ func flattenSecurityCenterAutomationActions(actions *[]automations.AutomationAct
 		actionEventHub, isEventHub := action.(automations.AutomationActionEventHub)
 		if isEventHub {
 			if actionEventHub.EventHubResourceId == nil {
-				return nil, fmt.Errorf("'Security Center Automation' API returned an action with empty eventHubResourceId")
+				return nil, errors.New("'Security Center Automation' API returned an action with empty eventHubResourceId")
 			}
 			actionMap := map[string]string{
 				"resource_id":       *actionEventHub.EventHubResourceId,
@@ -127,7 +128,7 @@ func flattenSecurityCenterAutomationActions(actions *[]automations.AutomationAct
 		actionLogAnalytics, isLogAnalytics := action.(automations.AutomationActionWorkspace)
 		if isLogAnalytics {
 			if actionLogAnalytics.WorkspaceResourceId == nil {
-				return nil, fmt.Errorf("security center automation, API returned an action with empty workspaceResourceId")
+				return nil, errors.New("security center automation, API returned an action with empty workspaceResourceId")
 			}
 			actionMap := map[string]string{
 				"resource_id": *actionLogAnalytics.WorkspaceResourceId,

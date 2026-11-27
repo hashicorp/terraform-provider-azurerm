@@ -4,7 +4,7 @@
 package spring_cloud_service
 
 import (
-	"fmt"
+	"errors"
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -64,7 +64,7 @@ func expandSpringCloudConfigServerGitProperty(input []any) (*appplatform.ConfigS
 	httpBasicAuth := v["http_basic_auth"].([]any)
 	sshAuth := v["ssh_auth"].([]any)
 	if len(httpBasicAuth) > 0 && len(sshAuth) > 0 {
-		return nil, fmt.Errorf("can not set both `http_basic_auth` and `ssh_auth`")
+		return nil, errors.New("can not set both `http_basic_auth` and `ssh_auth`")
 	}
 	if len(httpBasicAuth) > 0 {
 		v := httpBasicAuth[0].(map[string]any)
@@ -118,7 +118,7 @@ func expandSpringCloudGitPatternRepository(input []any) (*[]appplatform.GitPatte
 		httpBasicAuth := v["http_basic_auth"].([]any)
 		sshAuth := v["ssh_auth"].([]any)
 		if len(httpBasicAuth) > 0 && len(sshAuth) > 0 {
-			return nil, fmt.Errorf("can not set both `http_basic_auth` and `ssh_auth` for the same repository")
+			return nil, errors.New("can not set both `http_basic_auth` and `ssh_auth` for the same repository")
 		}
 		if len(httpBasicAuth) > 0 {
 			v := httpBasicAuth[0].(map[string]any)

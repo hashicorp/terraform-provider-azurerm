@@ -5,6 +5,7 @@ package search_service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -218,7 +219,7 @@ func validateSearchServiceApiAccessControlRbac(ctx context.Context, diff *plugin
 	failureMode := diff.Get("authentication_failure_mode").(string)
 
 	if !auth && failureMode != "" {
-		return fmt.Errorf("'authentication_failure_mode' cannot be defined if 'local_authentication_enabled' has been set to 'false'")
+		return errors.New("'authentication_failure_mode' cannot be defined if 'local_authentication_enabled' has been set to 'false'")
 	}
 
 	return nil

@@ -4,6 +4,7 @@
 package sentinel_data_connector_microsoft_cloud_app_security
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -52,7 +53,7 @@ func resourceSentinelDataConnectorMicrosoftCloudAppSecurityCreateUpdate(d *plugi
 
 	// Service will not create the DC in case non of the toggle is enabled.
 	if !alertsEnabled && !discoveryLogsEnabled {
-		return fmt.Errorf("either `alerts_enabled` or `discovery_logs_enabled` should be `true`")
+		return errors.New("either `alerts_enabled` or `discovery_logs_enabled` should be `true`")
 	}
 
 	alertState := dataconnectors.DataTypeStateEnabled

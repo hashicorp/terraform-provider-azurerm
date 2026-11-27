@@ -5,6 +5,7 @@ package service_fabric_managed_cluster
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"reflect"
 	"regexp"
@@ -131,15 +132,15 @@ func (k Resource) CustomizeDiff() sdk.ResourceFunc {
 				nt := nti.(map[string]any)
 				vmCount := nt["vm_instance_count"].(int)
 				if sku == string(managedcluster.SkuNameBasic) && vmCount < 3 {
-					return fmt.Errorf("basic SKU requires at least 3 instances in a node type")
+					return errors.New("basic SKU requires at least 3 instances in a node type")
 				} else if sku == string(managedcluster.SkuNameStandard) && vmCount < 5 {
-					return fmt.Errorf("standard SKU requires at least 5 instances in a node type")
+					return errors.New("standard SKU requires at least 5 instances in a node type")
 				}
 				isPrimary := nt["primary"].(bool)
 				if isPrimary && !primary {
 					primary = true
 				} else if isPrimary {
-					return fmt.Errorf("only one node type can be primary at any given time. ")
+					return errors.New("only one node type can be primary at any given time. ")
 				}
 			}
 

@@ -4,6 +4,7 @@
 package iot_security_solution
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" //nolint:staticcheck
@@ -87,7 +88,7 @@ func resourceIotSecuritySolutionCreateUpdate(d *pluginsdk.ResourceData, meta any
 				QuerySubscriptions: pluginsdk.ExpandStringSlice(querySubscriptions),
 			}
 		} else {
-			return fmt.Errorf("`query_for_resources` and `query_subscription_ids` must be set togetther")
+			return errors.New("`query_for_resources` and `query_subscription_ids` must be set togetther")
 		}
 	}
 

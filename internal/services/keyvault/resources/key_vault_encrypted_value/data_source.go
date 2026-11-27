@@ -7,6 +7,7 @@ import (
 	"context"
 	"crypto/sha1"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -98,10 +99,10 @@ func (DataSource) Read() sdk.ResourceFunc {
 			}
 
 			if model.EncryptedData == "" && model.PlainTextValue == "" {
-				return fmt.Errorf("one of `encrypted_data` or `plain_text_value` must be specified - both were empty")
+				return errors.New("one of `encrypted_data` or `plain_text_value` must be specified - both were empty")
 			}
 			if model.EncryptedData != "" && model.PlainTextValue != "" {
-				return fmt.Errorf("only one of `encrypted_data` or `plain_text_value` must be specified - both were specified")
+				return errors.New("only one of `encrypted_data` or `plain_text_value` must be specified - both were specified")
 			}
 
 			keyVaultKeyId, err := keyvault.ParseNestedItemID(model.KeyVaultKeyId, keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)

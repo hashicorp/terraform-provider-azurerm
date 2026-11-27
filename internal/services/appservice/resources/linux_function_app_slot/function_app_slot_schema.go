@@ -4,6 +4,7 @@
 package linux_function_app_slot
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -619,7 +620,7 @@ func ExpandSiteConfigLinuxFunctionAppSlot(siteConfig []SiteConfigLinuxFunctionAp
 
 func FlattenSiteConfigLinuxFunctionAppSlot(functionAppSlotSiteConfig *webapps.SiteConfig) (*SiteConfigLinuxFunctionAppSlot, error) {
 	if functionAppSlotSiteConfig == nil {
-		return nil, fmt.Errorf("flattening site config: SiteConfig was nil")
+		return nil, errors.New("flattening site config: SiteConfig was nil")
 	}
 
 	result := &SiteConfigLinuxFunctionAppSlot{

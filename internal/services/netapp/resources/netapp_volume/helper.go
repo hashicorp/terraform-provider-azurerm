@@ -5,6 +5,7 @@ package netapp_volume
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"time"
@@ -124,7 +125,7 @@ func expandNetAppVolumeDataProtectionAdvancedRansomwareProtectionPatch(input []a
 func waitForBackupRelationshipStateForDeletion(ctx context.Context, client *volumes.VolumesClient, id volumes.VolumeId) error {
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
+		return errors.New("internal-error: context had no deadline")
 	}
 	stateConf := &pluginsdk.StateChangeConf{
 		ContinuousTargetOccurence: 5,

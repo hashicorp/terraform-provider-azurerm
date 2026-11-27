@@ -5,6 +5,7 @@ package servicebus_namespace_disaster_recovery_config
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -77,7 +78,7 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigRead(d *pluginsdk.Resource
 func resourceServiceBusNamespaceDisasterRecoveryConfigWaitForState(ctx context.Context, client *armdisasterrecoveries.ArmDisasterRecoveriesClient, id armdisasterrecoveries.DisasterRecoveryConfigId) error {
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
+		return errors.New("internal-error: context had no deadline")
 	}
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{string(armdisasterrecoveries.ProvisioningStateDRAccepted)},

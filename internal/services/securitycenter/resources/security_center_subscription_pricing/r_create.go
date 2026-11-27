@@ -4,6 +4,7 @@
 package security_center_subscription_pricing
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -81,7 +82,7 @@ func resourceSecurityCenterSubscriptionPricingCreate(d *pluginsdk.ResourceData, 
 	}
 
 	if len(realCfgExtensions) > 0 && pricing.Properties.PricingTier == pricings.PricingTierFree {
-		return fmt.Errorf("extensions cannot be enabled when using free tier")
+		return errors.New("extensions cannot be enabled when using free tier")
 	}
 
 	updateResponse, updateErr := client.Update(ctx, id, pricing)

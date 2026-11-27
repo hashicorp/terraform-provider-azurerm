@@ -5,6 +5,7 @@ package provider
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"regexp"
@@ -357,7 +358,7 @@ func providerConfigure(p *schema.Provider, testName string) schema.ConfigureCont
 		subscriptionId := d.Get("subscription_id").(string)
 		if subscriptionId == "" {
 			if !d.Get("use_cli").(bool) {
-				return nil, diag.FromErr(fmt.Errorf("`subscription_id` is a required provider property when performing a plan/apply operation"))
+				return nil, diag.FromErr(errors.New("`subscription_id` is a required provider property when performing a plan/apply operation"))
 			}
 		}
 

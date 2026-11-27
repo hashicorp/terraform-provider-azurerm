@@ -109,7 +109,7 @@ func expandSecurityCenterAutomationActions(actionsRaw []any) (*[]automations.Aut
 		case automations.ActionTypeLogicApp:
 			var triggerURL string
 			if triggerURL, ok = actionMap["trigger_url"].(string); !ok || triggerURL == "" {
-				return nil, fmt.Errorf("'Security Center Automation' trigger_url is required for LogicApp action")
+				return nil, errors.New("'Security Center Automation' trigger_url is required for LogicApp action")
 			}
 			autoAction = automations.AutomationActionLogicApp{
 				LogicAppResourceId: &resourceID,
@@ -126,7 +126,7 @@ func expandSecurityCenterAutomationActions(actionsRaw []any) (*[]automations.Aut
 		case automations.ActionTypeEventHub:
 			var connString string
 			if connString, ok = actionMap["connection_string"].(string); !ok || connString == "" {
-				return nil, fmt.Errorf("'Security Center Automation' connection_string is required for EventHub action")
+				return nil, errors.New("'Security Center Automation' connection_string is required for EventHub action")
 			}
 			autoAction = automations.AutomationActionEventHub{
 				EventHubResourceId: &resourceID,

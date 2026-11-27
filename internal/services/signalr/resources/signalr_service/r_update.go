@@ -4,6 +4,7 @@
 package signalr_service
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"time"
@@ -86,7 +87,7 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta any) error 
 				publicNetworkAcc = "Disabled"
 			}
 			if currentSku == "Free_F1" && publicNetworkAcc == "Disabled" {
-				return fmt.Errorf("SKU Free_F1 does not support disabling public network access")
+				return errors.New("SKU Free_F1 does not support disabling public network access")
 			}
 			resourceType.Properties.PublicNetworkAccess = pointer.To(publicNetworkAcc)
 		}
@@ -105,7 +106,7 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta any) error 
 				ClientCertEnabled: pointer.To(tlsClientCertEnabled),
 			}
 			if currentSku == "Free_F1" && tlsClientCertEnabled {
-				return fmt.Errorf("SKU Free_F1 does not support enabling tls client cert")
+				return errors.New("SKU Free_F1 does not support enabling tls client cert")
 			}
 		}
 
@@ -165,7 +166,7 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta any) error 
 
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
+		return errors.New("internal-error: context had no deadline")
 	}
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending: []string{

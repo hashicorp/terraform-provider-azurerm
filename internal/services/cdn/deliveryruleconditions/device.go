@@ -4,7 +4,7 @@
 package deliveryruleconditions
 
 import (
-	"fmt"
+	"errors"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" //nolint:staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -68,7 +68,7 @@ func ExpandArmCdnEndpointConditionDevice(input []any) []cdn.BasicDeliveryRuleCon
 func FlattenArmCdnEndpointConditionDevice(input cdn.BasicDeliveryRuleCondition) (*map[string]any, error) {
 	condition, ok := input.AsDeliveryRuleIsDeviceCondition()
 	if !ok {
-		return nil, fmt.Errorf("expected a delivery rule device condition")
+		return nil, errors.New("expected a delivery rule device condition")
 	}
 
 	operator := ""

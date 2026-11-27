@@ -5,6 +5,7 @@ package stack_hci_extension
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -107,7 +108,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 			}
 
 			if config.AutomaticUpgradeEnabled && config.TypeHandlerVersion != "" {
-				return fmt.Errorf("`type_handler_version` cannot be set if `automatic_upgrade_enabled` is true")
+				return errors.New("`type_handler_version` cannot be set if `automatic_upgrade_enabled` is true")
 			}
 
 			return nil

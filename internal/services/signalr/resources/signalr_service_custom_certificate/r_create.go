@@ -5,6 +5,7 @@ package signalr_service_custom_certificate
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -65,7 +66,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			if certVersion := keyVaultCertificateId.Version; certVersion != "" {
 				if customCertSignalrService.CertificateVersion != "" && certVersion != customCertSignalrService.CertificateVersion {
-					return fmt.Errorf("certificate version in cert id is different from `certificate_version`")
+					return errors.New("certificate version in cert id is different from `certificate_version`")
 				}
 				customCert.Properties.KeyVaultSecretVersion = pointer.To(certVersion)
 			}

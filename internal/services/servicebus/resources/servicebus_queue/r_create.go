@@ -4,6 +4,7 @@
 package servicebus_queue
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -149,9 +150,9 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta any) er
 
 	if sku == namespaces.SkuNamePremium {
 		if isPremiumNamespacePartitioned && !enablePartitioning {
-			return fmt.Errorf("non-partitioned entities are not allowed in partitioned namespace")
+			return errors.New("non-partitioned entities are not allowed in partitioned namespace")
 		} else if !isPremiumNamespacePartitioned && enablePartitioning {
-			return fmt.Errorf("the parent premium namespace is not partitioned and the partitioning for premium namespace is only available at the namespace creation")
+			return errors.New("the parent premium namespace is not partitioned and the partitioning for premium namespace is only available at the namespace creation")
 		}
 	}
 
@@ -177,7 +178,7 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta any) er
 		log.Printf("[DEBUG] Waiting for %s status to become ready", id)
 		deadline, ok := ctx.Deadline()
 		if !ok {
-			return fmt.Errorf("internal-error: context had no deadline")
+			return errors.New("internal-error: context had no deadline")
 		}
 		statusPropertyChangeConf := &pluginsdk.StateChangeConf{
 			Pending:                   []string{"Updating"},

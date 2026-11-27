@@ -4,31 +4,32 @@
 package validate
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 )
 
 // lintignore:V011 // this validates a map of tags; the length checks are on keys and values
-func StorageAccountTags(v any, _ string) (warnings []string, errors []error) {
+func StorageAccountTags(v any, _ string) (warnings []string, errs []error) {
 	tagsMap := v.(map[string]any)
 
 	if len(tagsMap) > 50 {
-		errors = append(errors, fmt.Errorf("a maximum of 50 tags can be applied to storage account ARM resource"))
+		errs = append(errs, errors.New("a maximum of 50 tags can be applied to storage account ARM resource"))
 	}
 
 	for k, v := range tagsMap {
 		if len(k) > 128 {
-			errors = append(errors, fmt.Errorf("the maximum length for a tag key is 128 characters: %q is %d characters", k, len(k)))
+			errs = append(errs, fmt.Errorf("the maximum length for a tag key is 128 characters: %q is %d characters", k, len(k)))
 		}
 
 		value, err := tags.TagValueToString(v)
 		if err != nil {
-			errors = append(errors, err)
+			errs = append(errs, err)
 		} else if len(value) > 256 {
-			errors = append(errors, fmt.Errorf("the maximum length for a tag value is 256 characters: the value for %q is %d characters", k, len(value)))
+			errs = append(errs, fmt.Errorf("the maximum length for a tag value is 256 characters: the value for %q is %d characters", k, len(value)))
 		}
 	}
 
-	return warnings, errors
+	return warnings, errs
 }

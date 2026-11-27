@@ -5,6 +5,7 @@ package kusto_cluster_customer_managed_key_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"testing"
@@ -174,7 +175,7 @@ func (KustoClusterCustomerManagedKeyResource) Exists(ctx context.Context, client
 	}
 
 	if resp.Model == nil {
-		return nil, fmt.Errorf("response model is empty")
+		return nil, errors.New("response model is empty")
 	}
 
 	if resp.Model.Properties == nil || resp.Model.Properties.KeyVaultProperties == nil {

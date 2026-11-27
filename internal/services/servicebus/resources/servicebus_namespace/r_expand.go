@@ -5,6 +5,7 @@ package servicebus_namespace
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -134,7 +135,7 @@ func createNetworkRuleSetForNamespace(ctx context.Context, client *namespaces.Na
 
 	// API doesn't accept "Deny" to be set for "default_action" if no "ip_rules" or "network_rules" is defined and returns no error message to the user
 	if defaultAction == namespaces.DefaultActionDeny && vnetRule == nil && ipRule == nil {
-		return fmt.Errorf(" The `default_action` of `network_rule_set` can only be set to `Allow` if no `ip_rules` or `network_rules` is set")
+		return errors.New(" The `default_action` of `network_rule_set` can only be set to `Allow` if no `ip_rules` or `network_rules` is set")
 	}
 
 	parameters := namespaces.NetworkRuleSet{

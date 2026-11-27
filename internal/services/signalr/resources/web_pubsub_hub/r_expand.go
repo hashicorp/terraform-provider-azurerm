@@ -4,7 +4,7 @@
 package web_pubsub_hub
 
 import (
-	"fmt"
+	"errors"
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -76,7 +76,7 @@ func expandEventListener(input []any) (*[]webpubsub.EventListener, error) {
 		endpointName := block["eventhub_namespace_name"].(string)
 		fullQualifiedName := endpointName + ".servicebus.windows.net"
 		if _, ok := block["eventhub_name"]; !ok {
-			return nil, fmt.Errorf("no event hub is specified")
+			return nil, errors.New("no event hub is specified")
 		}
 		ehName := block["eventhub_name"].(string)
 		endpoint := webpubsub.EventHubEndpoint{

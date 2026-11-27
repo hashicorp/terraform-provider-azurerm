@@ -4,6 +4,7 @@
 package windows_virtual_machine_scale_set
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -116,7 +117,7 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 	priority := virtualmachinescalesets.VirtualMachinePriorityTypes(d.Get("priority").(string))
 	if d.HasChange("max_bid_price") {
 		if priority != virtualmachinescalesets.VirtualMachinePriorityTypesSpot {
-			return fmt.Errorf("`max_bid_price` can only be configured when `priority` is set to `Spot`")
+			return errors.New("`max_bid_price` can only be configured when `priority` is set to `Spot`")
 		}
 
 		updateProps.VirtualMachineProfile.BillingProfile = &virtualmachinescalesets.BillingProfile{
@@ -141,7 +142,7 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 
 			if d.HasChange("automatic_updates_enabled") {
 				if upgradeMode == virtualmachinescalesets.UpgradeModeAutomatic {
-					return fmt.Errorf("`automatic_updates_enabled` cannot be changed for when `upgrade_mode` is `Automatic`")
+					return errors.New("`automatic_updates_enabled` cannot be changed for when `upgrade_mode` is `Automatic`")
 				}
 
 				windowsConfig.EnableAutomaticUpdates = pointer.To(d.Get("automatic_updates_enabled").(bool))
@@ -318,7 +319,7 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 			_, hasHealthProbeId := d.GetOk("health_probe_id")
 
 			if !hasHealthProbeId && !hasHealthExtension {
-				return fmt.Errorf("`automatic_instance_repair` can only be set if there is an application Health extension or a `health_probe_id` defined")
+				return errors.New("`automatic_instance_repair` can only be set if there is an application Health extension or a `health_probe_id` defined")
 			}
 		}
 

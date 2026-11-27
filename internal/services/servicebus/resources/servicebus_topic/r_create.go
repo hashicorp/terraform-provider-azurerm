@@ -4,6 +4,7 @@
 package servicebus_topic
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -94,9 +95,9 @@ func resourceServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData, meta any) er
 
 	if sku == namespaces.SkuNamePremium {
 		if isPremiumNamespacePartitioned && !enablePartitioning {
-			return fmt.Errorf("topic must have `partitioning_enabled` set to `true` when the parent namespace is partitioned")
+			return errors.New("topic must have `partitioning_enabled` set to `true` when the parent namespace is partitioned")
 		} else if !isPremiumNamespacePartitioned && enablePartitioning {
-			return fmt.Errorf("topic partitioning is only available if the parent namespace is partitioned")
+			return errors.New("topic partitioning is only available if the parent namespace is partitioned")
 		}
 	}
 

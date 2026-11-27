@@ -4,6 +4,7 @@
 package helpers
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -207,87 +208,87 @@ func ValidateServiceConnectorAuthInfo(input []AuthInfoModel) error {
 		switch servicelinker.AuthType(authInfo.Type) {
 		case servicelinker.AuthTypeSecret:
 			if authInfo.ClientId != "" {
-				return fmt.Errorf("`client_id` cannot be set when `type` is set to `Secret`")
+				return errors.New("`client_id` cannot be set when `type` is set to `Secret`")
 			}
 			if authInfo.SubscriptionId != "" {
-				return fmt.Errorf("`subscription_id` cannot be set when `type` is set to `Secret`")
+				return errors.New("`subscription_id` cannot be set when `type` is set to `Secret`")
 			}
 			if authInfo.PrincipalId != "" {
-				return fmt.Errorf("`principal_id` cannot be set when `type` is set to `Secret`")
+				return errors.New("`principal_id` cannot be set when `type` is set to `Secret`")
 			}
 			if authInfo.Certificate != "" {
-				return fmt.Errorf("`certificate` cannot be set when `type` is set to `Secret`")
+				return errors.New("`certificate` cannot be set when `type` is set to `Secret`")
 			}
 			if authInfo.Name != "" && authInfo.Secret == "" {
-				return fmt.Errorf("`name` cannot be set when `secret` is empty")
+				return errors.New("`name` cannot be set when `secret` is empty")
 			}
 			if authInfo.Name == "" && authInfo.Secret != "" {
-				return fmt.Errorf("`secret` cannot be set when `name` is empty")
+				return errors.New("`secret` cannot be set when `name` is empty")
 			}
 
 		case servicelinker.AuthTypeSystemAssignedIdentity:
 			if authInfo.Name != "" || authInfo.Secret != "" || authInfo.ClientId != "" || authInfo.SubscriptionId != "" || authInfo.PrincipalId != "" || authInfo.Certificate != "" {
-				return fmt.Errorf("no other authentication parameters should be set when `type` is set to `SystemIdentity`")
+				return errors.New("no other authentication parameters should be set when `type` is set to `SystemIdentity`")
 			}
 
 		case servicelinker.AuthTypeServicePrincipalSecret:
 			if authInfo.ClientId == "" {
-				return fmt.Errorf("`client_id` must be specified when `type` is set to `ServicePrincipal`")
+				return errors.New("`client_id` must be specified when `type` is set to `ServicePrincipal`")
 			}
 			if authInfo.PrincipalId == "" {
-				return fmt.Errorf("`principal_id` must be specified when `type` is set to `ServicePrincipal`")
+				return errors.New("`principal_id` must be specified when `type` is set to `ServicePrincipal`")
 			}
 			if authInfo.Secret == "" {
-				return fmt.Errorf("`secret` must be specified when `type` is set to `ServicePrincipal`")
+				return errors.New("`secret` must be specified when `type` is set to `ServicePrincipal`")
 			}
 			if authInfo.SubscriptionId != "" {
-				return fmt.Errorf("`subscription_id` cannot be set when `type` is set to `ServicePrincipal`")
+				return errors.New("`subscription_id` cannot be set when `type` is set to `ServicePrincipal`")
 			}
 			if authInfo.Name != "" {
-				return fmt.Errorf("`name` cannot be set when `type` is set to `ServicePrincipal`")
+				return errors.New("`name` cannot be set when `type` is set to `ServicePrincipal`")
 			}
 			if authInfo.Certificate != "" {
-				return fmt.Errorf("`certificate` cannot be set when `type` is set to `ServicePrincipal`")
+				return errors.New("`certificate` cannot be set when `type` is set to `ServicePrincipal`")
 			}
 
 		case servicelinker.AuthTypeServicePrincipalCertificate:
 			if authInfo.ClientId == "" {
-				return fmt.Errorf("`client_id` must be specified when `type` is set to `ServicePrincipalCertificate`")
+				return errors.New("`client_id` must be specified when `type` is set to `ServicePrincipalCertificate`")
 			}
 			if authInfo.PrincipalId == "" {
-				return fmt.Errorf("`principal_id` must be specified when `type` is set to `ServicePrincipalCertificate`")
+				return errors.New("`principal_id` must be specified when `type` is set to `ServicePrincipalCertificate`")
 			}
 			if authInfo.Certificate == "" {
-				return fmt.Errorf("`certificate` must be specified when `type` is set to `ServicePrincipalCertificate`")
+				return errors.New("`certificate` must be specified when `type` is set to `ServicePrincipalCertificate`")
 			}
 			if authInfo.SubscriptionId != "" {
-				return fmt.Errorf("`subscription_id` cannot be set when `type` is set to `ServicePrincipalCertificate`")
+				return errors.New("`subscription_id` cannot be set when `type` is set to `ServicePrincipalCertificate`")
 			}
 			if authInfo.Name != "" {
-				return fmt.Errorf("`name` cannot be set when `type` is set to `ServicePrincipalCertificate`")
+				return errors.New("`name` cannot be set when `type` is set to `ServicePrincipalCertificate`")
 			}
 			if authInfo.Secret != "" {
-				return fmt.Errorf("`secret` cannot be set when `type` is set to `ServicePrincipalCertificate`")
+				return errors.New("`secret` cannot be set when `type` is set to `ServicePrincipalCertificate`")
 			}
 
 		case servicelinker.AuthTypeUserAssignedIdentity:
 			if authInfo.PrincipalId != "" {
-				return fmt.Errorf("`principal_id` cannot be set when `type` is set to `UserIdentity`")
+				return errors.New("`principal_id` cannot be set when `type` is set to `UserIdentity`")
 			}
 			if authInfo.Certificate != "" {
-				return fmt.Errorf("`certificate` cannot be set when `type` is set to `UserIdentity`")
+				return errors.New("`certificate` cannot be set when `type` is set to `UserIdentity`")
 			}
 			if authInfo.Name != "" {
-				return fmt.Errorf("`name` cannot be set when `type` is set to `UserIdentity`")
+				return errors.New("`name` cannot be set when `type` is set to `UserIdentity`")
 			}
 			if authInfo.Secret != "" {
-				return fmt.Errorf("`secret` cannot be set when `type` is set to `UserIdentity`")
+				return errors.New("`secret` cannot be set when `type` is set to `UserIdentity`")
 			}
 			if authInfo.ClientId == "" && authInfo.SubscriptionId != "" {
-				return fmt.Errorf("`subscription_id` cannot be set when `client_id` is empty")
+				return errors.New("`subscription_id` cannot be set when `client_id` is empty")
 			}
 			if authInfo.ClientId != "" && authInfo.SubscriptionId == "" {
-				return fmt.Errorf("`client_id` cannot be set when `subscription_id` is empty")
+				return errors.New("`client_id` cannot be set when `subscription_id` is empty")
 			}
 		}
 	}
