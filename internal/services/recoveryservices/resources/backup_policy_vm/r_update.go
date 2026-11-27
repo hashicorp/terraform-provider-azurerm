@@ -55,7 +55,6 @@ func resourceBackupProtectionPolicyVMUpdate(d *pluginsdk.ResourceData, meta any)
 	model := *existing.Model
 	properties := existing.Model.Properties.(protectionpolicies.AzureIaaSVMProtectionPolicy)
 
-	properties.InstantRpRetentionRangeInDays = nil
 	if d.HasChange("instant_restore_retention_days") {
 		days := d.Get("instant_restore_retention_days").(int)
 		if properties.PolicyType != nil && protectionpolicies.IAASVMPolicyTypeVOne == *properties.PolicyType && days > 5 {
