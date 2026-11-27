@@ -5,6 +5,7 @@ package api_management_api_tag_description
 
 import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apitag"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -17,6 +18,19 @@ func apiManagementApiTagDescriptionSchema() map[string]*pluginsdk.Schema {
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: apitag.ValidateApiTagID,
+			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
+				oldApiTagId, err := apitag.ParseApiTagID(old)
+				if err != nil {
+					return false
+				}
+
+				newApiTagId, err := apitag.ParseApiTagID(new)
+				if err != nil {
+					return false
+				}
+
+				return oldApiTagId.ApiId == helpers.GetApiName(newApiTagId.ApiId)
+			},
 		},
 
 		"description": {
