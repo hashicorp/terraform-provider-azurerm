@@ -82,7 +82,7 @@ Please follow the format in the example below for listing breaking changes in re
 
 ### `azurerm_cosmosdb_account`
 
-* The deprecated `virtual_network_rule` property has been removed in favour of the `virtual_network_subnet_ids` and `virtual_network_subnet_ids_ignore_missing_vnet_service_endpoint` property.
+* The deprecated `virtual_network_rule` block has been removed. Move each subnet ID to `virtual_network_subnet_ids` if `ignore_missing_vnet_service_endpoint` was `false` or omitted, or to `virtual_network_subnet_ids_ignore_missing_vnet_service_endpoint` if it was `true`.
 
 ### `azurerm_data_protection_backup_vault`
 
