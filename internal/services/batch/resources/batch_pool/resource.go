@@ -37,5 +37,7 @@ func RegisterResource() *pluginsdk.Resource {
 		SchemaFunc: pluginsdk.GenerateIdentitySchema(&pool.PoolId{}),
 	}
 
+	resource.CustomizeDiff = pluginsdk.CustomizeDiffShim(resourceBatchPoolCustomizeDiff)
+
 	return resource
 }
