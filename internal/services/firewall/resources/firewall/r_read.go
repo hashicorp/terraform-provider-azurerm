@@ -37,7 +37,7 @@ func resourceFirewallRead(d *pluginsdk.ResourceData, meta any) error {
 	return resourceFirewallSetFlatten(d, id, read.Model)
 }
 
-func validateFirewallIPConfigurationSettings(configs []any) error {
+func validateFirewallIPConfigurationSettings(configs []any, virtualHub []any) error {
 	if len(configs) == 0 {
 		return nil
 	}
@@ -49,6 +49,10 @@ func validateFirewallIPConfigurationSettings(configs []any) error {
 		if subnet, exist := data["subnet_id"].(string); exist && subnet != "" {
 			subnetNumber++
 		}
+	}
+
+	if subnetNumber == 0 && len(virtualHub) > 0 {
+		return nil
 	}
 
 	if subnetNumber != 1 {

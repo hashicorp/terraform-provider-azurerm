@@ -44,7 +44,7 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 		}
 	}
 
-	if err := validateFirewallIPConfigurationSettings(d.Get("ip_configuration").([]any)); err != nil {
+	if err := validateFirewallIPConfigurationSettings(d.Get("ip_configuration").([]any), d.Get("virtual_hub").([]any)); err != nil {
 		return fmt.Errorf("validating %s: %+v", id, err)
 	}
 
@@ -106,7 +106,7 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 		parameters.Properties.FirewallPolicy = &azurefirewalls.SubResource{Id: &policyId}
 	}
 
-	vhub, hubIpAddresses, ok := expandFirewallVirtualHubSetting(existing.Model, d.Get("virtual_hub").([]any))
+	vhub, hubIpAddresses, ok := expandFirewallVirtualHubSetting(existing.Model, d.Get("virtual_hub").([]any), firewallVirtualHubPublicIPCount(d))
 	if ok {
 		parameters.Properties.VirtualHub = vhub
 		parameters.Properties.HubIPAddresses = hubIpAddresses

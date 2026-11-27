@@ -152,10 +152,13 @@ func flattenFirewallVirtualHubSetting(props *azurefirewalls.AzureFirewallPropert
 		return []any{}
 	}
 
+	vhubSetting := map[string]any{}
+
+	vhubSetting["virtual_hub_id"] = pointer.From(props.VirtualHub.Id)
+
 	var (
-		publicIpCount int
-		publicIps     []string
-		privateIp     string
+		publicIps []string
+		privateIp string
 	)
 	if hubIP := props.HubIPAddresses; hubIP != nil {
 		if hubIP.PrivateIPAddress != nil {
@@ -163,7 +166,7 @@ func flattenFirewallVirtualHubSetting(props *azurefirewalls.AzureFirewallPropert
 		}
 		if pubIPs := hubIP.PublicIPs; pubIPs != nil {
 			if pubIPs.Count != nil {
-				publicIpCount = int(*pubIPs.Count)
+				vhubSetting["public_ip_count"] = int(*pubIPs.Count)
 			}
 			if pubIPs.Addresses != nil {
 				for _, addr := range *pubIPs.Addresses {
@@ -175,12 +178,10 @@ func flattenFirewallVirtualHubSetting(props *azurefirewalls.AzureFirewallPropert
 		}
 	}
 
+	vhubSetting["public_ip_addresses"] = publicIps
+	vhubSetting["private_ip_address"] = privateIp
+
 	return []any{
-		map[string]any{
-			"virtual_hub_id":      pointer.From(props.VirtualHub.Id),
-			"public_ip_count":     publicIpCount,
-			"public_ip_addresses": publicIps,
-			"private_ip_address":  privateIp,
-		},
+		vhubSetting,
 	}
 }

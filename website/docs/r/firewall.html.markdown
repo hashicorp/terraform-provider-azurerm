@@ -104,6 +104,8 @@ An `ip_configuration` block supports the following:
 
 -> **Note:** At least one and only one `ip_configuration` block may contain a `subnet_id`.
 
+-> **Note:** When the Firewall is deployed in a `virtual_hub`, the `subnet_id` may be omitted from all `ip_configuration` blocks.
+
 * `public_ip_address_id` - (Optional) The ID of the Public IP Address associated with the firewall.
 
 -> **Note:** A public ip address is required unless a `management_ip_configuration` block is specified.

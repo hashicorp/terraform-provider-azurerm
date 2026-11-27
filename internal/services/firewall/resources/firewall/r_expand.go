@@ -91,12 +91,37 @@ func expandFirewallPrivateIpRange(input []any) map[string]string {
 	}
 }
 
-func expandFirewallVirtualHubSetting(existing *azurefirewalls.AzureFirewall, input []any) (vhub *azurefirewalls.SubResource, ipAddresses *azurefirewalls.HubIPAddresses, ok bool) {
+func firewallVirtualHubPublicIPCount(d *pluginsdk.ResourceData) *int64 {
+	rawVirtualHub := d.GetRawConfig().AsValueMap()["virtual_hub"]
+	if rawVirtualHub.IsNull() || !rawVirtualHub.IsKnown() {
+		return nil
+	}
+
+	rawVirtualHubConfig := rawVirtualHub.AsValueSlice()
+	if len(rawVirtualHubConfig) == 0 {
+		return nil
+	}
+
+	rawPublicIPCount := rawVirtualHubConfig[0].AsValueMap()["public_ip_count"]
+	if rawPublicIPCount.IsNull() || !rawPublicIPCount.IsKnown() {
+		return nil
+	}
+
+	publicIPCount := int64(d.Get("virtual_hub.0.public_ip_count").(int))
+	return &publicIPCount
+}
+
+func expandFirewallVirtualHubSetting(existing *azurefirewalls.AzureFirewall, input []any, publicIPCount *int64) (vhub *azurefirewalls.SubResource, ipAddresses *azurefirewalls.HubIPAddresses, ok bool) {
 	if len(input) == 0 {
 		return nil, nil, false
 	}
 
 	b := input[0].(map[string]any)
+	vhub = &azurefirewalls.SubResource{Id: pointer.To(b["virtual_hub_id"].(string))}
+
+	if publicIPCount == nil {
+		return vhub, nil, true
+	}
 
 	// The API requires both "Count" and "Addresses" for the "PublicIPs" setting.
 	// The "Count" means how many PIP to provision.
@@ -105,7 +130,7 @@ func expandFirewallVirtualHubSetting(existing *azurefirewalls.AzureFirewall, inp
 	// - Update: both "Count" and "Addresses" are needed:
 	//   Scale up: "Addresses" should remain same as before scaling up
 	//   Scale down: "Addresses" should indicate the addresses to be retained (in this case we retain the first new "Count" ones)
-	newCount := b["public_ip_count"].(int)
+	newCount := int(*publicIPCount)
 	var addresses *[]azurefirewalls.AzureFirewallPublicIPAddress
 	if existing != nil {
 		if prop := existing.Properties; prop != nil {
@@ -129,10 +154,9 @@ func expandFirewallVirtualHubSetting(existing *azurefirewalls.AzureFirewall, inp
 		}
 	}
 
-	vhub = &azurefirewalls.SubResource{Id: pointer.To(b["virtual_hub_id"].(string))}
 	ipAddresses = &azurefirewalls.HubIPAddresses{
 		PublicIPs: &azurefirewalls.HubPublicIPAddresses{
-			Count:     pointer.To(int64(b["public_ip_count"].(int))),
+			Count:     publicIPCount,
 			Addresses: addresses,
 		},
 	}
