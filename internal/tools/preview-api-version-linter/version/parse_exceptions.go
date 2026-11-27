@@ -4,6 +4,7 @@
 package version
 
 import (
+	"errors"
 	"fmt"
 	"net/mail"
 	"os"
@@ -56,7 +57,7 @@ func parseExceptions(yamlBytes []byte, isHistorical bool) ([]Version, error) {
 		}
 		return exceptions[i].Version < exceptions[j].Version
 	}) {
-		return nil, fmt.Errorf("entries has to be sorted alphabetically by module, service and version")
+		return nil, errors.New("entries has to be sorted alphabetically by module, service and version")
 	}
 
 	validModules := make(map[string]bool, len(sdk.SdkTypes))

@@ -4,6 +4,7 @@
 package eventgrid_system_topic_event_subscription
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -76,7 +77,7 @@ func resourceEventGridSystemTopicEventSubscriptionCreateUpdate(d *pluginsdk.Reso
 
 	if v, ok := d.GetOk("dead_letter_identity"); ok {
 		if deadLetterDestination == nil {
-			return fmt.Errorf("`dead_letter_identity`: `storage_blob_dead_letter_destination` must be specified")
+			return errors.New("`dead_letter_identity`: `storage_blob_dead_letter_destination` must be specified")
 		}
 		deadLetterIdentityRaw := v.([]any)
 		deadLetterIdentity, err := helpers.ExpandEventSubscriptionIdentity(deadLetterIdentityRaw)

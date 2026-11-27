@@ -4,6 +4,7 @@
 package parse
 
 import (
+	"errors"
 	"fmt"
 	"slices"
 	"strings"
@@ -37,10 +38,10 @@ type Artifact struct {
 func ParseRepositoryNotification(v string) (*RepositoryNotification, error) {
 	idx := strings.LastIndex(v, ":")
 	if idx == -1 {
-		return nil, fmt.Errorf(`no separator ":" found`)
+		return nil, errors.New(`no separator ":" found`)
 	}
 	if idx == len(v)-1 {
-		return nil, fmt.Errorf(`malformed format: unexpected trailing ":"`)
+		return nil, errors.New(`malformed format: unexpected trailing ":"`)
 	}
 	artifact, err := parseArtifact(v[:idx])
 	if err != nil {
@@ -60,7 +61,7 @@ func ParseRepositoryNotification(v string) (*RepositoryNotification, error) {
 func parseArtifact(v string) (*Artifact, error) {
 	if idx := strings.Index(v, "@"); idx != -1 {
 		if idx == len(v)-1 {
-			return nil, fmt.Errorf(`malformed format: unexpected trailing "@"`)
+			return nil, errors.New(`malformed format: unexpected trailing "@"`)
 		}
 		return &Artifact{
 			Name:   v[:idx],
@@ -69,7 +70,7 @@ func parseArtifact(v string) (*Artifact, error) {
 	}
 	if idx := strings.Index(v, ":"); idx != -1 {
 		if idx == len(v)-1 {
-			return nil, fmt.Errorf(`malformed format: unexpected trailing ":"`)
+			return nil, errors.New(`malformed format: unexpected trailing ":"`)
 		}
 		return &Artifact{
 			Name: v[:idx],

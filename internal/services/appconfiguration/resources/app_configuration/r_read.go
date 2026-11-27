@@ -5,6 +5,7 @@ package app_configuration
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -237,7 +238,7 @@ https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/fea
 func resourceConfigurationStoreWaitForNameAvailable(ctx context.Context, client *operations.OperationsClient, configurationStoreId configurationstores.ConfigurationStoreId) error {
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("internal error: context had no deadline")
+		return errors.New("internal error: context had no deadline")
 	}
 	state := &pluginsdk.StateChangeConf{
 		MinTimeout:                10 * time.Second,
@@ -305,7 +306,7 @@ func deleteReplicas(ctx context.Context, replicaClient *replicas.ReplicasClient,
 func resourceConfigurationStoreReplicaWaitForNameAvailable(ctx context.Context, client *operations.OperationsClient, configurationStoreReplicaId replicas.ReplicaId) error {
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("internal error: context had no deadline")
+		return errors.New("internal error: context had no deadline")
 	}
 	state := &pluginsdk.StateChangeConf{
 		MinTimeout:                10 * time.Second,

@@ -4,6 +4,7 @@
 package orchestrated_virtual_machine_scale_set
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strconv"
@@ -122,7 +123,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 
 	if v, ok := d.GetOk("capacity_reservation_group_id"); ok {
 		if d.Get("single_placement_group").(bool) {
-			return fmt.Errorf("`single_placement_group` must be set to `false` when `capacity_reservation_group_id` is specified")
+			return errors.New("`single_placement_group` must be set to `false` when `capacity_reservation_group_id` is specified")
 		}
 
 		virtualMachineProfile.CapacityReservation = &virtualmachinescalesets.CapacityReservationProfile{
@@ -206,7 +207,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 			}
 
 			if extensionOperationsEnabled && !provisionVMAgent {
-				return fmt.Errorf("`extension_operations_enabled` cannot be set to `true` when `provision_vm_agent` is set to `false`")
+				return errors.New("`extension_operations_enabled` cannot be set to `true` when `provision_vm_agent` is set to `false`")
 			}
 
 			if patchAssessmentMode == string(virtualmachinescalesets.WindowsPatchAssessmentModeAutomaticByPlatform) && !provisionVMAgent {
@@ -225,15 +226,15 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 				}
 
 				if !provisionVMAgent {
-					return fmt.Errorf("when using a hotpatching enabled image, `provision_vm_agent` must be set to `true`")
+					return errors.New("when using a hotpatching enabled image, `provision_vm_agent` must be set to `true`")
 				}
 
 				if !hasHealthExtension {
-					return fmt.Errorf("when using a hotpatching enabled image, an application health extension must be configured")
+					return errors.New("when using a hotpatching enabled image, an application health extension must be configured")
 				}
 
 				if !hotpatchingEnabled {
-					return fmt.Errorf("when using a hotpatching enabled image, `hotpatching_enabled` must be set to `true`")
+					return errors.New("when using a hotpatching enabled image, `hotpatching_enabled` must be set to `true`")
 				}
 			} else {
 				// not a hotpatching enabled image verify Automatic VM Guest Patching settings
@@ -248,7 +249,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 				}
 
 				if hotpatchingEnabled {
-					return fmt.Errorf("`hotpatching_enabled` can only be used with supported Windows Server images: '2022-datacenter-azure-edition', '2022-datacenter-azure-edition-core-smalldisk', '2022-datacenter-azure-edition-hotpatch', '2022-datacenter-azure-edition-hotpatch-smalldisk', '2025-datacenter-azure-edition', '2025-datacenter-azure-edition-smalldisk', '2025-datacenter-azure-edition-core', or '2025-datacenter-azure-edition-core-smalldisk'")
+					return errors.New("`hotpatching_enabled` can only be used with supported Windows Server images: '2022-datacenter-azure-edition', '2022-datacenter-azure-edition-core-smalldisk', '2022-datacenter-azure-edition-hotpatch', '2022-datacenter-azure-edition-hotpatch-smalldisk', '2025-datacenter-azure-edition', '2025-datacenter-azure-edition-smalldisk', '2025-datacenter-azure-edition-core', or '2025-datacenter-azure-edition-core-smalldisk'")
 				}
 			}
 		}
@@ -269,14 +270,14 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 						return fmt.Errorf("unable to assume default computer name prefix `%s`. Please adjust the `name`, or specify an explicit `computer_name_prefix`", errs[0])
 					}
 
-					return fmt.Errorf("unable to assume default computer name prefix. Please adjust the `name`, or specify an explicit `computer_name_prefix`")
+					return errors.New("unable to assume default computer name prefix. Please adjust the `name`, or specify an explicit `computer_name_prefix`")
 				}
 
 				vmssOsProfile.ComputerNamePrefix = pointer.To(id.VirtualMachineScaleSetName)
 			}
 
 			if extensionOperationsEnabled && !provisionVMAgent {
-				return fmt.Errorf("`extension_operations_enabled` cannot be set to `true` when `provision_vm_agent` is set to `false`")
+				return errors.New("`extension_operations_enabled` cannot be set to `true` when `provision_vm_agent` is set to `false`")
 			}
 
 			if patchAssessmentMode == string(virtualmachinescalesets.LinuxPatchAssessmentModeAutomaticByPlatform) && !provisionVMAgent {
@@ -387,7 +388,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 
 		if v, ok := d.GetOk("automatic_instance_repair"); ok {
 			if !hasHealthExtension {
-				return fmt.Errorf("`automatic_instance_repair` can only be enabled when an application health extension is configured")
+				return errors.New("`automatic_instance_repair` can only be enabled when an application health extension is configured")
 			}
 
 			props.Properties.AutomaticRepairsPolicy = helpers.ExpandVirtualMachineScaleSetAutomaticRepairsPolicy(v.([]any))
@@ -395,7 +396,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 
 		if v, ok := d.GetOk("zone_balance"); ok && v.(bool) {
 			if props.Zones == nil || len(*props.Zones) == 0 {
-				return fmt.Errorf("`zone_balance` can only be set to `true` when availability zones are specified")
+				return errors.New("`zone_balance` can only be set to `true` when availability zones are specified")
 			}
 
 			props.Properties.ZoneBalance = pointer.To(v.(bool))

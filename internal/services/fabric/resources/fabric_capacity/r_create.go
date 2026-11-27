@@ -5,6 +5,7 @@ package fabric_capacity
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -41,7 +42,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 			}
 
 			if len(model.AdministrationMembers) == 0 {
-				return fmt.Errorf("`administration_members` is required when creating a fabric capacity")
+				return errors.New("`administration_members` is required when creating a fabric capacity")
 			}
 
 			properties := fabriccapacities.FabricCapacity{

@@ -5,7 +5,7 @@ package site_recovery_replicated_vm
 
 import (
 	"context"
-	"fmt"
+	"errors"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -283,7 +283,7 @@ func resourceSiteRecoveryReplicatedVMCustomizeDiff(ctx context.Context, diff *pl
 					return nil
 				}
 				if name.IsNull() || name.AsString() == "" {
-					return fmt.Errorf("each `network_interface.ip_configuration` block must specify `name` when multiple blocks are configured")
+					return errors.New("each `network_interface.ip_configuration` block must specify `name` when multiple blocks are configured")
 				}
 
 				primary := ipConfiguration.GetAttr("primary")
@@ -296,7 +296,7 @@ func resourceSiteRecoveryReplicatedVMCustomizeDiff(ctx context.Context, diff *pl
 			}
 
 			if primaryCount != 1 {
-				return fmt.Errorf("`network_interface.ip_configuration` must contain exactly one block with `primary` set to `true` when multiple blocks are configured")
+				return errors.New("`network_interface.ip_configuration` must contain exactly one block with `primary` set to `true` when multiple blocks are configured")
 			}
 		}
 	}

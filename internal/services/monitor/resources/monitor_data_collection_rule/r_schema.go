@@ -5,7 +5,7 @@ package monitor_data_collection_rule
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -827,19 +827,19 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 
 			if kind := metadata.ResourceDiff.Get("kind").(string); kind == "Direct" {
 				if v := metadata.ResourceDiff.Get("data_sources").([]any); len(v) > 0 {
-					return fmt.Errorf("`data_sources` cannot be used when `kind` is set to `Direct`")
+					return errors.New("`data_sources` cannot be used when `kind` is set to `Direct`")
 				}
 
 				if v := metadata.ResourceDiff.Get("destinations.0.event_hub_direct").([]any); len(v) > 0 {
-					return fmt.Errorf("`event_hub_direct`, `storage_blob_direct`, and `storage_table_direct` destinations cannot be used when `kind` is set to `Direct`")
+					return errors.New("`event_hub_direct`, `storage_blob_direct`, and `storage_table_direct` destinations cannot be used when `kind` is set to `Direct`")
 				}
 
 				if v := metadata.ResourceDiff.Get("destinations.0.storage_blob_direct").([]any); len(v) > 0 {
-					return fmt.Errorf("`event_hub_direct`, `storage_blob_direct`, and `storage_table_direct` destinations cannot be used when `kind` is set to `Direct`")
+					return errors.New("`event_hub_direct`, `storage_blob_direct`, and `storage_table_direct` destinations cannot be used when `kind` is set to `Direct`")
 				}
 
 				if v := metadata.ResourceDiff.Get("destinations.0.storage_table_direct").([]any); len(v) > 0 {
-					return fmt.Errorf("`event_hub_direct`, `storage_blob_direct`, and `storage_table_direct` destinations cannot be used when `kind` is set to `Direct`")
+					return errors.New("`event_hub_direct`, `storage_blob_direct`, and `storage_table_direct` destinations cannot be used when `kind` is set to `Direct`")
 				}
 			}
 

@@ -88,7 +88,7 @@ func RoleAssignmentID(input string) (*RoleAssignmentId, error) {
 			roleAssignmentId.IsSubscriptionLevel = true
 		}
 		if idParts[1] == "" {
-			return nil, fmt.Errorf("ID was missing a value for the roleAssignments element")
+			return nil, errors.New("ID was missing a value for the roleAssignments element")
 		}
 		roleAssignmentId.Name = idParts[1]
 	case strings.HasPrefix(input, "/providers/Microsoft.Management/"):

@@ -4,6 +4,7 @@
 package log_analytics_data_export_rule
 
 import (
+	"errors"
 	"fmt"
 	"log"
 
@@ -70,7 +71,7 @@ func flattenDataExportDestination(input *dataexport.Destination) (string, error)
 				eventhubNamespaceId, err := eventhubs.ParseNamespaceIDInsensitively(resourceID)
 				eventhubId := eventhubs.NewEventhubID(eventhubNamespaceId.SubscriptionId, eventhubNamespaceId.ResourceGroupName, eventhubNamespaceId.NamespaceName, eventhubName)
 				if err != nil {
-					return "", fmt.Errorf("parsing destination eventhub namespace ID error")
+					return "", errors.New("parsing destination eventhub namespace ID error")
 				}
 				resourceID = eventhubId.ID()
 			}

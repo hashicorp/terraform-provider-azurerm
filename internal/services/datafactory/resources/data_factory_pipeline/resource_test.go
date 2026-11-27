@@ -5,6 +5,7 @@ package data_factory_pipeline_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -158,12 +159,12 @@ func (t PipelineResource) appendVariableActivityNameIs(expected string) func(inp
 
 		val, ok := input[0].(map[string]any)
 		if !ok {
-			return nil, fmt.Errorf("nested item was not a dictionary")
+			return nil, errors.New("nested item was not a dictionary")
 		}
 
 		actual, ok := val["name"].(string)
 		if !ok {
-			return nil, fmt.Errorf("name was not present in the json")
+			return nil, errors.New("name was not present in the json")
 		}
 
 		return pointer.To(actual == expected), nil

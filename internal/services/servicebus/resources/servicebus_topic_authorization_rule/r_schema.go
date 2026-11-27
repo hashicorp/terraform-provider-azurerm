@@ -1,0 +1,29 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
+package servicebus_topic_authorization_rule
+
+import (
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/topics"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+)
+
+func resourceServiceBusTopicAuthorizationRuleSchema() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.AuthorizationRuleName(),
+		},
+
+		// lintignore: S013
+		"topic_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: topics.ValidateTopicID,
+		},
+	}
+}

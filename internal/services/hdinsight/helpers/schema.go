@@ -4,6 +4,7 @@
 package helpers
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"regexp"
@@ -1543,7 +1544,7 @@ func ExpandHDInsightNodeDefinition(name string, input []any, definition HDInsigh
 			Subnet: pointer.To(subnetId),
 		}
 	} else if (virtualNetworkSpecified && !subnetSpecified) || (subnetSpecified && !virtualNetworkSpecified) {
-		return nil, fmt.Errorf("`virtual_network_id` and `subnet_id` must both either be set or empty")
+		return nil, errors.New("`virtual_network_id` and `subnet_id` must both either be set or empty")
 	}
 
 	if password != "" {
@@ -1558,7 +1559,7 @@ func ExpandHDInsightNodeDefinition(name string, input []any, definition HDInsigh
 		}
 
 		if len(sshKeys) == 0 {
-			return nil, fmt.Errorf("either a `password` or `ssh_key` must be specified")
+			return nil, errors.New("either a `password` or `ssh_key` must be specified")
 		}
 
 		role.OsProfile.LinuxOperatingSystemProfile.SshProfile = &clusters.SshProfile{

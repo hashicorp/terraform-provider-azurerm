@@ -6,6 +6,7 @@ package helpers
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -152,7 +153,7 @@ func PublishZipDeployLocalFileKuduPush(ctx context.Context, host string, user st
 	statusReq.SetBasicAuth(user, passwd)
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("publish request context had no deadline")
+		return errors.New("publish request context had no deadline")
 	}
 
 	deployWait := &pluginsdk.StateChangeConf{
@@ -165,7 +166,7 @@ func PublishZipDeployLocalFileKuduPush(ctx context.Context, host string, user st
 	}
 
 	if _, err := deployWait.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for Zip Deployment to complete")
+		return errors.New("waiting for Zip Deployment to complete")
 	}
 
 	return nil
@@ -183,19 +184,19 @@ func CheckZipDeploymentStatusRefresh(r *http.Request) pluginsdk.StateRefreshFunc
 		}
 		respBody, err := io.ReadAll(resp.Body)
 		if err != nil {
-			return nil, "", fmt.Errorf("reading status response body for Zip Deploy")
+			return nil, "", errors.New("reading status response body for Zip Deploy")
 		}
 
 		body := make(map[string]any)
 		if err = json.Unmarshal(respBody, &body); err != nil {
-			return nil, "", fmt.Errorf("could not parse status response for Zip Deploy")
+			return nil, "", errors.New("could not parse status response for Zip Deploy")
 		}
 
 		if statusRaw, ok := body["status"]; ok && statusRaw != nil {
 			if status, ok := statusRaw.(float64); ok {
 				switch status {
 				case ZipDeployError:
-					return nil, "", fmt.Errorf("zip deployment failed")
+					return nil, "", errors.New("zip deployment failed")
 				case ZipDeployComplete:
 					return status, "complete", nil
 				default:
@@ -204,7 +205,7 @@ func CheckZipDeploymentStatusRefresh(r *http.Request) pluginsdk.StateRefreshFunc
 			}
 		}
 
-		return nil, "", fmt.Errorf("could not determine status from deployment response")
+		return nil, "", errors.New("could not determine status from deployment response")
 	}
 }
 

@@ -7,6 +7,27 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/virtualwan/resources/express_route_connection"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/virtualwan/resources/express_route_gateway"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/virtualwan/resources/point_to_site_vpn_gateway"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/virtualwan/resources/route_map"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/virtualwan/resources/route_server"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/virtualwan/resources/route_server_bgp_connection"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/virtualwan/resources/virtual_hub"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/virtualwan/resources/virtual_hub_bgp_connection"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/virtualwan/resources/virtual_hub_connection"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/virtualwan/resources/virtual_hub_ip"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/virtualwan/resources/virtual_hub_route_table"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/virtualwan/resources/virtual_hub_route_table_route"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/virtualwan/resources/virtual_hub_routing_intent"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/virtualwan/resources/virtual_hub_security_partner_provider"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/virtualwan/resources/virtual_wan"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/virtualwan/resources/vpn_gateway"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/virtualwan/resources/vpn_gateway_connection"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/virtualwan/resources/vpn_gateway_nat_rule"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/virtualwan/resources/vpn_server_configuration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/virtualwan/resources/vpn_server_configuration_policy_group"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/virtualwan/resources/vpn_site"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -36,50 +57,50 @@ func (r Registration) WebsiteCategories() []string {
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
-		VPNServerConfigurationDataSource{},
+		vpn_server_configuration.DataSource{},
 	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		RouteMapResource{},
-		VirtualHubRoutingIntentResource{},
+		route_map.Resource{},
+		virtual_hub_routing_intent.Resource{},
 	}
 }
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_virtual_hub":             dataSourceVirtualHub(),
-		"azurerm_virtual_hub_connection":  dataSourceVirtualHubConnection(),
-		"azurerm_virtual_hub_route_table": dataSourceVirtualHubRouteTable(),
-		"azurerm_virtual_wan":             dataSourceVirtualWan(),
-		"azurerm_vpn_gateway":             dataSourceVPNGateway(),
+		"azurerm_virtual_hub":             virtual_hub.RegisterDataSource(),
+		"azurerm_virtual_hub_connection":  virtual_hub_connection.RegisterDataSource(),
+		"azurerm_virtual_hub_route_table": virtual_hub_route_table.RegisterDataSource(),
+		"azurerm_virtual_wan":             virtual_wan.RegisterDataSource(),
+		"azurerm_vpn_gateway":             vpn_gateway.RegisterDataSource(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_express_route_connection":              resourceExpressRouteConnection(),
-		"azurerm_express_route_gateway":                 resourceExpressRouteGateway(),
-		"azurerm_point_to_site_vpn_gateway":             resourcePointToSiteVPNGateway(),
-		"azurerm_route_server":                          resourceRouteServer(),
-		"azurerm_route_server_bgp_connection":           resourceRouteServerBgpConnection(),
-		"azurerm_virtual_hub":                           resourceVirtualHub(),
-		"azurerm_virtual_hub_bgp_connection":            resourceVirtualHubBgpConnection(),
-		"azurerm_virtual_hub_connection":                resourceVirtualHubConnection(),
-		"azurerm_virtual_hub_ip":                        resourceVirtualHubIP(),
-		"azurerm_virtual_hub_route_table":               resourceVirtualHubRouteTable(),
-		"azurerm_virtual_hub_route_table_route":         resourceVirtualHubRouteTableRoute(),
-		"azurerm_virtual_hub_security_partner_provider": resourceVirtualHubSecurityPartnerProvider(),
-		"azurerm_virtual_wan":                           resourceVirtualWan(),
-		"azurerm_vpn_gateway":                           resourceVPNGateway(),
-		"azurerm_vpn_gateway_connection":                resourceVPNGatewayConnection(),
-		"azurerm_vpn_gateway_nat_rule":                  resourceVPNGatewayNatRule(),
-		"azurerm_vpn_server_configuration":              resourceVPNServerConfiguration(),
-		"azurerm_vpn_server_configuration_policy_group": resourceVPNServerConfigurationPolicyGroup(),
-		"azurerm_vpn_site":                              resourceVpnSite(),
+		"azurerm_express_route_connection":              express_route_connection.RegisterResource(),
+		"azurerm_express_route_gateway":                 express_route_gateway.RegisterResource(),
+		"azurerm_point_to_site_vpn_gateway":             point_to_site_vpn_gateway.RegisterResource(),
+		"azurerm_route_server":                          route_server.RegisterResource(),
+		"azurerm_route_server_bgp_connection":           route_server_bgp_connection.RegisterResource(),
+		"azurerm_virtual_hub":                           virtual_hub.RegisterResource(),
+		"azurerm_virtual_hub_bgp_connection":            virtual_hub_bgp_connection.RegisterResource(),
+		"azurerm_virtual_hub_connection":                virtual_hub_connection.RegisterResource(),
+		"azurerm_virtual_hub_ip":                        virtual_hub_ip.RegisterResource(),
+		"azurerm_virtual_hub_route_table":               virtual_hub_route_table.RegisterResource(),
+		"azurerm_virtual_hub_route_table_route":         virtual_hub_route_table_route.RegisterResource(),
+		"azurerm_virtual_hub_security_partner_provider": virtual_hub_security_partner_provider.RegisterResource(),
+		"azurerm_virtual_wan":                           virtual_wan.RegisterResource(),
+		"azurerm_vpn_gateway":                           vpn_gateway.RegisterResource(),
+		"azurerm_vpn_gateway_connection":                vpn_gateway_connection.RegisterResource(),
+		"azurerm_vpn_gateway_nat_rule":                  vpn_gateway_nat_rule.RegisterResource(),
+		"azurerm_vpn_server_configuration":              vpn_server_configuration.RegisterResource(),
+		"azurerm_vpn_server_configuration_policy_group": vpn_server_configuration_policy_group.RegisterResource(),
+		"azurerm_vpn_site":                              vpn_site.RegisterResource(),
 	}
 }
 
@@ -89,7 +110,7 @@ func (r Registration) Actions() []func() action.Action {
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
-		VirtualHubConnectionListResource{},
+		virtual_hub_connection.ListResource{},
 	}
 }
 

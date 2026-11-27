@@ -7,6 +7,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/resources/advanced_threat_protection"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/resources/iot_security_device_group"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/resources/iot_security_solution"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/resources/security_center_assessment"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/resources/security_center_assessment_policy"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/resources/security_center_automation"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/resources/security_center_contact"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/resources/security_center_server_vulnerability_assessment_virtual_machine"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/resources/security_center_server_vulnerability_assessments_setting"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/resources/security_center_setting"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/resources/security_center_storage_defender"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/resources/security_center_subscription_pricing"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/resources/security_center_workspace"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -42,18 +55,18 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_advanced_threat_protection":                                      resourceAdvancedThreatProtection(),
-		"azurerm_iot_security_device_group":                                       resourceIotSecurityDeviceGroup(),
-		"azurerm_iot_security_solution":                                           resourceIotSecuritySolution(),
-		"azurerm_security_center_assessment":                                      resourceSecurityCenterAssessment(),
-		"azurerm_security_center_assessment_policy":                               resourceArmSecurityCenterAssessmentPolicy(),
-		"azurerm_security_center_automation":                                      resourceSecurityCenterAutomation(),
-		"azurerm_security_center_contact":                                         resourceSecurityCenterContact(),
-		"azurerm_security_center_server_vulnerability_assessment_virtual_machine": resourceServerVulnerabilityAssessmentVirtualMachine(),
-		"azurerm_security_center_server_vulnerability_assessments_setting":        resourceSecurityCenterServerVulnerabilityAssessmentsSetting(),
-		"azurerm_security_center_setting":                                         resourceSecurityCenterSetting(),
-		"azurerm_security_center_subscription_pricing":                            resourceSecurityCenterSubscriptionPricing(),
-		"azurerm_security_center_workspace":                                       resourceSecurityCenterWorkspace(),
+		"azurerm_advanced_threat_protection":                                      advanced_threat_protection.RegisterResource(),
+		"azurerm_iot_security_device_group":                                       iot_security_device_group.RegisterResource(),
+		"azurerm_iot_security_solution":                                           iot_security_solution.RegisterResource(),
+		"azurerm_security_center_assessment":                                      security_center_assessment.RegisterResource(),
+		"azurerm_security_center_assessment_policy":                               security_center_assessment_policy.RegisterResource(),
+		"azurerm_security_center_automation":                                      security_center_automation.RegisterResource(),
+		"azurerm_security_center_contact":                                         security_center_contact.RegisterResource(),
+		"azurerm_security_center_server_vulnerability_assessment_virtual_machine": security_center_server_vulnerability_assessment_virtual_machine.RegisterResource(),
+		"azurerm_security_center_server_vulnerability_assessments_setting":        security_center_server_vulnerability_assessments_setting.RegisterResource(),
+		"azurerm_security_center_setting":                                         security_center_setting.RegisterResource(),
+		"azurerm_security_center_subscription_pricing":                            security_center_subscription_pricing.RegisterResource(),
+		"azurerm_security_center_workspace":                                       security_center_workspace.RegisterResource(),
 	}
 }
 
@@ -63,7 +76,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		StorageDefenderResource{},
+		security_center_storage_defender.Resource{},
 	}
 }
 

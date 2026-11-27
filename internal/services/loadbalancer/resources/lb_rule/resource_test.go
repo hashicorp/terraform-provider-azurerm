@@ -5,6 +5,7 @@ package lb_rule_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -248,13 +249,13 @@ func (r LoadBalancerRule) Destroy(ctx context.Context, client *clients.Client, s
 		return nil, fmt.Errorf("retrieving %s: %+v", plbId, err)
 	}
 	if loadBalancer.Model == nil {
-		return nil, fmt.Errorf(`model was nil`)
+		return nil, errors.New(`model was nil`)
 	}
 	if loadBalancer.Model.Properties == nil {
-		return nil, fmt.Errorf(`properties was nil`)
+		return nil, errors.New(`properties was nil`)
 	}
 	if loadBalancer.Model.Properties.LoadBalancingRules == nil {
-		return nil, fmt.Errorf(`properties.LoadBalancingRules was nil`)
+		return nil, errors.New(`properties.LoadBalancingRules was nil`)
 	}
 	rules := make([]loadbalancers.LoadBalancingRule, 0)
 	for _, v := range *loadBalancer.Model.Properties.LoadBalancingRules {

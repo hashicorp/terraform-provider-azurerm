@@ -5,6 +5,7 @@ package helpers
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"regexp"
 	"slices"
@@ -1098,7 +1099,7 @@ func ExpandOrchestratedVirtualMachineScaleSetIPConfiguration(raw map[string]any)
 	primary := raw["primary"].(bool)
 	version := virtualmachinescalesets.IPVersion(raw["version"].(string))
 	if primary && version == virtualmachinescalesets.IPVersionIPvSix {
-		return nil, fmt.Errorf("an IPv6 Primary IP Configuration is unsupported - instead add a IPv4 IP Configuration as the Primary and make the IPv6 IP Configuration the secondary")
+		return nil, errors.New("an IPv6 Primary IP Configuration is unsupported - instead add a IPv4 IP Configuration as the Primary and make the IPv6 IP Configuration the secondary")
 	}
 
 	ipConfiguration := virtualmachinescalesets.VirtualMachineScaleSetIPConfiguration{
@@ -1242,7 +1243,7 @@ func ExpandOrchestratedVirtualMachineScaleSetIPConfigurationUpdate(raw map[strin
 	version := virtualmachinescalesets.IPVersion(raw["version"].(string))
 
 	if primary && version == virtualmachinescalesets.IPVersionIPvSix {
-		return nil, fmt.Errorf("an IPv6 Primary IP Configuration is unsupported - instead add a IPv4 IP Configuration as the Primary and make the IPv6 IP Configuration the secondary")
+		return nil, errors.New("an IPv6 Primary IP Configuration is unsupported - instead add a IPv4 IP Configuration as the Primary and make the IPv6 IP Configuration the secondary")
 	}
 
 	ipConfiguration := virtualmachinescalesets.VirtualMachineScaleSetUpdateIPConfiguration{
@@ -1327,7 +1328,7 @@ func ExpandOrchestratedVirtualMachineScaleSetDataDisk(input []any, ultraSSDEnabl
 		}
 
 		if iops > 0 && !ultraSSDEnabled && storageAccountType != virtualmachinescalesets.StorageAccountTypesPremiumVTwoLRS {
-			return nil, fmt.Errorf("`disk_iops_read_write` can only be set when `storage_account_type` is set to `PremiumV2_LRS` or `UltraSSD_LRS`")
+			return nil, errors.New("`disk_iops_read_write` can only be set when `storage_account_type` is set to `PremiumV2_LRS` or `UltraSSD_LRS`")
 		}
 
 		// Do not set value unless value is greater than 0 - issue 15516
@@ -1341,7 +1342,7 @@ func ExpandOrchestratedVirtualMachineScaleSetDataDisk(input []any, ultraSSDEnabl
 		}
 
 		if mbps > 0 && !ultraSSDEnabled && storageAccountType != virtualmachinescalesets.StorageAccountTypesPremiumVTwoLRS {
-			return nil, fmt.Errorf("`disk_mbps_read_write` can only be set when `storage_account_type` is set to `PremiumV2_LRS` or `UltraSSD_LRS`")
+			return nil, errors.New("`disk_mbps_read_write` can only be set when `storage_account_type` is set to `PremiumV2_LRS` or `UltraSSD_LRS`")
 		}
 
 		// Do not set value unless value is greater than 0 - issue 15516
@@ -1483,7 +1484,7 @@ func ExpandOrchestratedVirtualMachineScaleSetExtensions(input []any) (extensionP
 
 		if val, ok := extensionRaw["protected_settings"]; ok && val.(string) != "" {
 			if protectedSettingsFromKeyVault != nil {
-				return nil, false, fmt.Errorf("`protected_settings_from_key_vault` cannot be used with `protected_settings`")
+				return nil, false, errors.New("`protected_settings_from_key_vault` cannot be used with `protected_settings`")
 			}
 
 			var result any

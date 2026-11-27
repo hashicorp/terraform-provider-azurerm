@@ -5,6 +5,7 @@ package subscription_policy_remediation
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 
@@ -53,10 +54,10 @@ func subscriptionPolicyRemediationCancellationRefreshFunc(ctx context.Context, c
 		}
 
 		if resp.Model.Properties == nil {
-			return nil, "", fmt.Errorf("`properties` was nil")
+			return nil, "", errors.New("`properties` was nil")
 		}
 		if resp.Model.Properties.ProvisioningState == nil {
-			return nil, "", fmt.Errorf("`properties.ProvisioningState` was nil")
+			return nil, "", errors.New("`properties.ProvisioningState` was nil")
 		}
 		return resp, *resp.Model.Properties.ProvisioningState, nil
 	}

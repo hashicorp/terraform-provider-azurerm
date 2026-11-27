@@ -5,6 +5,7 @@ package kusto_cluster_managed_private_endpoint_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -67,7 +68,7 @@ func (KustoClusterManagedPrivateEndpointResource) Exists(ctx context.Context, cl
 	}
 
 	if resp.Model == nil {
-		return nil, fmt.Errorf("response model is empty")
+		return nil, errors.New("response model is empty")
 	}
 	return pointer.To(resp.Model.Properties != nil), nil
 }

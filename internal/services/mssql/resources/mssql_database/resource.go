@@ -5,6 +5,7 @@ package mssql_database
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -67,7 +68,7 @@ func RegisterResource() *pluginsdk.Resource {
 				skuName := d.Get("sku_name").(string)
 
 				if !strings.HasPrefix(strings.ToLower(skuName), "dw") && !transparentDataEncryption {
-					return fmt.Errorf("transparent data encryption can only be disabled on Data Warehouse SKUs")
+					return errors.New("transparent data encryption can only be disabled on Data Warehouse SKUs")
 				}
 
 				// NOTE: VBS enclaves are not supported by DW or DC skus...
@@ -81,11 +82,11 @@ func RegisterResource() *pluginsdk.Resource {
 					// NOTE: Got `PerDatabaseCMKDWNotSupported` error from API when `sku_name` is set to `DW100c` and `transparent_data_encryption_key_vault_key_id` is specified
 					keyVaultKeyId := d.Get("transparent_data_encryption_key_vault_key_id").(string)
 					if keyVaultKeyId != "" {
-						return fmt.Errorf("database-level CMK is not supported for Data Warehouse SKUs")
+						return errors.New("database-level CMK is not supported for Data Warehouse SKUs")
 					}
 					// NOTE: Got `InternalServerError` error from API when `sku_name` is set to `DW100c` and `transparent_data_encryption_key_automatic_rotation_enabled` is specified
 					if d.Get("transparent_data_encryption_key_automatic_rotation_enabled").(bool) {
-						return fmt.Errorf("transparent_data_encryption_key_automatic_rotation_enabled should not be specified when using Data Warehouse SKUs")
+						return errors.New("transparent_data_encryption_key_automatic_rotation_enabled should not be specified when using Data Warehouse SKUs")
 					}
 				}
 
@@ -98,14 +99,14 @@ func RegisterResource() *pluginsdk.Resource {
 					if minCapacityVal.IsKnown() && !minCapacityVal.IsNull() {
 						minCapacityValFloat, _ := minCapacityVal.AsBigFloat().Float64()
 						if minCapacityValFloat > 0 {
-							return fmt.Errorf("`min_capacity` should only be specified when using a serverless database")
+							return errors.New("`min_capacity` should only be specified when using a serverless database")
 						}
 					}
 					autoPauseDelayVal := rawConfig["auto_pause_delay_in_minutes"]
 					if autoPauseDelayVal.IsKnown() && !autoPauseDelayVal.IsNull() {
 						autoPauseDelayValInt, _ := autoPauseDelayVal.AsBigFloat().Int64()
 						if autoPauseDelayValInt > 0 {
-							return fmt.Errorf("`auto_pause_delay_in_minutes` should only be specified when using a serverless database")
+							return errors.New("`auto_pause_delay_in_minutes` should only be specified when using a serverless database")
 						}
 					}
 				}

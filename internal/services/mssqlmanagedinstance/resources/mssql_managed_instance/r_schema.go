@@ -348,7 +348,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 			adminPassword := rawConfig["administrator_login_password"]
 
 			if aadAdminOk && !authOnlyEnabled && (adminLogin.IsNull() || adminPassword.IsNull()) {
-				return fmt.Errorf("`administrator_login` and `administrator_login_password` are required when `azuread_authentication_only_enabled` is false")
+				return errors.New("`administrator_login` and `administrator_login_password` are required when `azuread_authentication_only_enabled` is false")
 			}
 
 			// Unknown values can come from expressions and may later resolve to null, so only

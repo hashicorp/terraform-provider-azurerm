@@ -4,6 +4,7 @@
 package sdk
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"strings"
@@ -31,7 +32,7 @@ func parseStructTags(input reflect.StructTag) (*decodedStructTags, error) {
 		return nil, nil
 	}
 	if tag == "" {
-		return nil, fmt.Errorf("the `tfschema` struct tag was defined but empty")
+		return nil, errors.New("the `tfschema` struct tag was defined but empty")
 	}
 
 	components := strings.Split(tag, ",")
@@ -40,7 +41,7 @@ func parseStructTags(input reflect.StructTag) (*decodedStructTags, error) {
 		hclPath: strings.TrimSpace(components[0]),
 	}
 	if output.hclPath == "" {
-		return nil, fmt.Errorf("hclPath was empty")
+		return nil, errors.New("hclPath was empty")
 	}
 
 	if len(components) > 1 {
@@ -50,14 +51,14 @@ func parseStructTags(input reflect.StructTag) (*decodedStructTags, error) {
 			item = strings.TrimSpace(item) // allowing for both `foo,bar` and `foo, bar` in struct tags
 			if strings.EqualFold(item, "removedInNextMajorVersion") {
 				if output.addedInNextMajorVersion {
-					return nil, fmt.Errorf("the struct-tags `removedInNextMajorVersion` and `addedInNextMajorVersion` cannot be set together")
+					return nil, errors.New("the struct-tags `removedInNextMajorVersion` and `addedInNextMajorVersion` cannot be set together")
 				}
 				output.removedInNextMajorVersion = true
 				continue
 			}
 			if strings.EqualFold(item, "addedInNextMajorVersion") {
 				if output.removedInNextMajorVersion {
-					return nil, fmt.Errorf("the struct-tags `removedInNextMajorVersion` and `addedInNextMajorVersion` cannot be set together")
+					return nil, errors.New("the struct-tags `removedInNextMajorVersion` and `addedInNextMajorVersion` cannot be set together")
 				}
 				output.addedInNextMajorVersion = true
 				continue

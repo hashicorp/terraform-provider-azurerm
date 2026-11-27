@@ -5,6 +5,7 @@ package validate
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -16,20 +17,20 @@ import (
 )
 
 func ValidateNetAppVolumeQuotaRule(ctx context.Context, volumeID volumes.VolumeId, client *clients.Client, rule *models.NetAppVolumeQuotaRuleModel) []error {
-	errors := make([]error, 0)
+	errs := make([]error, 0)
 
 	// Validating quota type matches volume type
 	volumeClient := client.NetApp.VolumeClient
 
 	volume, err := volumeClient.Get(ctx, volumeID)
 	if err != nil {
-		errors = append(errors, fmt.Errorf("retrieving %s: %v", volumeID, err))
-		return errors
+		errs = append(errs, fmt.Errorf("retrieving %s: %v", volumeID, err))
+		return errs
 	}
 
 	if volume.Model == nil || volume.HttpResponse.StatusCode == http.StatusNotFound {
-		errors = append(errors, fmt.Errorf("volume %s not found", volumeID))
-		return errors
+		errs = append(errs, fmt.Errorf("volume %s not found", volumeID))
+		return errs
 	}
 
 	// NFS Volume must not have Windows SIDs
@@ -38,7 +39,7 @@ func ValidateNetAppVolumeQuotaRule(ctx context.Context, volumeID volumes.VolumeI
 		if pointer.To(rule.QuotaTarget) != nil && rule.QuotaTarget != "" {
 			_, errList := ValidateWindowsSID(&rule.QuotaTarget, rule.QuotaTarget)
 			if len(errList) == 0 {
-				errors = append(errors, fmt.Errorf("'nfs volume %v cannot have windows sid as quota targets, defined quota target is %v'", volumeID.VolumeName, rule.QuotaTarget))
+				errs = append(errs, fmt.Errorf("'nfs volume %v cannot have windows sid as quota targets, defined quota target is %v'", volumeID.VolumeName, rule.QuotaTarget))
 			}
 		}
 	}
@@ -48,7 +49,7 @@ func ValidateNetAppVolumeQuotaRule(ctx context.Context, volumeID volumes.VolumeI
 		if pointer.To(rule.QuotaTarget) != nil && rule.QuotaTarget != "" {
 			_, errList := ValidateUnixUserIDOrGroupID(&rule.QuotaTarget, rule.QuotaTarget)
 			if len(errList) == 0 {
-				errors = append(errors, fmt.Errorf("'cifs volume %v cannot have unix id as quota target, defined quota target is %v'", volumeID.VolumeName, rule.QuotaTarget))
+				errs = append(errs, fmt.Errorf("'cifs volume %v cannot have unix id as quota target, defined quota target is %v'", volumeID.VolumeName, rule.QuotaTarget))
 			}
 		}
 	}
@@ -56,45 +57,45 @@ func ValidateNetAppVolumeQuotaRule(ctx context.Context, volumeID volumes.VolumeI
 	// Dual protocol volumes does not support group quotas
 	if len(pointer.From(volume.Model.Properties.ProtocolTypes)) == 2 {
 		if pointer.To(rule.QuotaType) != nil && (volumequotarules.QuotaType(rule.QuotaType) == volumequotarules.QuotaTypeIndividualGroupQuota || volumequotarules.QuotaType(rule.QuotaType) == volumequotarules.QuotaTypeDefaultGroupQuota) {
-			errors = append(errors, fmt.Errorf("'dual protocol volume %v cannot have group quotas'", volumeID.VolumeName))
+			errs = append(errs, fmt.Errorf("'dual protocol volume %v cannot have group quotas'", volumeID.VolumeName))
 		}
 	}
 
 	// CIFS protocol volumes does not support group quotas
 	if findStringInSlice(pointer.From(volume.Model.Properties.ProtocolTypes), "cifs") {
 		if pointer.To(rule.QuotaType) != nil && (volumequotarules.QuotaType(rule.QuotaType) == volumequotarules.QuotaTypeIndividualGroupQuota || volumequotarules.QuotaType(rule.QuotaType) == volumequotarules.QuotaTypeDefaultGroupQuota) {
-			errors = append(errors, fmt.Errorf("'cifs volume %v cannot have group quotas'", volumeID.VolumeName))
+			errs = append(errs, fmt.Errorf("'cifs volume %v cannot have group quotas'", volumeID.VolumeName))
 		}
 	}
 
 	// Quota types and targets validations
-	errors = append(errors, ValidateNetAppVolumeQuotaRuleQuotaType(pointer.ToEnum[volumequotarules.QuotaType](rule.QuotaType), pointer.To(rule.QuotaTarget))...)
+	errs = append(errs, ValidateNetAppVolumeQuotaRuleQuotaType(pointer.ToEnum[volumequotarules.QuotaType](rule.QuotaType), pointer.To(rule.QuotaTarget))...)
 
-	return errors
+	return errs
 }
 
 func ValidateNetAppVolumeQuotaRuleQuotaType(quotaType *volumequotarules.QuotaType, quotaTarget *string) []error {
-	errors := make([]error, 0)
+	errs := make([]error, 0)
 
 	// Quota Target must be defined for IndividualUserQuota
 	if quotaType != nil && pointer.From(quotaType) == volumequotarules.QuotaTypeIndividualUserQuota && (quotaTarget == nil || pointer.From(quotaTarget) == "") {
-		errors = append(errors, fmt.Errorf("'individualUserQuota must have quota target defined'"))
+		errs = append(errs, errors.New("'individualUserQuota must have quota target defined'"))
 	}
 
 	// Quota Target must be defined for IndividualGroupQuota
 	if quotaType != nil && pointer.From(quotaType) == volumequotarules.QuotaTypeIndividualGroupQuota && (quotaTarget == nil || pointer.From(quotaTarget) == "") {
-		errors = append(errors, fmt.Errorf("'individualGroupQuota must have quota target defined'"))
+		errs = append(errs, errors.New("'individualGroupQuota must have quota target defined'"))
 	}
 
 	// DefaultUserQuota quota type cannot have quota target defined
 	if quotaType != nil && pointer.From(quotaType) == volumequotarules.QuotaTypeDefaultUserQuota && (quotaTarget != nil && pointer.From(quotaTarget) != "") {
-		errors = append(errors, fmt.Errorf("'defaultUserQuota cannot have quota target defined, defined quota target is %v'", pointer.From(quotaTarget)))
+		errs = append(errs, fmt.Errorf("'defaultUserQuota cannot have quota target defined, defined quota target is %v'", pointer.From(quotaTarget)))
 	}
 
 	// DefaultGroupQuota quota type cannot have quota target defined
 	if quotaType != nil && pointer.From(quotaType) == volumequotarules.QuotaTypeDefaultGroupQuota && (quotaTarget != nil && pointer.From(quotaTarget) != "") {
-		errors = append(errors, fmt.Errorf("'defaultGroupQuota cannot have quota target defined, defined quota target is %v'", pointer.From(quotaTarget)))
+		errs = append(errs, fmt.Errorf("'defaultGroupQuota cannot have quota target defined, defined quota target is %v'", pointer.From(quotaTarget)))
 	}
 
-	return errors
+	return errs
 }

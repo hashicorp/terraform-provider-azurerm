@@ -1,0 +1,22 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
+package application_load_balancer_security_policy
+
+import (
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2025-01-01/securitypoliciesinterface"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+)
+
+var _ sdk.ResourceWithUpdate = Resource{}
+
+type Resource struct{}
+
+func (f Resource) ResourceType() string {
+	return "azurerm_application_load_balancer_security_policy"
+}
+
+func (f Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return securitypoliciesinterface.ValidateSecurityPolicyID
+}
