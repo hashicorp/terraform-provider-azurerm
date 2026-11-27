@@ -7,6 +7,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/workloads/resources/workloads_sap_discovery_virtual_instance"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/workloads/resources/workloads_sap_single_node_virtual_instance"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/workloads/resources/workloads_sap_three_tier_virtual_instance"
 )
 
 type Registration struct{}
@@ -40,9 +43,9 @@ func (r Registration) DataSources() []sdk.DataSource {
 // Resources returns a list of Resources supported by this Service
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		WorkloadsSAPDiscoveryVirtualInstanceResource{},
-		WorkloadsSAPSingleNodeVirtualInstanceResource{},
-		WorkloadsSAPThreeTierVirtualInstanceResource{},
+		workloads_sap_discovery_virtual_instance.Resource{},
+		workloads_sap_single_node_virtual_instance.Resource{},
+		workloads_sap_three_tier_virtual_instance.Resource{},
 	}
 }
 
@@ -64,8 +67,8 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
-		WorkloadsSAPDiscoveryVirtualInstanceListResource{},
-		WorkloadsSAPSingleNodeVirtualInstanceListResource{},
-		WorkloadsSAPThreeTierVirtualInstanceListResource{},
+		workloads_sap_discovery_virtual_instance.ListResource{},
+		workloads_sap_single_node_virtual_instance.ListResource{},
+		workloads_sap_three_tier_virtual_instance.ListResource{},
 	}
 }
