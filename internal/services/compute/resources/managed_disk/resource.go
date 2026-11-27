@@ -13,6 +13,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
+const ResourceType = "azurerm_managed_disk"
+
 type Disk struct {
 	Name                string              `tfschema:"name"`
 	ID                  string              `tfschema:"id"`
