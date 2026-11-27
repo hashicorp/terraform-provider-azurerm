@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/resources/monitor_diagnostic_categories"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/resources/monitor_diagnostic_setting"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/resources/monitor_metric_alert"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/resources/monitor_pipeline"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/resources/monitor_private_link_scope"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/resources/monitor_private_link_scoped_service"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/resources/monitor_scheduled_query_rules_alert"
@@ -58,6 +59,7 @@ func (r Registration) Resources() []sdk.Resource {
 		monitor_data_collection_endpoint.Resource{},
 		monitor_data_collection_rule_association.Resource{},
 		monitor_data_collection_rule.Resource{},
+		monitor_pipeline.Resource{},
 		monitor_scheduled_query_rules_alert_v2.Resource{},
 		monitor_workspace.Resource{},
 	}
@@ -123,6 +125,7 @@ func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 		monitor_action_group.ListResource{},
 		monitor_activity_log_alert.ListResource{},
 		monitor_metric_alert.ListResource{},
+		monitor_pipeline.ListResource{},
 		monitor_scheduled_query_rules_alert.ListResource{},
 		monitor_workspace.ListResource{},
 		monitor_scheduled_query_rules_alert_v2.ListResource{},
