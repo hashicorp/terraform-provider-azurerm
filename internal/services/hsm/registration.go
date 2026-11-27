@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hsm/resources/cloud_hardware_security_module_cluster"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hsm/resources/dedicated_hardware_security_module"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -14,8 +15,9 @@ import (
 type Registration struct{}
 
 var (
-	_ sdk.FrameworkServiceRegistration               = Registration{}
 	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+	_ sdk.TypedServiceRegistration                   = Registration{}
+	_ sdk.FrameworkServiceRegistration               = Registration{}
 )
 
 func (r Registration) AssociatedGitHubLabel() string {
@@ -44,6 +46,18 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_dedicated_hardware_security_module": dedicated_hardware_security_module.RegisterResource(),
 	}
+}
+
+// Resources returns the typed Resources supported by this Service
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{
+		cloud_hardware_security_module_cluster.Resource{},
+	}
+}
+
+// DataSources implements sdk.TypedServiceRegistration.
+func (r Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{}
 }
 
 func (r Registration) Actions() []func() action.Action {

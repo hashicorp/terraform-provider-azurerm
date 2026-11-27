@@ -192,6 +192,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		graphservices.Registration{},
 		horizondb.Registration{},
 		hybridcompute.Registration{},
+		hsm.Registration{},
 		iotcentral.Registration{},
 		iothub.Registration{},
 		keyvault.Registration{},
