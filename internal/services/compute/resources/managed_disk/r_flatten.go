@@ -31,7 +31,7 @@ func resourceManagedDiskFlatten(d *pluginsdk.ResourceData, id *commonids.Managed
 		d.Set("zone", zone)
 
 		if sku := model.Sku; sku != nil {
-			d.Set("storage_account_type", string(pointer.From(sku.Name)))
+			d.Set("storage_account_type", pointer.FromEnum(sku.Name))
 		}
 
 		if includeResource {
@@ -90,7 +90,7 @@ func resourceManagedDiskFlatten(d *pluginsdk.ResourceData, id *commonids.Managed
 					if pointer.From(securityProfile.SecurityType) == disks.DiskSecurityTypesTrustedLaunch {
 						trustedLaunchEnabled = true
 					} else {
-						securityType = string(pointer.From(securityProfile.SecurityType))
+						securityType = pointer.FromEnum(securityProfile.SecurityType)
 					}
 
 					secureVMDiskEncryptionSetId = pointer.From(securityProfile.SecureVMDiskEncryptionSetId)
