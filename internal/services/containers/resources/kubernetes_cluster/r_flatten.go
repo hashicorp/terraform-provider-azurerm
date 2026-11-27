@@ -257,7 +257,9 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 
 	lbProfiles := make([]any, 0)
 	if lbp := profile.LoadBalancerProfile; lbp != nil {
-		lb := make(map[string]any)
+		lb := map[string]any{
+			"idle_timeout_in_minutes": 30,
+		}
 
 		if v := lbp.AllocatedOutboundPorts; v != nil {
 			lb["outbound_ports_allocated"] = v
