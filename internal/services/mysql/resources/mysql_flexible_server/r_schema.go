@@ -16,11 +16,21 @@ import (
 
 func mysqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
+		"id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ForceNew:     true,
 			ValidateFunc: validate.FlexibleServerName,
+		},
+
+		"rename_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),

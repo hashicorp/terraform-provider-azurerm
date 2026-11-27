@@ -27,6 +27,9 @@ func resourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta any) error 
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
+			if d.Get("rename_enabled").(bool) {
+				return fmt.Errorf("retrieving %s: server not found with `rename_enabled` set; state has been retained because a rename may have changed its ID. Verify any rename operation and reconcile the confirmed server ID with Terraform state before retrying", *id)
+			}
 			log.Printf("[INFO] Mysql Flexible Server %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil

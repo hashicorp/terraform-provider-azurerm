@@ -27,6 +27,14 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta any) erro
 		return err
 	}
 
+	if d.HasChange("name") {
+		return resourceMysqlFlexibleServerRename(ctx, d, meta.(*clients.Client), *id)
+	}
+
+	if d.HasChange("rename_enabled") && !mysqlFlexibleServerHasOtherChanges(d) {
+		return resourceMysqlFlexibleServerRead(d, meta)
+	}
+
 	// failover is only supported when `zone` and `standby_availability_zone` is exchanged
 	var requireFailover bool
 	switch {

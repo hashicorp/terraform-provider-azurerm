@@ -36,9 +36,14 @@ func RegisterResource() *pluginsdk.Resource {
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(&servers.FlexibleServerId{}),
 		},
 
+		ResourceBehavior: schema.ResourceBehavior{
+			MutableIdentity: true,
+		},
+
 		Schema: mysqlFlexibleServerSchema(),
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			mysqlFlexibleServerRenameCustomizeDiff,
 			pluginsdk.ForceNewIfChange("storage.0.size_gb", func(ctx context.Context, old, new, meta any) bool {
 				return new.(int) < old.(int)
 			}),
