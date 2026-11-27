@@ -42,6 +42,12 @@ func (r Registration) Name() string {
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
 		palo_alto_local_rulestack.DataSource{},
+		NextGenerationFirewallVHubLocalRulestackDataSource{},
+		NextGenerationFirewallVHubPanoramaDataSource{},
+		NextGenerationFirewallVHubStrataCloudManagerDataSource{},
+		NextGenerationFirewallVNetLocalRulestackDataSource{},
+		NextGenerationFirewallVNetPanoramaDataSource{},
+		NextGenerationFirewallVNetStrataCloudManagerDataSource{},
 	}
 }
 
