@@ -50,7 +50,7 @@ func resourceDevTestGlobalVMShutdownScheduleRead(d *pluginsdk.ResourceData, meta
 			return fmt.Errorf("setting `dailyRecurrence`: %#v", err)
 		}
 
-		if err := d.Set("notification_settings", flattenDevTestGlobalVMShutdownScheduleNotificationSettings(props.NotificationSettings)); err != nil {
+		if err := d.Set("notification_settings", flattenDevTestGlobalVMShutdownScheduleNotificationSettings(props.NotificationSettings, d.Get("notification_settings.0.webhook_url").(string))); err != nil {
 			return fmt.Errorf("setting `notificationSettings`: %#v", err)
 		}
 		if err = tags.FlattenAndSet(d, helpers.FlattenTags(model.Tags)); err != nil {
@@ -68,13 +68,14 @@ func flattenDevTestGlobalVMShutdownScheduleRecurrenceDaily(dailyRecurrence *glob
 	return pointer.From(dailyRecurrence.Time)
 }
 
-func flattenDevTestGlobalVMShutdownScheduleNotificationSettings(notificationSettings *globalschedules.NotificationSettings) []any {
+func flattenDevTestGlobalVMShutdownScheduleNotificationSettings(notificationSettings *globalschedules.NotificationSettings, existingWebhookURL string) []any {
 	if notificationSettings == nil {
 		return []any{}
 	}
 
 	result := make(map[string]any)
 
+	result["webhook_url"] = existingWebhookURL
 	if notificationSettings.WebhookURL != nil {
 		result["webhook_url"] = *notificationSettings.WebhookURL
 	}

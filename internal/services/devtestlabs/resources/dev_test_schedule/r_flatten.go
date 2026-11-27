@@ -55,13 +55,14 @@ func flattenAzureRmDevTestLabScheduleRecurrenceHourly(hourlyRecurrence *schedule
 	return []any{result}
 }
 
-func flattenAzureRmDevTestLabScheduleNotificationSettings(notificationSettings *schedules.NotificationSettings) []any {
+func flattenAzureRmDevTestLabScheduleNotificationSettings(notificationSettings *schedules.NotificationSettings, existingWebhookURL string) []any {
 	if notificationSettings == nil {
 		return []any{}
 	}
 
 	result := make(map[string]any)
 
+	result["webhook_url"] = existingWebhookURL
 	if notificationSettings.WebhookURL != nil {
 		result["webhook_url"] = *notificationSettings.WebhookURL
 	}

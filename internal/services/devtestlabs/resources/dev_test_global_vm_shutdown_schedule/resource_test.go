@@ -63,7 +63,7 @@ func TestAccDevTestGlobalVMShutdownSchedule_autoShutdownComplete(t *testing.T) {
 				check.That(data.ResourceName).Key("tags.Environment").HasValue("Production"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("notification_settings.0.webhook_url"),
 	})
 }
 
@@ -87,7 +87,7 @@ func TestAccDevTestGlobalVMShutdownSchedule_autoShutdownUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("tags.environment").HasValue("Production"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("notification_settings.0.webhook_url"),
 		{
 			Config: r.autoShutdownComplete(data),
 			Check: acceptance.ComposeTestCheckFunc(
