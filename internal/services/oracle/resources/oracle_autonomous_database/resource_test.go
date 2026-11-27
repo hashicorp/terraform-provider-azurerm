@@ -97,9 +97,11 @@ func TestAccAdbsRegularResource_updateBackupSchedule(t *testing.T) {
 			Config: r.updateBackupSchedule(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("long_term_backup_schedule.0.enabled").HasValue("false"),
 			),
 		},
-		data.ImportStep("admin_password"),
+		// Disabling deletes the remote schedule, so import cannot recover the disabled block.
+		data.ImportStep("admin_password", "long_term_backup_schedule"),
 	})
 }
 
@@ -299,7 +301,7 @@ resource "azurerm_oracle_autonomous_database" "test" {
     repeat_cadence           = "Weekly"
     time_of_backup           = "%[4]s"
     retention_period_in_days = 198
-    enabled                  = true
+    enabled                  = false
   }
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary, timeOfBackup)
