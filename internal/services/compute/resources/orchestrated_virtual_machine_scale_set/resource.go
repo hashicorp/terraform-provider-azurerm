@@ -27,7 +27,7 @@ type Output struct {
 }
 
 func RegisterResource() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Description: "Manages an Orchestrated Virtual Machine Scale Set in Flexible Orchestration Mode.",
 		Create:      resourceOrchestratedVirtualMachineScaleSetCreate,
 		Read:        resourceOrchestratedVirtualMachineScaleSetRead,
@@ -175,4 +175,16 @@ func RegisterResource() *pluginsdk.Resource {
 			pluginsdk.CustomizeDiffShim(helpers.OrchestratedVirtualMachineScaleSetAutomaticZoneRebalancingCustomizeDiff),
 		),
 	}
+
+	// The following attributes do not get updated unless this resource is in legacy mode. We'll add `RequiredWith` to make sure those attributes are specified if `sku_name` is specified.
+	for _, field := range []string{
+		"automatic_instance_repair",
+		"boot_diagnostics",
+		"identity",
+		"plan",
+	} {
+		resource.Schema[field].RequiredWith = []string{"sku_name"}
+	}
+
+	return resource
 }

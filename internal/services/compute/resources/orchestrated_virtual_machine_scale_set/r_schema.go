@@ -137,6 +137,7 @@ func orchestratedVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 			ConflictsWith: []string{
 				"proximity_placement_group_id",
 			},
+			RequiredWith: []string{"sku_name"},
 		},
 
 		"data_disk": helpers.OrchestratedVirtualMachineScaleSetDataDiskSchema(),
@@ -145,9 +146,10 @@ func orchestratedVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 		"additional_capabilities": helpers.OrchestratedVirtualMachineScaleSetAdditionalCapabilitiesSchema(),
 
 		"encryption_at_host_enabled": {
-			Description: "Whether disks attached to this Virtual Machine Scale Set should be encrypted by enabling Encryption at Host.",
-			Type:        pluginsdk.TypeBool,
-			Optional:    true,
+			Description:  "Whether disks attached to this Virtual Machine Scale Set should be encrypted by enabling Encryption at Host.",
+			Type:         pluginsdk.TypeBool,
+			Optional:     true,
+			RequiredWith: []string{"sku_name"},
 		},
 
 		"eviction_policy": {
@@ -157,6 +159,7 @@ func orchestratedVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForVirtualMachineEvictionPolicyTypes(), false),
+			RequiredWith: []string{"sku_name"},
 		},
 
 		"extension_operations_enabled": {
@@ -176,6 +179,7 @@ func orchestratedVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			Default:      "PT1H30M",
 			ValidateFunc: validation.ISO8601DurationBetween("PT15M", "PT2H"),
+			RequiredWith: []string{"sku_name"},
 		},
 
 		// whilst the Swagger defines multiple at this time only UAI is supported
@@ -197,6 +201,7 @@ func orchestratedVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 
 				return false
 			},
+			RequiredWith: []string{"sku_name"},
 		},
 
 		"max_bid_price": {
@@ -205,6 +210,7 @@ func orchestratedVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			Default:      -1,
 			ValidateFunc: validate.SpotMaxPrice,
+			RequiredWith: []string{"sku_name"},
 		},
 
 		"plan": helpers.PlanSchema(),
@@ -226,6 +232,7 @@ func orchestratedVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 				string(virtualmachinescalesets.VirtualMachinePriorityTypesRegular),
 				string(virtualmachinescalesets.VirtualMachinePriorityTypesSpot),
 			}, false),
+			RequiredWith: []string{"sku_name"},
 		},
 
 		"proximity_placement_group_id": {
@@ -283,16 +290,18 @@ func orchestratedVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 			ConflictsWith: []string{
 				"source_image_reference",
 			},
+			RequiredWith: []string{"sku_name"},
 		},
 
 		"source_image_reference": helpers.SourceImageReferenceSchemaOrchestratedVMSS(),
 
 		"zone_balance": {
-			Description: "Whether the Virtual Machines in this Scale Set should be strictly evenly distributed across Availability Zones.",
-			Type:        pluginsdk.TypeBool,
-			Optional:    true,
-			ForceNew:    true,
-			Default:     false,
+			Description:  "Whether the Virtual Machines in this Scale Set should be strictly evenly distributed across Availability Zones.",
+			Type:         pluginsdk.TypeBool,
+			Optional:     true,
+			ForceNew:     true,
+			Default:      false,
+			RequiredWith: []string{"sku_name"},
 		},
 
 		"termination_notification": helpers.OrchestratedVirtualMachineScaleSetTerminationNotificationSchema(),
@@ -323,6 +332,7 @@ func orchestratedVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			Sensitive:    true,
 			ValidateFunc: validation.StringIsBase64,
+			RequiredWith: []string{"sku_name"},
 		},
 
 		"priority_mix": helpers.OrchestratedVirtualMachineScaleSetPriorityMixPolicySchema(),
