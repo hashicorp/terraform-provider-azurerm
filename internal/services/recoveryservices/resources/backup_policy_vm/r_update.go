@@ -27,7 +27,7 @@ func resourceBackupProtectionPolicyVMUpdate(d *pluginsdk.ResourceData, meta any)
 	}
 
 	// getting this ready now because its shared between *everything*, time is... complicated for this resource
-	timeOfDay := fmt.Sprintf("%s:00Z", d.Get("backup.0.time").(string))
+	timeOfDay := d.Get("backup.0.time").(string) + ":00Z"
 	times := append(make([]string, 0), timeOfDay)
 
 	// Less than 7 daily backups is no longer supported for create/update

@@ -32,7 +32,7 @@ func TestAccDataSourceApiManagementGatewayHostnameConfiguration_basic(t *testing
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("gateway_name").HasValue(fmt.Sprintf("acctestAMGateway-%d", data.RandomInteger)),
-				check.That(data.ResourceName).Key("host_name").HasValue(fmt.Sprintf("host-name-%s", data.RandomString)),
+				check.That(data.ResourceName).Key("host_name").HasValue("host-name-"+data.RandomString),
 				check.That(data.ResourceName).Key("request_client_certificate_enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("http2_enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("tls10_enabled").HasValue("false"),

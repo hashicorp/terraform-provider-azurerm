@@ -6,6 +6,7 @@ package spring_cloud_application_insights_application_performance_monitoring
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -48,11 +49,11 @@ func (s Resource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("sampling_requests_per_second") {
-				(*properties.Properties)["sampling_requests_per_second"] = fmt.Sprintf("%d", model.SamplingRequestsPerSecond)
+				(*properties.Properties)["sampling_requests_per_second"] = strconv.FormatInt(model.SamplingRequestsPerSecond, 10)
 			}
 
 			if metadata.ResourceData.HasChange("sampling_percentage") {
-				(*properties.Properties)["sampling_percentage"] = fmt.Sprintf("%d", model.SamplingPercentage)
+				(*properties.Properties)["sampling_percentage"] = strconv.FormatInt(model.SamplingPercentage, 10)
 			}
 
 			if metadata.ResourceData.HasChange("connection_string") {

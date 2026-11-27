@@ -5,7 +5,6 @@ package storage_account
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -52,7 +51,7 @@ func (r ListResource) List(ctx context.Context, request list.ListRequest, stream
 		resourceGroupId := commonids.NewResourceGroupID(subscriptionID, data.ResourceGroupName.ValueString())
 		resp, err := client.ListByResourceGroupComplete(ctx, resourceGroupId)
 		if err != nil {
-			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing %s", storageAccountResourceName), err)
+			sdk.SetResponseErrorDiagnostic(stream, "listing "+storageAccountResourceName, err)
 			return
 		}
 
@@ -61,7 +60,7 @@ func (r ListResource) List(ctx context.Context, request list.ListRequest, stream
 	default:
 		resp, err := client.ListComplete(ctx, commonids.NewSubscriptionID(subscriptionID))
 		if err != nil {
-			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing %s", storageAccountResourceName), err)
+			sdk.SetResponseErrorDiagnostic(stream, "listing "+storageAccountResourceName, err)
 			return
 		}
 

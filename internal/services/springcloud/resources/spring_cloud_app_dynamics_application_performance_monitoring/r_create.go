@@ -6,6 +6,7 @@ package spring_cloud_app_dynamics_application_performance_monitoring
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -50,8 +51,8 @@ func (s Resource) Create() sdk.ResourceFunc {
 						"agent_node_name":        model.AgentNodeName,
 						"agent_unique_host_id":   model.AgentUniqueHostId,
 						"controller_host_name":   model.ControllerHostName,
-						"controller_ssl_enabled": fmt.Sprintf("%t", model.ControllerSslEnabled),
-						"controller_port":        fmt.Sprintf("%d", model.ControllerPort),
+						"controller_ssl_enabled": strconv.FormatBool(model.ControllerSslEnabled),
+						"controller_port":        strconv.FormatInt(model.ControllerPort, 10),
 					}),
 					Secrets: pointer.To(map[string]string{
 						"agent_account_name":       model.AgentAccountName,

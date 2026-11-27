@@ -69,7 +69,7 @@ func resourceArmRoleAssignmentRead(d *pluginsdk.ResourceData, meta any) error {
 				// The role definition id returned does not contain scope when the role definition was on tenant level (management group or tenant).
 				// And adding tenant id as scope will cause 404 response, so just adding a slash to parse that.
 				if strings.HasPrefix(roleDefResourceId, "/providers") {
-					roleDefResourceId = fmt.Sprintf("/%s", roleDefResourceId)
+					roleDefResourceId = "/" + roleDefResourceId
 				}
 				parsedRoleDefId, err := roledefinitions.ParseScopedRoleDefinitionID(roleDefResourceId)
 				if err != nil {

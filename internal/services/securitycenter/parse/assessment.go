@@ -23,7 +23,7 @@ func (id AssessmentId) String() string {
 		fmt.Sprintf("Target Resource %q", id.TargetResourceID),
 		fmt.Sprintf("Name %q", id.Name),
 	}
-	return fmt.Sprintf("Assessment %s", strings.Join(components, " / "))
+	return "Assessment " + strings.Join(components, " / ")
 }
 
 func NewAssessmentID(targetResourceID, name string) AssessmentId {

@@ -36,7 +36,7 @@ func (f formatErr) String() string {
 	case strings.Contains(f.msg, md.IncorrectlyBlockMarked):
 		return fmt.Sprintf("%s %s", base, util.IssueLine(f.msg))
 	case strings.TrimSpace(f.Origin) == "*":
-		return fmt.Sprintf("%s Found a list marker with no field name or content. This should be removed", base)
+		return base + " Found a list marker with no field name or content. This should be removed"
 	case strings.HasPrefix(f.Origin, "* ~>"):
 		return fmt.Sprintf("%s a %s block should not start with `*`", base, util.Bold("Note"))
 	default:

@@ -4,8 +4,6 @@
 package check
 
 import (
-	"fmt"
-
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-lint/model"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-lint/util"
 )
@@ -38,7 +36,7 @@ func (*circularRef) ShouldSkip() bool {
 
 // String implements Checker.
 func (c *circularRef) String() string {
-	return fmt.Sprintf("0 document has circular reference in block name: %s", util.Bold(c.fieldName))
+	return "0 document has circular reference in block name: " + util.Bold(c.fieldName)
 }
 
 var _ Checker = (*circularRef)(nil)

@@ -115,13 +115,13 @@ func testAccAzureRMApiManagementIdentityProviderAADB2C_getB2CConfig(t *testing.T
 	}
 
 	for k := range config {
-		if v := os.Getenv(fmt.Sprintf("ARM_TEST_B2C_%s", strings.ToUpper(k))); v != "" {
+		if v := os.Getenv("ARM_TEST_B2C_" + strings.ToUpper(k)); v != "" {
 			config[k] = v
 			continue
 		}
 		vars := make([]string, 0, len(config))
 		for k := range config {
-			v := fmt.Sprintf("ARM_TEST_B2C_%s", strings.ToUpper(k))
+			v := "ARM_TEST_B2C_" + strings.ToUpper(k)
 			vars = append(vars, v)
 		}
 		t.Skipf("Acceptance tests for resource `azurerm_api_management_identity_provider_aadb2c` skipped unless environment variables set: %s", strings.Join(vars, ", "))

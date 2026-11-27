@@ -5,6 +5,7 @@ package spring_cloud_app_redis_association
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -46,7 +47,7 @@ func resourceSpringCloudAppRedisAssociationCreateUpdate(d *pluginsdk.ResourceDat
 	bindingResource := appplatform.BindingResource{
 		Properties: &appplatform.BindingResourceProperties{
 			BindingParameters: map[string]*string{
-				springCloudAppRedisAssociationKeySSL: pointer.To(fmt.Sprintf("%t", d.Get("ssl_enabled").(bool))),
+				springCloudAppRedisAssociationKeySSL: pointer.To(strconv.FormatBool(d.Get("ssl_enabled").(bool))),
 			},
 			Key:        pointer.To(d.Get("redis_access_key").(string)),
 			ResourceID: pointer.To(d.Get("redis_cache_id").(string)),

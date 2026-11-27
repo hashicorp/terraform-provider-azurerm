@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
@@ -216,7 +217,7 @@ func flattenEntityWithMetadata(entity map[string]any) TableEntityDataSourceModel
 			case float64:
 				f64 := v.(float64)
 				if v == float64(int64(f64)) {
-					properties[k] = fmt.Sprintf("%d", int64(f64))
+					properties[k] = strconv.FormatInt(int64(f64), 10)
 					properties[k+"@odata.type"] = "Edm.Int32"
 				} else {
 					// fmt.Sprintf("%f", v) will return `123.123000` for `123.123`, have to use fmt.Sprint

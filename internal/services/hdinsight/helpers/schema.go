@@ -1170,7 +1170,7 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 			ForceNew:    true,
 			Set:         pluginsdk.HashString,
 			ConflictsWith: []string{
-				fmt.Sprintf("%s.0.password", schemaLocation),
+				schemaLocation + ".0.password",
 			},
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
@@ -1218,7 +1218,7 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 					Optional: true,
 					MaxItems: 1,
 					ConflictsWith: []string{
-						fmt.Sprintf("%s.0.autoscale.0.recurrence", schemaLocation),
+						schemaLocation + ".0.autoscale.0.recurrence",
 					},
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
@@ -1237,7 +1237,7 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 				}
 				if definition.CanAutoScaleOnSchedule {
 					autoScales["capacity"].ConflictsWith = []string{
-						fmt.Sprintf("%s.0.autoscale.0.recurrence", schemaLocation),
+						schemaLocation + ".0.autoscale.0.recurrence",
 					}
 				}
 			}
@@ -1289,7 +1289,7 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 				}
 				if definition.CanAutoScaleByCapacity {
 					autoScales["recurrence"].ConflictsWith = []string{
-						fmt.Sprintf("%s.0.autoscale.0.capacity", schemaLocation),
+						schemaLocation + ".0.autoscale.0.capacity",
 					}
 				}
 			}
@@ -1353,7 +1353,7 @@ func SchemaHDInsightNodeDefinitionKafka(schemaLocation string, definition HDInsi
 			ForceNew:    true,
 			Set:         pluginsdk.HashString,
 			ConflictsWith: []string{
-				fmt.Sprintf("%s.0.password", schemaLocation),
+				schemaLocation + ".0.password",
 			},
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
@@ -1401,7 +1401,7 @@ func SchemaHDInsightNodeDefinitionKafka(schemaLocation string, definition HDInsi
 					Optional: true,
 					MaxItems: 1,
 					ConflictsWith: []string{
-						fmt.Sprintf("%s.0.autoscale.0.recurrence", schemaLocation),
+						schemaLocation + ".0.autoscale.0.recurrence",
 					},
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
@@ -1420,7 +1420,7 @@ func SchemaHDInsightNodeDefinitionKafka(schemaLocation string, definition HDInsi
 				}
 				if definition.CanAutoScaleOnSchedule {
 					autoScales["capacity"].ConflictsWith = []string{
-						fmt.Sprintf("%s.0.autoscale.0.recurrence", schemaLocation),
+						schemaLocation + ".0.autoscale.0.recurrence",
 					}
 				}
 			}
@@ -1472,7 +1472,7 @@ func SchemaHDInsightNodeDefinitionKafka(schemaLocation string, definition HDInsi
 				}
 				if definition.CanAutoScaleByCapacity {
 					autoScales["recurrence"].ConflictsWith = []string{
-						fmt.Sprintf("%s.0.autoscale.0.capacity", schemaLocation),
+						schemaLocation + ".0.autoscale.0.capacity",
 					}
 				}
 			}

@@ -628,23 +628,23 @@ func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existin
 	if len(s.ApplicationStack) == 1 {
 		linuxAppStack := s.ApplicationStack[0]
 		if linuxAppStack.NetFrameworkVersion != "" {
-			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("DOTNETCORE|%s", linuxAppStack.NetFrameworkVersion))
+			expanded.LinuxFxVersion = pointer.To("DOTNETCORE|" + linuxAppStack.NetFrameworkVersion)
 		}
 
 		if linuxAppStack.GoVersion != "" {
-			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("GO|%s", linuxAppStack.GoVersion))
+			expanded.LinuxFxVersion = pointer.To("GO|" + linuxAppStack.GoVersion)
 		}
 
 		if linuxAppStack.PhpVersion != "" {
-			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("PHP|%s", linuxAppStack.PhpVersion))
+			expanded.LinuxFxVersion = pointer.To("PHP|" + linuxAppStack.PhpVersion)
 		}
 
 		if linuxAppStack.NodeVersion != "" {
-			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("NODE|%s", linuxAppStack.NodeVersion))
+			expanded.LinuxFxVersion = pointer.To("NODE|" + linuxAppStack.NodeVersion)
 		}
 
 		if linuxAppStack.PythonVersion != "" {
-			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("PYTHON|%s", linuxAppStack.PythonVersion))
+			expanded.LinuxFxVersion = pointer.To("PYTHON|" + linuxAppStack.PythonVersion)
 		}
 
 		if linuxAppStack.JavaServer != "" {

@@ -1899,32 +1899,32 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 		if linuxAppStack.DotNetVersion != "" {
 			if linuxAppStack.DotNetIsolated {
 				appSettings = UpdateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "dotnet-isolated", false)
-				expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("DOTNET-ISOLATED|%s", linuxAppStack.DotNetVersion))
+				expanded.LinuxFxVersion = pointer.To("DOTNET-ISOLATED|" + linuxAppStack.DotNetVersion)
 			} else {
 				appSettings = UpdateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "dotnet", false)
-				expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("DOTNET|%s", linuxAppStack.DotNetVersion))
+				expanded.LinuxFxVersion = pointer.To("DOTNET|" + linuxAppStack.DotNetVersion)
 			}
 		}
 
 		if linuxAppStack.NodeVersion != "" {
 			appSettings = UpdateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "node", false)
 			appSettings = UpdateOrAppendAppSettings(appSettings, "WEBSITE_NODE_DEFAULT_VERSION", linuxAppStack.NodeVersion, false)
-			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("NODE|%s", linuxAppStack.NodeVersion))
+			expanded.LinuxFxVersion = pointer.To("NODE|" + linuxAppStack.NodeVersion)
 		}
 
 		if linuxAppStack.PythonVersion != "" {
 			appSettings = UpdateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "python", false)
-			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("PYTHON|%s", linuxAppStack.PythonVersion))
+			expanded.LinuxFxVersion = pointer.To("PYTHON|" + linuxAppStack.PythonVersion)
 		}
 
 		if linuxAppStack.JavaVersion != "" {
 			appSettings = UpdateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "java", false)
-			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("JAVA|%s", linuxAppStack.JavaVersion))
+			expanded.LinuxFxVersion = pointer.To("JAVA|" + linuxAppStack.JavaVersion)
 		}
 
 		if linuxAppStack.PowerShellCoreVersion != "" {
 			appSettings = UpdateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "powershell", false)
-			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("POWERSHELL|%s", linuxAppStack.PowerShellCoreVersion))
+			expanded.LinuxFxVersion = pointer.To("POWERSHELL|" + linuxAppStack.PowerShellCoreVersion)
 		}
 
 		if linuxAppStack.CustomHandler {

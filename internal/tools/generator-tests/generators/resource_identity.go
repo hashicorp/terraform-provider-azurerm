@@ -444,7 +444,7 @@ func (d *resourceIdentityData) exec() error {
 					}
 				}
 			}
-			outputFilename = fmt.Sprintf("%s_resource_identity_gen_test.go", shortName)
+			outputFilename = shortName + "_resource_identity_gen_test.go"
 			d.ServicePackageName = parentSubpkg
 
 			localStale := filepath.Join(cwd, "resource_identity_gen_test.go")

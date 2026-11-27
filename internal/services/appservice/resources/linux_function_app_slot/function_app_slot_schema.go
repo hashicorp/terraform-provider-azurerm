@@ -436,13 +436,13 @@ func ExpandSiteConfigLinuxFunctionAppSlot(siteConfig []SiteConfigLinuxFunctionAp
 					Name:  pointer.To("FUNCTIONS_WORKER_RUNTIME"),
 					Value: pointer.To("dotnet-isolated"),
 				})
-				expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("DOTNET-ISOLATED|%s", linuxAppStack.DotNetVersion))
+				expanded.LinuxFxVersion = pointer.To("DOTNET-ISOLATED|" + linuxAppStack.DotNetVersion)
 			} else {
 				appSettings = append(appSettings, webapps.NameValuePair{
 					Name:  pointer.To("FUNCTIONS_WORKER_RUNTIME"),
 					Value: pointer.To("dotnet"),
 				})
-				expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("DOTNET|%s", linuxAppStack.DotNetVersion))
+				expanded.LinuxFxVersion = pointer.To("DOTNET|" + linuxAppStack.DotNetVersion)
 			}
 		}
 
@@ -455,7 +455,7 @@ func ExpandSiteConfigLinuxFunctionAppSlot(siteConfig []SiteConfigLinuxFunctionAp
 				Name:  pointer.To("WEBSITE_NODE_DEFAULT_VERSION"),
 				Value: pointer.To(linuxAppStack.NodeVersion),
 			})
-			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("NODE|%s", linuxAppStack.NodeVersion))
+			expanded.LinuxFxVersion = pointer.To("NODE|" + linuxAppStack.NodeVersion)
 		}
 
 		if linuxAppStack.PythonVersion != "" {
@@ -463,7 +463,7 @@ func ExpandSiteConfigLinuxFunctionAppSlot(siteConfig []SiteConfigLinuxFunctionAp
 				Name:  pointer.To("FUNCTIONS_WORKER_RUNTIME"),
 				Value: pointer.To("python"),
 			})
-			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("Python|%s", linuxAppStack.PythonVersion))
+			expanded.LinuxFxVersion = pointer.To("Python|" + linuxAppStack.PythonVersion)
 		}
 
 		if linuxAppStack.JavaVersion != "" {
@@ -471,7 +471,7 @@ func ExpandSiteConfigLinuxFunctionAppSlot(siteConfig []SiteConfigLinuxFunctionAp
 				Name:  pointer.To("FUNCTIONS_WORKER_RUNTIME"),
 				Value: pointer.To("java"),
 			})
-			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("Java|%s", linuxAppStack.JavaVersion))
+			expanded.LinuxFxVersion = pointer.To("Java|" + linuxAppStack.JavaVersion)
 		}
 
 		if linuxAppStack.PowerShellCoreVersion != "" {
@@ -479,7 +479,7 @@ func ExpandSiteConfigLinuxFunctionAppSlot(siteConfig []SiteConfigLinuxFunctionAp
 				Name:  pointer.To("FUNCTIONS_WORKER_RUNTIME"),
 				Value: pointer.To("powershell"),
 			})
-			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("PowerShell|%s", linuxAppStack.PowerShellCoreVersion))
+			expanded.LinuxFxVersion = pointer.To("PowerShell|" + linuxAppStack.PowerShellCoreVersion)
 		}
 
 		if linuxAppStack.CustomHandler {

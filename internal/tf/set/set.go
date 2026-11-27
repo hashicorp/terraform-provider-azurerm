@@ -4,7 +4,6 @@
 package set
 
 import (
-	"fmt"
 	"net"
 	"strconv"
 	"strings"
@@ -67,6 +66,6 @@ func HashIPv4AddressOrCIDR(ipv4 any) int {
 	}
 
 	// convert to cidr hash
-	cidr := fmt.Sprintf("%s/32", ipv4.(string))
+	cidr := ipv4.(string) + "/32"
 	return schema.HashString(cidr)
 }

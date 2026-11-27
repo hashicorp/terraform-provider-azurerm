@@ -32,14 +32,14 @@ type AttestationProviderResource struct {
 }
 
 func (r AttestationProviderResource) basicForResourceIdentity(data acceptance.TestData) string {
-	r.name = fmt.Sprintf("acctestap%s", data.RandomStringOfLength(10))
+	r.name = "acctestap" + data.RandomStringOfLength(10)
 	return r.basic(data)
 }
 
 func TestAccAttestationProvider_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_attestation_provider", "test")
 	r := AttestationProviderResource{
-		name: fmt.Sprintf("acctestap%s", data.RandomStringOfLength(10)),
+		name: "acctestap" + data.RandomStringOfLength(10),
 	}
 	testCertificate, err := testGenerateTestCertificate("ENCOM")
 	if err != nil {
@@ -56,7 +56,7 @@ func TestAccAttestationProvider_regressionTest(t *testing.T) {
 func TestAccAttestationProvider_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_attestation_provider", "test")
 	r := AttestationProviderResource{
-		name: fmt.Sprintf("acctestap%s", data.RandomStringOfLength(10)),
+		name: "acctestap" + data.RandomStringOfLength(10),
 	}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -73,7 +73,7 @@ func TestAccAttestationProvider_basic(t *testing.T) {
 func TestAccAttestationProvider_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_attestation_provider", "test")
 	r := AttestationProviderResource{
-		name: fmt.Sprintf("acctestap%s", data.RandomStringOfLength(10)),
+		name: "acctestap" + data.RandomStringOfLength(10),
 	}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -90,7 +90,7 @@ func TestAccAttestationProvider_requiresImport(t *testing.T) {
 func TestAccAttestationProvider_completeString(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_attestation_provider", "test")
 	r := AttestationProviderResource{
-		name: fmt.Sprintf("acctestap%s", data.RandomStringOfLength(10)),
+		name: "acctestap" + data.RandomStringOfLength(10),
 	}
 	testCertificate, err := testGenerateTestCertificate("ENCOM")
 	if err != nil {
@@ -112,7 +112,7 @@ func TestAccAttestationProvider_completeString(t *testing.T) {
 func TestAccAttestationProvider_withPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_attestation_provider", "test")
 	r := AttestationProviderResource{
-		name: fmt.Sprintf("acctestap%s", data.RandomStringOfLength(10)),
+		name: "acctestap" + data.RandomStringOfLength(10),
 	}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -129,7 +129,7 @@ func TestAccAttestationProvider_withPolicy(t *testing.T) {
 func TestAccAttestationProvider_withPolicyUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_attestation_provider", "test")
 	r := AttestationProviderResource{
-		name: fmt.Sprintf("acctestap%s", data.RandomStringOfLength(10)),
+		name: "acctestap" + data.RandomStringOfLength(10),
 	}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -154,7 +154,7 @@ func TestAccAttestationProvider_withPolicyUpdate(t *testing.T) {
 func TestAccAttestationProvider_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_attestation_provider", "test")
 	r := AttestationProviderResource{
-		name: fmt.Sprintf("acctestap%s", data.RandomStringOfLength(10)),
+		name: "acctestap" + data.RandomStringOfLength(10),
 	}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{

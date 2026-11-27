@@ -863,7 +863,7 @@ resource "azurerm_public_ip" "test" {
   sku               = "Standard"
   domain_name_label = "%s"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, fmt.Sprintf("test%s", strings.ToLower(data.RandomStringOfLength(59)))) // prepend with test (4+59) to ensure the string starts with a letter
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, "test"+strings.ToLower(data.RandomStringOfLength(59))) // prepend with test (4+59) to ensure the string starts with a letter
 }
 
 func (PublicIpResource) standard_IpTags(data acceptance.TestData) string {

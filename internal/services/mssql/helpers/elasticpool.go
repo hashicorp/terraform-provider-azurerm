@@ -410,15 +410,18 @@ func BuildErrorString(stub string, m map[int]float64) string {
 	sort.Ints(a)
 
 	// build the error message
+	var message strings.Builder
+	message.WriteString(stub)
+
 	for i := range a {
 		if i < len(a)-1 {
-			stub += fmt.Sprintf("%d, ", a[i])
+			fmt.Fprintf(&message, "%d, ", a[i])
 		} else {
-			stub += fmt.Sprintf("or %d", a[i])
+			fmt.Fprintf(&message, "or %d", a[i])
 		}
 	}
 
-	return stub
+	return message.String()
 }
 
 func DoDTUSKUValidation(s Sku) error {

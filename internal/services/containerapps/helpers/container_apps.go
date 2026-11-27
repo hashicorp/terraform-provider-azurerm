@@ -821,7 +821,7 @@ func FlattenContainerAppIngressTraffic(input *[]containerapps.TrafficWeight, app
 
 	result := make([]TrafficWeight, 0)
 	for _, v := range *input {
-		prefix := fmt.Sprintf("%s--", appName)
+		prefix := appName + "--"
 		result = append(result, TrafficWeight{
 			Label:          pointer.From(v.Label),
 			LatestRevision: pointer.From(v.LatestRevision),

@@ -6,6 +6,7 @@ package spring_cloud_new_relic_application_performance_monitoring
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -47,12 +48,12 @@ func (s Resource) Create() sdk.ResourceFunc {
 					Type: "NewRelic",
 					Properties: pointer.To(map[string]string{
 						"app_name":                       model.AppName,
-						"agent_enabled":                  fmt.Sprintf("%t", model.AgentEnabled),
-						"appserver_port":                 fmt.Sprintf("%d", model.AppServerPort),
-						"audit_mode":                     fmt.Sprintf("%t", model.AuditModeEnabled),
-						"enable_auto_app_naming":         fmt.Sprintf("%t", model.AutoAppNamingEnabled),
-						"enable_auto_transaction_naming": fmt.Sprintf("%t", model.AutoTransactionNamingEnabled),
-						"enable_custom_tracing":          fmt.Sprintf("%t", model.CustomTracingEnabled),
+						"agent_enabled":                  strconv.FormatBool(model.AgentEnabled),
+						"appserver_port":                 strconv.FormatInt(model.AppServerPort, 10),
+						"audit_mode":                     strconv.FormatBool(model.AuditModeEnabled),
+						"enable_auto_app_naming":         strconv.FormatBool(model.AutoAppNamingEnabled),
+						"enable_auto_transaction_naming": strconv.FormatBool(model.AutoTransactionNamingEnabled),
+						"enable_custom_tracing":          strconv.FormatBool(model.CustomTracingEnabled),
 						"labels":                         expandNewRelicLabels(model.Labels),
 					}),
 					Secrets: pointer.To(map[string]string{

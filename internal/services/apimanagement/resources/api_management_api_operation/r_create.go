@@ -95,19 +95,19 @@ func expandApiManagementOperationRequestContract(d *pluginsdk.ResourceData, sche
 	if headersRaw == nil {
 		headersRaw = []any{}
 	}
-	headers := schemaz.ExpandApiManagementOperationParameterContract(d, fmt.Sprintf("%s.0.header", schemaPath), headersRaw)
+	headers := schemaz.ExpandApiManagementOperationParameterContract(d, schemaPath+".0.header", headersRaw)
 
 	queryParametersRaw := vs["query_parameter"].([]any)
 	if queryParametersRaw == nil {
 		queryParametersRaw = []any{}
 	}
-	queryParameters := schemaz.ExpandApiManagementOperationParameterContract(d, fmt.Sprintf("%s.0.query_parameter", schemaPath), queryParametersRaw)
+	queryParameters := schemaz.ExpandApiManagementOperationParameterContract(d, schemaPath+".0.query_parameter", queryParametersRaw)
 
 	representationsRaw := vs["representation"].([]any)
 	if representationsRaw == nil {
 		representationsRaw = []any{}
 	}
-	representations, err := schemaz.ExpandApiManagementOperationRepresentation(d, fmt.Sprintf("%s.0.representation", schemaPath), representationsRaw)
+	representations, err := schemaz.ExpandApiManagementOperationRepresentation(d, schemaPath+".0.representation", representationsRaw)
 	if err != nil {
 		return nil, err
 	}

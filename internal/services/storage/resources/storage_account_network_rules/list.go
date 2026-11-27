@@ -49,14 +49,14 @@ func (ListResource) List(ctx context.Context, request list.ListRequest, stream *
 	case !data.ResourceGroupName.IsNull():
 		resp, err := client.ListByResourceGroupComplete(ctx, commonids.NewResourceGroupID(subscriptionID, data.ResourceGroupName.ValueString()))
 		if err != nil {
-			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing %s", azurermStorageAccountNetworkRulesResource), err)
+			sdk.SetResponseErrorDiagnostic(stream, "listing "+azurermStorageAccountNetworkRulesResource, err)
 			return
 		}
 		results = resp.Items
 	default:
 		resp, err := client.ListComplete(ctx, commonids.NewSubscriptionID(subscriptionID))
 		if err != nil {
-			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing %s", azurermStorageAccountNetworkRulesResource), err)
+			sdk.SetResponseErrorDiagnostic(stream, "listing "+azurermStorageAccountNetworkRulesResource, err)
 			return
 		}
 		results = resp.Items

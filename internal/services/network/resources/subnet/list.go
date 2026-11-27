@@ -5,7 +5,6 @@ package subnet
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -70,7 +69,7 @@ func (r ListResource) List(ctx context.Context, request list.ListRequest, stream
 
 	resp, err := client.ListComplete(ctx, *vnetID)
 	if err != nil {
-		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing %s", helpers.VirtualNetworkResourceName), err)
+		sdk.SetResponseErrorDiagnostic(stream, "listing "+helpers.VirtualNetworkResourceName, err)
 		return
 	}
 

@@ -71,7 +71,7 @@ func (r ListResource) List(ctx context.Context, request list.ListRequest, stream
 
 	resp, err := client.BlobContainersListComplete(ctx, *storageAccountID, blobservices.DefaultBlobContainersListOperationOptions())
 	if err != nil {
-		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing %s", StorageContainerResourceName), err)
+		sdk.SetResponseErrorDiagnostic(stream, "listing "+StorageContainerResourceName, err)
 		return
 	}
 

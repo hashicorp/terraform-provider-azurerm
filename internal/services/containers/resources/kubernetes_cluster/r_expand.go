@@ -456,7 +456,7 @@ func expandKubernetesClusterAutoScalerProfile(input []any) *managedclusters.Mana
 	ignoreDaemonsetsUtilization := config["ignore_daemonsets_utilization_enabled"].(bool)
 	maxGracefulTerminationSec := config["max_graceful_termination_sec"].(string)
 	maxNodeProvisionTime := config["max_node_provisioning_time"].(string)
-	maxUnreadyNodes := fmt.Sprint(config["max_unready_nodes"].(int))
+	maxUnreadyNodes := strconv.Itoa(config["max_unready_nodes"].(int))
 	maxUnreadyPercentage := fmt.Sprint(config["max_unready_percentage"].(float64))
 	newPodScaleUpDelay := config["new_pod_scale_up_delay"].(string)
 	scaleDownDelayAfterAdd := config["scale_down_delay_after_add"].(string)

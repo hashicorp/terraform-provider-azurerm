@@ -78,7 +78,7 @@ func flattenApplicationServer(input sapvirtualinstances.ApplicationServerConfigu
 	applicationServerConfig := ApplicationServerConfiguration{
 		InstanceCount:               input.InstanceCount,
 		SubnetId:                    input.SubnetId,
-		VirtualMachineConfiguration: flattenVirtualMachineConfiguration(input.VirtualMachineConfiguration, d, fmt.Sprintf("%s.0.application_server_configuration", basePath)),
+		VirtualMachineConfiguration: flattenVirtualMachineConfiguration(input.VirtualMachineConfiguration, d, basePath+".0.application_server_configuration"),
 	}
 
 	return append(result, applicationServerConfig)
@@ -90,7 +90,7 @@ func flattenCentralServer(input sapvirtualinstances.CentralServerConfiguration, 
 	centralServerConfig := CentralServerConfiguration{
 		InstanceCount:               input.InstanceCount,
 		SubnetId:                    input.SubnetId,
-		VirtualMachineConfiguration: flattenVirtualMachineConfiguration(input.VirtualMachineConfiguration, d, fmt.Sprintf("%s.0.central_server_configuration", basePath)),
+		VirtualMachineConfiguration: flattenVirtualMachineConfiguration(input.VirtualMachineConfiguration, d, basePath+".0.central_server_configuration"),
 	}
 
 	return append(result, centralServerConfig)
@@ -103,7 +103,7 @@ func flattenDatabaseServer(input sapvirtualinstances.DatabaseConfiguration, d *p
 		DiskVolumeConfigurations:    flattenDiskVolumeConfigurations(input.DiskConfiguration),
 		InstanceCount:               input.InstanceCount,
 		SubnetId:                    input.SubnetId,
-		VirtualMachineConfiguration: flattenVirtualMachineConfiguration(input.VirtualMachineConfiguration, d, fmt.Sprintf("%s.0.database_server_configuration", basePath)),
+		VirtualMachineConfiguration: flattenVirtualMachineConfiguration(input.VirtualMachineConfiguration, d, basePath+".0.database_server_configuration"),
 	}
 
 	if v := input.DatabaseType; v != nil {
@@ -270,7 +270,7 @@ func flattenVirtualMachineConfiguration(input sapvirtualinstances.VirtualMachine
 
 	return append(result, VirtualMachineConfiguration{
 		ImageReference: flattenImageReference(input.ImageReference),
-		OSProfile:      flattenOSProfile(input.OsProfile, d, fmt.Sprintf("%s.0.virtual_machine_configuration", basePath)),
+		OSProfile:      flattenOSProfile(input.OsProfile, d, basePath+".0.virtual_machine_configuration"),
 		VmSize:         input.VMSize,
 	})
 }
@@ -296,7 +296,7 @@ func flattenOSProfile(input sapvirtualinstances.OSProfile, d *pluginsdk.Resource
 	if osConfiguration := input.OsConfiguration; osConfiguration != nil {
 		if v, ok := osConfiguration.(sapvirtualinstances.LinuxConfiguration); ok {
 			if sshKeyPair := v.SshKeyPair; sshKeyPair != nil {
-				osProfile.SshPrivateKey = d.Get(fmt.Sprintf("%s.0.os_profile.0.ssh_private_key", basePath)).(string)
+				osProfile.SshPrivateKey = d.Get(basePath + ".0.os_profile.0.ssh_private_key").(string)
 				osProfile.SshPublicKey = pointer.From(sshKeyPair.PublicKey)
 			}
 		}

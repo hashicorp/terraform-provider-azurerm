@@ -39,7 +39,7 @@ func GetCredentialsAndPublish(ctx context.Context, client *webapps.WebAppsClient
 				if err != nil {
 					return err
 				}
-				httpsHost := fmt.Sprintf("https://%s", *v.Name)
+				httpsHost := "https://" + *v.Name
 
 				if err := PublishZipDeployLocalFileKuduPush(ctx, httpsHost, *user, *passwd, client.Client.UserAgent, sourceFile); err != nil {
 					return fmt.Errorf("publishing source (%s) to site %s: %+v", sourceFile, appID, err)
@@ -68,7 +68,7 @@ func GetCredentialsAndPublishSlot(ctx context.Context, client *webapps.WebAppsCl
 				if err != nil {
 					return err
 				}
-				httpsHost := fmt.Sprintf("https://%s", *v.Name)
+				httpsHost := "https://" + *v.Name
 
 				if err := PublishZipDeployLocalFileKuduPush(ctx, httpsHost, *user, *passwd, client.Client.UserAgent, sourceFile); err != nil {
 					return fmt.Errorf("publishing source (%s) to site %s: %+v", sourceFile, id, err)
@@ -114,8 +114,8 @@ func PublishZipDeployLocalFileKuduPush(ctx context.Context, host string, user st
 		return err
 	}
 
-	publishEndpoint := fmt.Sprintf("%s/api/zipdeploy?isAsync=true", host)
-	statusEndpoint := fmt.Sprintf("%s/api/deployments/latest", host)
+	publishEndpoint := host + "/api/zipdeploy?isAsync=true"
+	statusEndpoint := host + "/api/deployments/latest"
 
 	// The deployment service can be unavailable if the app is recycling. This could take a while to come back up and timeout so instead we
 	// poll the deployment service status endpoint until it is available.
@@ -210,7 +210,7 @@ func CheckZipDeploymentStatusRefresh(r *http.Request) pluginsdk.StateRefreshFunc
 }
 
 func PollDeploymentServiceStatus(ctx context.Context, host string, user string, passwd string) error {
-	warmupEndpoint := fmt.Sprintf("%s/deployments?warmup=true", host)
+	warmupEndpoint := host + "/deployments?warmup=true"
 
 	statusReq, err := http.NewRequestWithContext(ctx, http.MethodGet, warmupEndpoint, http.NoBody)
 	if err != nil {

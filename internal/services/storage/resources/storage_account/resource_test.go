@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -1965,10 +1966,11 @@ resource "azurerm_storage_account" "test" {
 }
 
 func (r StorageAccountResource) tagCount(data acceptance.TestData) string {
-	tags := ""
+	var tagsBuilder strings.Builder
 	for i := range 50 {
-		tags += fmt.Sprintf("t%d = \"v%d\"\n", i, i)
+		fmt.Fprintf(&tagsBuilder, "t%d = \"v%d\"\n", i, i)
 	}
+	tags := tagsBuilder.String()
 
 	return fmt.Sprintf(`
 provider "azurerm" {

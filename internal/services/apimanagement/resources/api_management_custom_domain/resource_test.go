@@ -92,8 +92,8 @@ func TestAccApiManagementCustomDomain_update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				// Ensure the property contains the expected certificate value
-				check.That(data.ResourceName).Key("gateway.0.key_vault_certificate_id").MatchesRegex(regexp.MustCompile(fmt.Sprintf("acctestcert-2-%s", data.RandomString))),
-				check.That(data.ResourceName).Key("gateway.1.key_vault_certificate_id").MatchesRegex(regexp.MustCompile(fmt.Sprintf("acctestcert-2-%s", data.RandomString))),
+				check.That(data.ResourceName).Key("gateway.0.key_vault_certificate_id").MatchesRegex(regexp.MustCompile("acctestcert-2-"+data.RandomString)),
+				check.That(data.ResourceName).Key("gateway.1.key_vault_certificate_id").MatchesRegex(regexp.MustCompile("acctestcert-2-"+data.RandomString)),
 			),
 		},
 		data.ImportStep(),

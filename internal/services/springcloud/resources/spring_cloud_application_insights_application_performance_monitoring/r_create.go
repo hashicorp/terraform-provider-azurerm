@@ -6,6 +6,7 @@ package spring_cloud_application_insights_application_performance_monitoring
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -47,8 +48,8 @@ func (s Resource) Create() sdk.ResourceFunc {
 					Properties: pointer.To(map[string]string{
 						"role_name":                    model.RoleName,
 						"role_instance":                model.RoleInstance,
-						"sampling_requests_per_second": fmt.Sprintf("%d", model.SamplingRequestsPerSecond),
-						"sampling_percentage":          fmt.Sprintf("%d", model.SamplingPercentage),
+						"sampling_requests_per_second": strconv.FormatInt(model.SamplingRequestsPerSecond, 10),
+						"sampling_percentage":          strconv.FormatInt(model.SamplingPercentage, 10),
 					}),
 					Secrets: pointer.To(map[string]string{
 						"connection_string": model.ConnectionString,

@@ -92,7 +92,7 @@ func (r ListResource) List(ctx context.Context, request list.ListRequest, stream
 			if request.IncludeResource {
 				keysResp, err := client.ListKeys(ctx, *id)
 				if err != nil {
-					sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("listing keys for %s", id.ID()), err)
+					sdk.SetErrorDiagnosticAndPushListResult(result, push, "listing keys for "+id.ID(), err)
 					return
 				}
 				keysModel = keysResp.Model
