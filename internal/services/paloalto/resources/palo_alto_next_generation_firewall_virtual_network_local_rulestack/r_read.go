@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/firewallresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -55,6 +56,12 @@ func (r Resource) Read() sdk.ResourceFunc {
 				state.MarketplaceOfferId = props.MarketplaceDetails.OfferId
 
 				state.PlanId = props.PlanData.PlanId
+
+				flattenedIdentity, err := identity.FlattenUserAssignedMapToModel(model.Identity)
+				if err != nil {
+					return fmt.Errorf("flattening `identity`: %+v", err)
+				}
+				state.Identity = pointer.From(flattenedIdentity)
 
 				state.Tags = tags.Flatten(existing.Model.Tags)
 			}

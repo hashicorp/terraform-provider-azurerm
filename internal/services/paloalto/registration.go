@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/resources/palo_alto_local_rulestack_outbound_untrust_certificate_association"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/resources/palo_alto_local_rulestack_prefix_list"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/resources/palo_alto_local_rulestack_rule"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/resources/palo_alto_next_generation_firewall_metrics"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/resources/palo_alto_next_generation_firewall_virtual_hub_local_rulestack"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/resources/palo_alto_next_generation_firewall_virtual_hub_panorama"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/resources/palo_alto_next_generation_firewall_virtual_hub_strata_cloud_manager"
@@ -55,6 +56,7 @@ func (r Registration) Resources() []sdk.Resource {
 		palo_alto_local_rulestack_prefix_list.Resource{},
 		palo_alto_local_rulestack_rule.Resource{},
 		palo_alto_virtual_network_appliance.Resource{},
+		palo_alto_next_generation_firewall_metrics.Resource{},
 		palo_alto_next_generation_firewall_virtual_hub_local_rulestack.Resource{},
 		palo_alto_next_generation_firewall_virtual_hub_panorama.Resource{},
 		palo_alto_next_generation_firewall_virtual_hub_strata_cloud_manager.Resource{},
@@ -87,5 +89,7 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 }
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
-	return []sdk.FrameworkListWrappedResource{}
+	return []sdk.FrameworkListWrappedResource{
+		palo_alto_next_generation_firewall_metrics.ListResource{},
+	}
 }

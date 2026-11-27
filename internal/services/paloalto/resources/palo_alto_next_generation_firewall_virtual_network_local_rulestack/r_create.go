@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/firewallresources"
@@ -58,6 +59,11 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			loc := location.Normalize(ruleStack.Model.Location)
 
+			expandedIdentity, err := identity.ExpandUserAssignedMapFromModel(model.Identity)
+			if err != nil {
+				return fmt.Errorf("expanding `identity`: %+v", err)
+			}
+
 			firewall := firewallresources.FirewallResource{
 				Location: loc,
 				Properties: firewallresources.FirewallDeploymentProperties{
@@ -77,7 +83,8 @@ func (r Resource) Create() sdk.ResourceFunc {
 					},
 					FrontEndSettings: schema.ExpandDestinationNAT(model.FrontEnd),
 				},
-				Tags: tags.Expand(model.Tags),
+				Identity: expandedIdentity,
+				Tags:     tags.Expand(model.Tags),
 			}
 
 			locks.ByID(ruleStackID.ID())
