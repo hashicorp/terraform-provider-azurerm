@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_site_recovery_vmware_replication_policy"
 }
 
+func (r Resource) Description() string {
+	return "Manages a VMWare Replication Policy."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return replicationpolicies.ValidateReplicationPolicyID
 }

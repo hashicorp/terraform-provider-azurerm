@@ -18,6 +18,7 @@ func resourceGroupSchema() map[string]*pluginsdk.Schema {
 		"tags": commonschema.Tags(),
 
 		"managed_by": {
+			Description:  "The ID of the resource or application that manages this Resource Group.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,

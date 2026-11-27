@@ -60,6 +60,10 @@ func (r DataSource) ResourceType() string {
 	return "azurerm_site_recovery_replication_recovery_plan"
 }
 
+func (r DataSource) Description() string {
+	return "Get information about an Azure Site Recovery Plan within a Recovery Services Vault. A recovery plan gathers machines into recovery groups for failover."
+}
+
 func (r DataSource) ModelObject() any {
 	return &SiteRecoveryReplicationRecoveryPlanModel{}
 }
@@ -189,12 +193,14 @@ func flattenDataSourceRecoveryPlanActions(input *[]replicationrecoveryplans.Reco
 func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Replication Plan.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"recovery_vault_id": {
+			Description:  "The ID of the vault that should be updated.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: replicationrecoveryplans.ValidateVaultID,
@@ -221,13 +227,15 @@ func flattenDataSourceRecoveryPlanProviderSpecficInput(input *[]replicationrecov
 func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"source_recovery_fabric_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of source fabric to be recovered from.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"target_recovery_fabric_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of target fabric to recover.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"failover_deployment_model": {

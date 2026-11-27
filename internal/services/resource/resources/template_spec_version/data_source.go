@@ -20,7 +20,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceTemplateSpecVersionRead,
+		Description: "Use this data source to access information about an existing Template Spec Version.",
+		Read:        dataSourceTemplateSpecVersionRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -29,6 +30,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 		// lintignore:S033
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of this Template Spec.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.TemplateSpecName,
@@ -37,14 +39,16 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"version": {
+				Description:  "The Version Name of the Template Spec.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.TemplateSpecVersionName,
 			},
 
 			"template_body": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ARM Template body of the Template Spec Version.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"tags": commonschema.TagsDataSource(),

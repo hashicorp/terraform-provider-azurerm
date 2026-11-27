@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: subscriptionTemplateDeploymentResourceCreate,
-		Read:   subscriptionTemplateDeploymentResourceRead,
-		Update: subscriptionTemplateDeploymentResourceUpdate,
-		Delete: subscriptionTemplateDeploymentResourceDelete,
+		Description: "Manages a Subscription Template Deployment.",
+		Create:      subscriptionTemplateDeploymentResourceCreate,
+		Read:        subscriptionTemplateDeploymentResourceRead,
+		Update:      subscriptionTemplateDeploymentResourceUpdate,
+		Delete:      subscriptionTemplateDeploymentResourceDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := deployments.ParseProviderDeploymentID(id)
 			return err

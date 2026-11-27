@@ -24,7 +24,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceRedisCacheRead,
+		Description: "Use this data source to access information about an existing Redis Cache.",
+		Read:        dataSourceRedisCacheRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -32,8 +33,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The name of the Redis Cache.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"location": commonschema.LocationComputed(),
@@ -43,23 +45,27 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"zones": commonschema.ZonesMultipleComputed(),
 
 			"capacity": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The size of the Redis Cache deployed.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"family": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The SKU family/pricing group used.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The SKU of Redis used.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"minimum_tls_version": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The minimum TLS version.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"shard_count": {
@@ -88,8 +94,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"active_directory_authentication_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Whether Microsoft Entra (AAD) authentication is enabled.",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 						"maxclients": {
 							Type:     pluginsdk.TypeInt,
@@ -97,44 +104,52 @@ func RegisterDataSource() *pluginsdk.Resource {
 						},
 
 						"maxmemory_delta": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
+							Description: "The max-memory delta for this Redis instance.",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
 						},
 
 						"maxmemory_reserved": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
+							Description: "The value in megabytes reserved for non-cache usage e.g. failover.",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
 						},
 
 						"maxmemory_policy": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "How Redis will select what to remove when `maxmemory` is reached.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"maxfragmentationmemory_reserved": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
+							Description: "Value in megabytes reserved to accommodate for memory fragmentation.",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
 						},
 
 						"rdb_backup_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Whether Backup is Enabled. Only supported on Premium SKUs.",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 
 						"rdb_backup_frequency": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
+							Description: "The Backup Frequency in Minutes. Only supported on Premium SKUs.",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
 						},
 
 						"rdb_backup_max_snapshot_count": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
+							Description: "The maximum number of snapshots that can be created as a backup.",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
 						},
 
 						"rdb_storage_connection_string": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
+							Description: "The Connection String to the Storage Account. Only supported for Premium SKUs.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
+							Sensitive:   true,
 						},
 
 						"notify_keyspace_events": {
@@ -163,8 +178,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 							Computed: true,
 						},
 						"storage_account_subscription_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The ID of the Subscription containing the Storage Account.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"data_persistence_authentication_method": {
 							Type:     pluginsdk.TypeString,
@@ -180,65 +196,76 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"day_of_week": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The Weekday name for the patch item.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"maintenance_window": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The ISO 8601 timespan which specifies the amount of time the Redis Cache can be updated.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"start_hour_utc": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
+							Description: "The Start Hour for maintenance in UTC.",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
 						},
 					},
 				},
 			},
 
 			"hostname": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Hostname of the Redis Instance.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"port": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The non-SSL Port of the Redis Instance.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"ssl_port": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The SSL Port of the Redis Instance.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"primary_access_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The Primary Access Key for the Redis Instance.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"secondary_access_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The Secondary Access Key for the Redis Instance.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"primary_connection_string": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The primary connection string of the Redis Instance.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"secondary_connection_string": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The secondary connection string of the Redis Instance.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"access_keys_authentication_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether access key authentication is enabled.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"tags": commonschema.TagsDataSource(),

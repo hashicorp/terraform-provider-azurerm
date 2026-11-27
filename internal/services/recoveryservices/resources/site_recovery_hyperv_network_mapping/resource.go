@@ -17,6 +17,10 @@ func (s Resource) ResourceType() string {
 	return "azurerm_site_recovery_hyperv_network_mapping"
 }
 
+func (s Resource) Description() string {
+	return "Manages a HyperV Site Recovery network mapping on Azure. A HyperV network mapping decides how to translate connected networks when a VM is migrated from HyperV VMM Center to Azure."
+}
+
 func (s Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return replicationnetworkmappings.ValidateReplicationNetworkMappingID
 }

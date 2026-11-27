@@ -75,14 +75,16 @@ func replicationRecoveryPlanActionSchema() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Schema: map[string]*schema.Schema{
 			"name": {
+				Description:  "Name of the Action.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "Type of the action detail.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"AutomationRunbookActionDetails",
 					"ManualActionDetails",
@@ -91,8 +93,9 @@ func replicationRecoveryPlanActionSchema() *pluginsdk.Resource {
 			},
 
 			"fail_over_directions": {
-				Type:     pluginsdk.TypeSet,
-				Required: true,
+				Description: "Directions of fail over.",
+				Type:        pluginsdk.TypeSet,
+				Required:    true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice(replicationrecoveryplans.PossibleValuesForPossibleOperationsDirections(), false),
@@ -100,8 +103,9 @@ func replicationRecoveryPlanActionSchema() *pluginsdk.Resource {
 			},
 
 			"fail_over_types": {
-				Type:     pluginsdk.TypeSet,
-				Required: true,
+				Description: "Types of fail over.",
+				Type:        pluginsdk.TypeSet,
+				Required:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
@@ -113,24 +117,28 @@ func replicationRecoveryPlanActionSchema() *pluginsdk.Resource {
 			},
 
 			"runbook_id": {
+				Description:  "ID of runbook.",
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"fabric_location": {
+				Description:  "The fabric location of runbook or script. It must not be specified when `type` is `ManualActionDetails`.",
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringInSlice(replicationrecoveryplans.PossibleValuesForRecoveryPlanActionLocation(), false),
 			},
 
 			"manual_action_instruction": {
+				Description:  "Instructions of manual action.",
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"script_path": {
+				Description:  "Path of action script.",
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -147,6 +155,7 @@ func replicationRecoveryPlanA2ASchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"primary_zone": {
+					Description:  "The Availability Zone in which the VM is located.",
 					Type:         schema.TypeString,
 					Optional:     true,
 					ForceNew:     true,
@@ -155,6 +164,7 @@ func replicationRecoveryPlanA2ASchema() *pluginsdk.Schema {
 				},
 
 				"recovery_zone": {
+					Description:  "The Availability Zone in which the VM is recovered.",
 					Type:         schema.TypeString,
 					Optional:     true,
 					ForceNew:     true,
@@ -163,6 +173,7 @@ func replicationRecoveryPlanA2ASchema() *pluginsdk.Schema {
 				},
 
 				"primary_edge_zone": {
+					Description:      "The Edge Zone within the Azure Region where the VM exists.",
 					Type:             schema.TypeString,
 					Optional:         true,
 					ForceNew:         true,
@@ -173,6 +184,7 @@ func replicationRecoveryPlanA2ASchema() *pluginsdk.Schema {
 				},
 
 				"recovery_edge_zone": {
+					Description:      "The Edge Zone within the Azure Region where the VM is recovered.",
 					Type:             schema.TypeString,
 					Optional:         true,
 					ForceNew:         true,

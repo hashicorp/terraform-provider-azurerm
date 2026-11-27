@@ -12,6 +12,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The namespace of the Resource Provider which should be registered.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -24,14 +25,16 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "The name of the feature to register.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"registered": {
-						Type:     pluginsdk.TypeBool,
-						Required: true,
+						Description: "Whether this feature should be Registered or Unregistered.",
+						Type:        pluginsdk.TypeBool,
+						Required:    true,
 					},
 				},
 			},

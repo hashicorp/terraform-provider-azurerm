@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceRecoveryServicesVaultCreate,
-		Read:   resourceRecoveryServicesVaultRead,
-		Update: resourceRecoveryServicesVaultUpdate,
-		Delete: resourceRecoveryServicesVaultDelete,
+		Description: "Manages a Recovery Services Vault.",
+		Create:      resourceRecoveryServicesVaultCreate,
+		Read:        resourceRecoveryServicesVaultRead,
+		Update:      resourceRecoveryServicesVaultUpdate,
+		Delete:      resourceRecoveryServicesVaultDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := vaults.ParseVaultID(id)

@@ -41,9 +41,14 @@ func (DataSource) ResourceType() string {
 	return "azurerm_recovery_services_vault"
 }
 
+func (DataSource) Description() string {
+	return "Use this data source to access information about an existing Recovery Services Vault."
+}
+
 func (DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Recovery Services Vault.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.RecoveryServicesVaultName,
@@ -62,8 +67,9 @@ func (DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 
 		"sku": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The vault's current SKU.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

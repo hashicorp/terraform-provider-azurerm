@@ -19,9 +19,10 @@ import (
 func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the Backup Policy.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile("^[a-zA-Z][-_!a-zA-Z0-9]{2,149}$"),
 				"Backup Policy name must be 3 - 150 characters long, start with a letter, contain only letters and numbers.",
@@ -31,6 +32,7 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"instant_restore_retention_days": {
+			Description:  "The instant restore retention range in days.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -38,6 +40,7 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"recovery_vault_name": {
+			Description:  "The name of the Recovery Services Vault to use.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -58,8 +61,9 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"mode": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
+									Description: "The tiering mode to control automatic tiering of recovery points.",
+									Type:        pluginsdk.TypeString,
+									Required:    true,
 									ValidateFunc: validation.StringInSlice([]string{
 										string(protectionpolicies.TieringModeTierAfter),
 										string(protectionpolicies.TieringModeTierRecommended),
@@ -67,14 +71,16 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 								},
 
 								"duration": {
+									Description:  "The number of days/weeks/months/years to retain backups in current tier before tiering.",
 									Type:         pluginsdk.TypeInt,
 									Optional:     true,
 									ValidateFunc: validation.IntAtLeast(3),
 								},
 
 								"duration_type": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
+									Description: "The retention duration type.",
+									Type:        pluginsdk.TypeString,
+									Optional:    true,
 									ValidateFunc: validation.StringInSlice([]string{
 										string(protectionpolicies.RetentionDurationTypeDays),
 										string(protectionpolicies.RetentionDurationTypeWeeks),
@@ -90,23 +96,27 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"timezone": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  "UTC",
+			Description: "The timezone.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Default:     "UTC",
 		},
 
 		"instant_restore_resource_group": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
+			Description: "The instant restore Resource Group name.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
+			MaxItems:    1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*schema.Schema{
 					"prefix": {
+						Description:  "The prefix for the `instant_restore_resource_group` name.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"suffix": {
+						Description:  "The suffix for the `instant_restore_resource_group` name.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -116,14 +126,16 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"backup": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			MaxItems: 1,
+			Description: "Configures the Policy backup frequency, times & days.",
+			Type:        pluginsdk.TypeList,
+			Required:    true,
+			MaxItems:    1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"frequency": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "Sets the backup frequency.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 						ValidateFunc: validation.StringInSlice([]string{
 							string(protectionpolicies.ScheduleRunTypeHourly),
 							string(protectionpolicies.ScheduleRunTypeDaily),
@@ -131,7 +143,9 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 						}, false),
 					},
 
-					"time": { // applies to all backup schedules & retention times (they all must be the same)
+					"time": {
+						Description: "The time of day to perform the backup in 24hour format.",
+						// applies to all backup schedules & retention times (they all must be the same)
 						Type:     pluginsdk.TypeString,
 						Required: true,
 						ValidateFunc: validation.StringMatch(
@@ -140,7 +154,9 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 						),
 					},
 
-					"weekdays": { // only for weekly
+					"weekdays": {
+						Description: "The days of the week to perform backups on. This is used when `frequency` is `Weekly`.",
+						// only for weekly
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
 						Set:      set.HashStringIgnoreCase,
@@ -152,8 +168,9 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"hour_interval": {
-						Type:     pluginsdk.TypeInt,
-						Optional: true,
+						Description: "Interval in hour at which backup is triggered. This is used when `frequency` is `Hourly`.",
+						Type:        pluginsdk.TypeInt,
+						Optional:    true,
 						ValidateFunc: validation.IntInSlice([]int{
 							4,
 							6,
@@ -163,6 +180,7 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"hour_duration": {
+						Description:  "Duration of the backup window in hours.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						ValidateFunc: validation.IntBetween(4, 24),
@@ -172,16 +190,18 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"consistency_type": {
+			Description:  "The consistency type for the backup policy.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringInSlice(protectionpolicies.PossibleValuesForIaasVMSnapshotConsistencyType(), false),
 		},
 
 		"policy_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			Default:  string(protectionpolicies.IAASVMPolicyTypeVOne),
+			Description: "Type of the Backup Policy.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			ForceNew:    true,
+			Default:     string(protectionpolicies.IAASVMPolicyTypeVOne),
 			ValidateFunc: validation.StringInSlice([]string{
 				string(protectionpolicies.IAASVMPolicyTypeVOne),
 				string(protectionpolicies.IAASVMPolicyTypeVTwo),
@@ -189,12 +209,14 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"retention_daily": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
+			Description: "Configures the policy daily retention.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
+			MaxItems:    1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"count": {
+						Description:  "The number of daily backups to keep.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntBetween(1, 9999), // Azure no longer supports less than 7 daily backups. This should be updated in 3.0 provider
@@ -205,21 +227,24 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"retention_weekly": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
+			Description: "Configures the policy weekly retention.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
+			MaxItems:    1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"count": {
+						Description:  "The number of weekly backups to keep.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntBetween(1, 9999),
 					},
 
 					"weekdays": {
-						Type:     pluginsdk.TypeSet,
-						Required: true,
-						Set:      set.HashStringIgnoreCase,
+						Description: "The weekday backups to retain.",
+						Type:        pluginsdk.TypeSet,
+						Required:    true,
+						Set:         set.HashStringIgnoreCase,
 						Elem: &pluginsdk.Schema{
 							Type:             pluginsdk.TypeString,
 							ValidateFunc:     validation.IsDayOfTheWeek(true),
@@ -231,21 +256,24 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"retention_monthly": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
+			Description: "Configures the policy monthly retention.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
+			MaxItems:    1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"count": {
+						Description:  "The number of monthly backups to keep.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntBetween(1, 9999),
 					},
 
 					"weeks": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
-						Set:      set.HashStringIgnoreCase,
+						Description: "The weeks of the month to retain backups of.",
+						Type:        pluginsdk.TypeSet,
+						Optional:    true,
+						Set:         set.HashStringIgnoreCase,
 						RequiredWith: []string{
 							"retention_monthly.0.weekdays",
 						},
@@ -272,9 +300,10 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"weekdays": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
-						Set:      set.HashStringIgnoreCase,
+						Description: "The weekday backups to retain.",
+						Type:        pluginsdk.TypeSet,
+						Optional:    true,
+						Set:         set.HashStringIgnoreCase,
 						RequiredWith: []string{
 							"retention_monthly.0.weeks",
 						},
@@ -296,8 +325,9 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"days": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
+						Description: "The days of the month to retain backups of.",
+						Type:        pluginsdk.TypeSet,
+						Optional:    true,
 						ConflictsWith: []string{
 							"retention_monthly.0.weeks",
 							"retention_monthly.0.weekdays",
@@ -315,9 +345,10 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"include_last_days": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Including the last day of the month.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 						ConflictsWith: []string{
 							"retention_monthly.0.weeks",
 							"retention_monthly.0.weekdays",
@@ -334,21 +365,24 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"retention_yearly": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
+			Description: "Configures the policy yearly retention.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
+			MaxItems:    1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"count": {
+						Description:  "The number of yearly backups to keep.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntBetween(1, 9999),
 					},
 
 					"months": {
-						Type:     pluginsdk.TypeSet,
-						Required: true,
-						Set:      set.HashStringIgnoreCase,
+						Description: "The months of the year to retain backups of.",
+						Type:        pluginsdk.TypeSet,
+						Required:    true,
+						Set:         set.HashStringIgnoreCase,
 						Elem: &pluginsdk.Schema{
 							Type:             pluginsdk.TypeString,
 							ValidateFunc:     validation.IsMonth(true),
@@ -357,9 +391,10 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"weeks": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
-						Set:      set.HashStringIgnoreCase,
+						Description: "The weeks of the month to retain backups of.",
+						Type:        pluginsdk.TypeSet,
+						Optional:    true,
+						Set:         set.HashStringIgnoreCase,
 						RequiredWith: []string{
 							"retention_yearly.0.weekdays",
 						},
@@ -386,9 +421,10 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"weekdays": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
-						Set:      set.HashStringIgnoreCase,
+						Description: "The weekday backups to retain.",
+						Type:        pluginsdk.TypeSet,
+						Optional:    true,
+						Set:         set.HashStringIgnoreCase,
 						RequiredWith: []string{
 							"retention_yearly.0.weeks",
 						},
@@ -410,8 +446,9 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"days": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
+						Description: "The days of the month to retain backups of.",
+						Type:        pluginsdk.TypeSet,
+						Optional:    true,
 						ConflictsWith: []string{
 							"retention_yearly.0.weeks",
 							"retention_yearly.0.weekdays",
@@ -429,9 +466,10 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"include_last_days": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Including the last day of the month.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 						ConflictsWith: []string{
 							"retention_yearly.0.weeks",
 							"retention_yearly.0.weekdays",

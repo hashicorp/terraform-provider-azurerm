@@ -11,19 +11,22 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the Redis Cache Access Policy.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 		"redis_cache_id": {
+			Description:  "The ID of the Redis Cache.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: rediscacheaccesspolicies.ValidateRediID,
 		},
 		"permissions": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "Permissions that are going to be assigned to this Redis Cache Access Policy.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 		},
 	}
 }

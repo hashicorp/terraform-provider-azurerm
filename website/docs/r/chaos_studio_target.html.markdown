@@ -67,11 +67,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating this Chaos Studio Target.
-* `delete` - (Defaults to 30 minutes) Used when deleting this Chaos Studio Target.
-* `read` - (Defaults to 5 minutes) Used when retrieving this Chaos Studio Target.
-* `update` - (Defaults to 30 minutes) Used when updating this Chaos Studio Target.
+* `create` - (Defaults to 30 minutes) Used when creating the Chaos Studio Target.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Chaos Studio Target.
 
+* `delete` - (Defaults to 30 minutes) Used when deleting the Chaos Studio Target.
 ## Import
 
 An existing Chaos Studio Target can be imported into Terraform using the `resource id`, e.g.
@@ -82,3 +81,9 @@ terraform import azurerm_chaos_studio_target.example /{scope}/providers/Microsof
 
 * Where `{scope}` is the ID of the Azure Resource under which the Chaos Studio Target exists. For example `/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group`.
 * Where `{targetName}` is the name of the Target. For example `targetValue`.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Chaos` - 2023-11-01

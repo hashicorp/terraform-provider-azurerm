@@ -12,9 +12,10 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSiteRecoveryFabricCreate,
-		Read:   resourceSiteRecoveryFabricRead,
-		Delete: resourceSiteRecoveryFabricDelete,
+		Description: "Manages an Azure Site Recovery Replication Fabric within a Recovery Services Vault. Only Azure fabrics are supported at this time. Replication Fabrics serve as a container within an Azure region for other Site Recovery resources such as protection containers, protected items, network mappings.",
+		Create:      resourceSiteRecoveryFabricCreate,
+		Read:        resourceSiteRecoveryFabricRead,
+		Delete:      resourceSiteRecoveryFabricDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := replicationfabrics.ParseReplicationFabricID(id)
 			return err

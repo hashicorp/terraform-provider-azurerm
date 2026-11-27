@@ -15,12 +15,14 @@ func backupContainerStorageAccountSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"recovery_vault_name": {
+			Description:  "The name of the vault where the Storage Account will be registered.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.RecoveryServicesVaultName,
 		},
 		"storage_account_id": {
+			Description:  "The ID of the Storage Account to be registered.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

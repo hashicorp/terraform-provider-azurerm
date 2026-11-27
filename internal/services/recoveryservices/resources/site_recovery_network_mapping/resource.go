@@ -12,9 +12,10 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSiteRecoveryNetworkMappingCreate,
-		Read:   resourceSiteRecoveryNetworkMappingRead,
-		Delete: resourceSiteRecoveryNetworkMappingDelete,
+		Description: "Manages a Site Recovery network mapping on Azure. A network mapping decides how to translate connected networks when a VM is migrated from one region to another.",
+		Create:      resourceSiteRecoveryNetworkMappingCreate,
+		Read:        resourceSiteRecoveryNetworkMappingRead,
+		Delete:      resourceSiteRecoveryNetworkMappingDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := replicationnetworkmappings.ParseReplicationNetworkMappingID(id)
 			return err

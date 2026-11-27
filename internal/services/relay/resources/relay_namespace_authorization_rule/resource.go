@@ -20,6 +20,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_relay_namespace_authorization_rule"
 }
 
+func (r Resource) Description() string {
+	return "Manages an Azure Relay Namespace Authorization Rule."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return namespaces.ValidateAuthorizationRuleID
 }

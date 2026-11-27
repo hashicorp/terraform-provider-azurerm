@@ -17,6 +17,10 @@ func (s Resource) ResourceType() string {
 	return "azurerm_site_recovery_vmware_replication_policy_association"
 }
 
+func (s Resource) Description() string {
+	return "Manages an Azure Site Recovery replication policy for VMWare within a Recovery Vault."
+}
+
 func (s Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return replicationprotectioncontainermappings.ValidateReplicationProtectionContainerMappingID
 }

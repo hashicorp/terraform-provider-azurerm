@@ -20,3 +20,7 @@ func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 func (r Resource) ResourceType() string {
 	return "azurerm_recovery_services_vault_resource_guard_association"
 }
+
+func (r Resource) Description() string {
+	return "Manages an association of a Resource Guard and Recovery Services Vault."
+}

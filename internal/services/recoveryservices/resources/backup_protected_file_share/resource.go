@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceBackupProtectedFileShareCreateUpdate,
-		Read:   resourceBackupProtectedFileShareRead,
-		Update: resourceBackupProtectedFileShareCreateUpdate,
-		Delete: resourceBackupProtectedFileShareDelete,
+		Description: "Manages an Azure Backup Protected File Share to enable backups for file shares within an Azure Storage Account.",
+		Create:      resourceBackupProtectedFileShareCreateUpdate,
+		Read:        resourceBackupProtectedFileShareRead,
+		Update:      resourceBackupProtectedFileShareCreateUpdate,
+		Delete:      resourceBackupProtectedFileShareDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := protecteditems.ParseProtectedItemID(id)

@@ -18,7 +18,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceBackupPolicyVmRead,
+		Description: "Use this data source to access information about an existing VM Backup Policy.",
+		Read:        dataSourceBackupPolicyVmRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -57,11 +58,13 @@ func dataSourceBackupPolicyVmRead(d *pluginsdk.ResourceData, meta any) error {
 func dataSourceBackupPolicyVmSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The name of the VM Backup Policy.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 		},
 
 		"recovery_vault_name": {
+			Description:  "The name of the Recovery Services Vault.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.RecoveryServicesVaultName,

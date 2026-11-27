@@ -13,6 +13,7 @@ import (
 func redisLinkedServerSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"target_redis_cache_name": {
+			Description:  "The name of the Redis Cache to link with (e.g. the primary role).",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,6 +21,7 @@ func redisLinkedServerSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"linked_redis_cache_id": {
+			Description:  "The ID of the linked Redis Cache.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -31,6 +33,7 @@ func redisLinkedServerSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"server_role": {
+			Description:  "The role of the linked Redis Cache (e.g. `Secondary`).",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -38,13 +41,15 @@ func redisLinkedServerSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The name of the linked server.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"geo_replicated_primary_host_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The geo-replicated primary hostname for this linked server.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }
