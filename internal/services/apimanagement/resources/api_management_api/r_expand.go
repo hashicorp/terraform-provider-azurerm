@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-func expandApiManagementApiImport(importVs []any, apiType api.ApiType, soapApiType api.SoapApiType, path, serviceUrl, version, versionSetId string) *api.ApiCreateOrUpdateParameter {
+func expandApiManagementApiImport(importVs []any, apiType api.ApiType, soapApiType api.SoapApiType, path, serviceUrl, version, versionSetId string, displayName string) *api.ApiCreateOrUpdateParameter {
 	if len(importVs) == 0 || importVs[0] == nil {
 		return nil
 	}
@@ -24,11 +24,12 @@ func expandApiManagementApiImport(importVs []any, apiType api.ApiType, soapApiTy
 
 	apiParams := api.ApiCreateOrUpdateParameter{
 		Properties: &api.ApiCreateOrUpdateProperties{
-			Type:    pointer.To(apiType),
-			ApiType: pointer.To(soapApiType),
-			Format:  pointer.ToEnum[api.ContentFormat](contentFormat),
-			Value:   pointer.To(contentValue),
-			Path:    path,
+			Type:        pointer.To(apiType),
+			ApiType:     pointer.To(soapApiType),
+			Format:      pointer.ToEnum[api.ContentFormat](contentFormat),
+			Value:       pointer.To(contentValue),
+			Path:        path,
+			DisplayName: pointer.To(displayName),
 		},
 	}
 

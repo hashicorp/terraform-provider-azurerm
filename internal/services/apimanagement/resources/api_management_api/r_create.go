@@ -58,7 +58,7 @@ func resourceApiManagementApiCreate(d *pluginsdk.ResourceData, meta any) error {
 	// First we execute import and then updated the other props.
 	if importVs, ok := d.GetOk("import"); ok {
 		if apiParams := expandApiManagementApiImport(importVs.([]any), apiType, soapApiType,
-			path, d.Get("service_url").(string), version, versionSetId); apiParams != nil {
+			path, d.Get("service_url").(string), version, versionSetId, displayName); apiParams != nil {
 			result, err := client.CreateOrUpdate(ctx, id, *apiParams, api.CreateOrUpdateOperationOptions{})
 			if err != nil {
 				return fmt.Errorf("creating with import of %s: %+v", id, err)

@@ -46,7 +46,7 @@ func resourceApiManagementApiUpdate(d *pluginsdk.ResourceData, meta any) error {
 	if d.HasChange("import") {
 		if vs, hasImport := d.GetOk("import"); hasImport {
 			if apiParams := expandApiManagementApiImport(vs.([]any), apiType, soapApiType,
-				path, serviceUrl, version, versionSetId); apiParams != nil {
+				path, serviceUrl, version, versionSetId, displayName); apiParams != nil {
 				result, err := client.CreateOrUpdate(ctx, *id, *apiParams, api.CreateOrUpdateOperationOptions{})
 				if err != nil {
 					return fmt.Errorf("creating with import of %s: %+v", id, err)
