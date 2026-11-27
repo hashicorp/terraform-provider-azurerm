@@ -10,12 +10,14 @@ import (
 	"time"
 
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/deletedsecrets"
 	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/secrets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/resources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
@@ -59,11 +61,10 @@ func resourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta any) error {
 		return nil
 	}
 
-	client := meta.(*clients.Client).KeyVault.DataPlaneKeyVaultClient.Secrets.Clone(id.KeyVaultBaseURL)
 	secretVersionId := secrets.NewSecretversionID(id.KeyVaultBaseURL, id.Name, "")
 
-	// we always want to get the latest version
-	resp, err := client.GetSecret(ctx, secretVersionId)
+	resourceVersionlessId := parse.NewSecretVersionlessID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, id.Name).ID()
+	resp, err := getLatestSecret(ctx, d, meta.(*clients.Client), secretVersionId, resourceVersionlessId)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] Secret %q was not found in Key Vault at URI %q - removing from state", id.Name, id.KeyVaultBaseURL)
@@ -84,11 +85,8 @@ func resourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta any) error {
 	}
 
 	d.Set("name", respID.Name)
+	// Note that the value will be unset if it is a write-only value because getSecretWithoutValue does not set the value
 	d.Set("value", resp.Model.Value)
-	// Unset value if is a write-only value
-	if _, ok := d.GetOk("value_wo_version"); ok {
-		d.Set("value", nil)
-	}
 	d.Set("version", respID.Version)
 	d.Set("content_type", resp.Model.ContentType)
 	d.Set("versionless_id", id.VersionlessID())
@@ -109,7 +107,7 @@ func resourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta any) error {
 	}
 
 	d.Set("resource_id", parse.NewSecretID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, id.Name, id.Version).ID())
-	d.Set("resource_versionless_id", parse.NewSecretVersionlessID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, id.Name).ID())
+	d.Set("resource_versionless_id", resourceVersionlessId)
 
 	return tags.FlattenAndSet(d, resp.Model.Tags)
 }
@@ -145,4 +143,64 @@ func (d deleteAndPurgeSecret) NestedItemHasBeenPurged(ctx context.Context) (auto
 	deletedSecretId := deletedsecrets.NewDeletedsecretID(d.keyVaultUri, d.name)
 	resp, err := d.deletedSecretsClient.GetDeletedSecret(ctx, deletedSecretId)
 	return autorest.Response{Response: resp.HttpResponse}, err
+}
+
+func getLatestSecret(ctx context.Context, d *pluginsdk.ResourceData, client *clients.Client, secretVersionId secrets.SecretversionId, resourceVersionlessId string) (secrets.GetSecretOperationResponse, error) {
+	if _, ok := d.GetOk("value_wo_version"); ok {
+		return getSecretWithoutValue(ctx, client.Resource.ResourcesClient, resourceVersionlessId)
+	}
+
+	// an empty version in the ID indicates the latest version
+	return client.KeyVault.DataPlaneKeyVaultClient.Secrets.Clone(secretVersionId.BaseURI).GetSecret(ctx, secretVersionId)
+}
+
+func getSecretWithoutValue(ctx context.Context, client *resources.ResourcesClient, resourceID string) (secrets.GetSecretOperationResponse, error) {
+	resp, err := client.Get(ctx, commonids.NewScopeID(resourceID))
+	secret := secrets.GetSecretOperationResponse{
+		HttpResponse: resp.HttpResponse,
+	}
+	if err != nil {
+		return secret, err
+	}
+
+	if resp.Model == nil || resp.Model.Properties == nil {
+		return secret, fmt.Errorf("getting Key Vault Secret %q: missing properties", resourceID)
+	}
+
+	prop, ok := (*resp.Model.Properties).(map[string]any)
+	if !ok {
+		return secret, fmt.Errorf("getting Key Vault Secret %q: unexpected property type %T", resourceID, *resp.Model.Properties)
+	}
+
+	model := secrets.SecretBundle{}
+
+	if v, ok := prop["secretUriWithVersion"].(string); ok {
+		model.Id = &v
+	}
+	if v, ok := prop["contentType"].(string); ok {
+		model.ContentType = &v
+	}
+	if attrs, ok := prop["attributes"].(map[string]any); ok {
+		model.Attributes = &secrets.SecretAttributes{}
+		if v, ok := attrs["enabled"].(bool); ok {
+			model.Attributes.Enabled = &v
+		}
+		if v, ok := attrs["created"].(float64); ok {
+			model.Attributes.Created = pointer.To(int64(v))
+		}
+		if v, ok := attrs["updated"].(float64); ok {
+			model.Attributes.Updated = pointer.To(int64(v))
+		}
+		if v, ok := attrs["exp"].(float64); ok {
+			model.Attributes.Exp = pointer.To(int64(v))
+		}
+		if v, ok := attrs["nbf"].(float64); ok {
+			model.Attributes.Nbf = pointer.To(int64(v))
+		}
+	}
+
+	model.Tags = resp.Model.Tags
+	secret.Model = &model
+
+	return secret, nil
 }

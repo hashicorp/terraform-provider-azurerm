@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/helpers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -43,8 +44,9 @@ func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta any) error {
 	secretId := secrets.NewSecretID(*keyVaultBaseUrl, name)
 	secretVersionId := secrets.NewSecretversionID(secretId.BaseURI, secretId.SecretName, "")
 
+	resourceVersionlessId := parse.NewSecretVersionlessID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, name).ID()
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-		existing, err := client.GetSecret(ctx, secretVersionId)
+		existing, err := getLatestSecret(ctx, d, meta.(*clients.Client), secretVersionId, resourceVersionlessId)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing Secret %q (Key Vault %q): %s", name, *keyVaultBaseUrl, err)
@@ -127,8 +129,7 @@ func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta any) error {
 		}
 	}
 
-	// "" indicates the latest version
-	read, err := client.GetSecret(ctx, secretVersionId)
+	read, err := getLatestSecret(ctx, d, meta.(*clients.Client), secretVersionId, resourceVersionlessId)
 	if err != nil {
 		return err
 	}

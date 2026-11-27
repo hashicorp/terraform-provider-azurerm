@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"strings"
 	"testing"
 	"time"
 
@@ -24,6 +25,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -126,6 +128,35 @@ func TestAccKeyVaultSecret_updateToWriteOnlyValue(t *testing.T) {
 	})
 }
 
+func TestAccKeyVaultSecret_writeOnlyValueWithoutReadPermission(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_secret", "test")
+	r := KeyVaultSecretResource{}
+
+	resource.ParallelTest(t, resource.TestCase{
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(version.Must(version.NewVersion("1.11.0"))),
+		},
+		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		Steps: []acceptance.TestStep{
+			{
+				Config: r.writeOnlyValueWithoutReadPermission(data, "rick-and-morty", 1),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+					check.That(data.ResourceName).Key("value").IsEmpty(),
+					check.That(data.ResourceName).Key("value_wo_version").HasValue("1"),
+				),
+			},
+			data.ImportStep(),
+			// Add the "Get" permission before deleting secrets
+			// because deleting secrets appears to require the "Get" permission
+			// even if GetSecret is not called explicitly
+			{
+				Config: r.writeOnlyValue(data, "rick-and-morty", 1),
+			},
+		},
+	})
+}
+
 func TestAccKeyVaultSecret_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_secret", "test")
 	r := KeyVaultSecretResource{}
@@ -169,6 +200,20 @@ func TestAccKeyVaultSecret_disappearsWhenParentKeyVaultDeleted(t *testing.T) {
 			),
 			ExpectNonEmptyPlan: true,
 		},
+	})
+}
+
+func TestAccKeyVaultSecret_disappearsWriteOnlyValue(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_secret", "test")
+	r := KeyVaultSecretResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config: func(data acceptance.TestData) string {
+				return r.writeOnlyValue(data, "rick-and-morty", 1)
+			},
+			TestResource: r,
+		}),
 	})
 }
 
@@ -338,10 +383,9 @@ func (KeyVaultSecretResource) Exists(ctx context.Context, clients *clients.Clien
 		return nil, fmt.Errorf("checking if key vault %q for Certificate %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseURL, err)
 	}
 
-	// we always want to get the latest version
-	client := clients.KeyVault.DataPlaneKeyVaultClient.Secrets.Clone(id.KeyVaultBaseURL)
-	secretVersionId := secrets.NewSecretversionID(id.KeyVaultBaseURL, id.Name, "")
-	resp, err := client.GetSecret(ctx, secretVersionId)
+	// use the Resources client instead of the Key Vault client so existence can be
+	// checked without requiring permission to read the secret value.
+	resp, err := clients.Resource.ResourcesClient.Get(ctx, commonids.NewScopeID(parse.NewSecretVersionlessID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, id.Name).ID()))
 	if err != nil {
 		return nil, fmt.Errorf("making Read request on Azure KeyVault Secret %s: %+v", id.Name, err)
 	}
@@ -444,6 +488,27 @@ resource "azurerm_key_vault_secret" "test" {
   key_vault_id     = azurerm_key_vault.test.id
 }
 `, r.template(data), data.RandomString, secret, version)
+}
+
+func (r KeyVaultSecretResource) writeOnlyValueWithoutReadPermission(data acceptance.TestData, secret string, version int) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      set_value_wo_version_on_import = true
+    }
+  }
+}
+
+%s
+
+resource "azurerm_key_vault_secret" "test" {
+  name             = "secret-%s"
+  value_wo         = "%s"
+  value_wo_version = %d
+  key_vault_id     = azurerm_key_vault.test.id
+}
+`, r.templateWithSecretPermissions(data, []string{"Delete", "List", "Purge", "Recover", "Set"}), data.RandomString, secret, version)
 }
 
 func (r KeyVaultSecretResource) updateTags(data acceptance.TestData) string {
@@ -646,7 +711,18 @@ resource "azurerm_key_vault_secret" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
-func (KeyVaultSecretResource) template(data acceptance.TestData) string {
+func (r KeyVaultSecretResource) template(data acceptance.TestData) string {
+	return r.templateWithSecretPermissions(data, []string{
+		"Get",
+		"Delete",
+		"List",
+		"Purge",
+		"Recover",
+		"Set",
+	})
+}
+
+func (KeyVaultSecretResource) templateWithSecretPermissions(data acceptance.TestData, permissions []string) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -672,19 +748,12 @@ resource "azurerm_key_vault" "test" {
       "Get",
     ]
 
-    secret_permissions = [
-      "Get",
-      "Delete",
-      "List",
-      "Purge",
-      "Recover",
-      "Set",
-    ]
+    secret_permissions = ["%s"]
   }
 
   tags = {
     environment = "Production"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, strings.Join(permissions, "\", \""))
 }

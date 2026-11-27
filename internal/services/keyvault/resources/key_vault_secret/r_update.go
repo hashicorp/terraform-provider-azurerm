@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/secrets"
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -97,8 +98,7 @@ func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta any) error {
 		}
 	}
 
-	// "" indicates the latest version
-	read, err := client.GetSecret(ctx, secretVersionId)
+	read, err := getLatestSecret(ctx, d, meta.(*clients.Client), secretVersionId, parse.NewSecretVersionlessID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, id.Name).ID())
 	if err != nil {
 		return fmt.Errorf("getting Key Vault Secret %q : %+v", id.Name, err)
 	}

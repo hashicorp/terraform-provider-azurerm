@@ -145,6 +145,7 @@ type KeyVault struct {
 	RecoverSoftDeletedKeys                               types.Bool `tfsdk:"recover_soft_deleted_keys"`
 	RecoverSoftDeletedSecrets                            types.Bool `tfsdk:"recover_soft_deleted_secrets"`
 	RecoverSoftDeletedHSMKeys                            types.Bool `tfsdk:"recover_soft_deleted_hardware_security_module_keys"`
+	SetValueWoVersionOnImport                            types.Bool `tfsdk:"set_value_wo_version_on_import"`
 }
 
 var KeyVaultAttributes = map[string]attr.Type{
@@ -159,6 +160,7 @@ var KeyVaultAttributes = map[string]attr.Type{
 	"recover_soft_deleted_keys":                                   types.BoolType,
 	"recover_soft_deleted_secrets":                                types.BoolType,
 	"recover_soft_deleted_hardware_security_module_keys":          types.BoolType,
+	"set_value_wo_version_on_import":                              types.BoolType,
 }
 
 type LogAnalyticsWorkspace struct {
