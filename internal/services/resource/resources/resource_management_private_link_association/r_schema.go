@@ -21,9 +21,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 		"management_group_id": {
 			Description:  "The Management Group ID within which this Private Link Association should exist.",
-			ForceNew:     true,
 			Type:         pluginsdk.TypeString,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: commonids.ValidateManagementGroupID,
 		},
 		"resource_management_private_link_id": {
@@ -46,8 +46,8 @@ func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"tenant_id": {
 			Description: "The Tenant ID.",
-			Computed:    true,
 			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }
