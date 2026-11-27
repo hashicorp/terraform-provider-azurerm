@@ -32,9 +32,32 @@ func dataFactoryLinkedServicePostgresqlSchema() map[string]*pluginsdk.Schema {
 		"connection_string": {
 			Description:      "The connection string in which to authenticate with PostgreSQL.",
 			Type:             pluginsdk.TypeString,
-			Required:         true,
+			Optional:         true,
+			ExactlyOneOf:     []string{"connection_string", "key_vault_connection_string"},
 			ValidateFunc:     validation.StringIsNotEmpty,
 			DiffSuppressFunc: helpers.AzureRmDataFactoryLinkedServiceConnectionStringDiff,
+		},
+
+		"key_vault_connection_string": {
+			Type:         pluginsdk.TypeList,
+			Optional:     true,
+			ExactlyOneOf: []string{"connection_string", "key_vault_connection_string"},
+			MaxItems:     1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"linked_service_name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"secret_name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+			},
 		},
 
 		"description": {
