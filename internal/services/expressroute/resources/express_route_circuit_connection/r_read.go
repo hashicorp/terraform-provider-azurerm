@@ -10,14 +10,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressroutecircuitconnections"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	expressrouteClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/expressroute/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceExpressRouteCircuitConnectionRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).ExpressRoute.ExpressRouteCircuitConnections
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := expressrouteClient.From(meta).ExpressRouteCircuitConnections
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := expressroutecircuitconnections.ParsePeeringConnectionID(d.Id())

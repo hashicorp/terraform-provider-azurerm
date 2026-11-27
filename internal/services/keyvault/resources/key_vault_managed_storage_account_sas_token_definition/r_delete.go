@@ -8,17 +8,18 @@ import (
 	"log"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	keyvaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceKeyVaultManagedStorageAccountSasTokenDefinitionDelete(d *pluginsdk.ResourceData, meta any) error {
-	keyVaultsClient := meta.(*clients.Client).KeyVault
-	client := meta.(*clients.Client).KeyVault.ManagementClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	keyVaultsClient := keyvaultClient.From(meta)
+	client := keyvaultClient.From(meta).ManagementClient
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := parse.SasDefinitionID(d.Id())

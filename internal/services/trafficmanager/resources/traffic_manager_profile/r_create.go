@@ -12,20 +12,22 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2022-04-01/profiles"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	trafficmanagerClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceArmTrafficManagerProfileCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).TrafficManager.ProfilesClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	client := trafficmanagerClient.From(meta).ProfilesClient
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	id := profiles.NewTrafficManagerProfileID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {

@@ -13,7 +13,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/failovergroups"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	mssqlClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/client"
 )
 
 func (r Resource) Read() sdk.ResourceFunc {
@@ -21,8 +23,8 @@ func (r Resource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			subscriptionId := metadata.Client.Account.SubscriptionId
-			client := metadata.Client.MSSQL.FailoverGroupsClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
+			client := mssqlClient.From(metadata.Client).FailoverGroupsClient
 
 			id, err := failovergroups.ParseFailoverGroupID(metadata.ResourceData.Id())
 			if err != nil {

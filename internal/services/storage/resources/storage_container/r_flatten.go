@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/blobcontainers"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -36,7 +35,7 @@ func resourceStorageContainerFlatten(ctx context.Context, d *pluginsdk.ResourceD
 	}
 
 	if includeResource {
-		account, err := meta.(*clients.Client).Storage.GetAccount(ctx, commonids.NewStorageAccountID(id.SubscriptionId, id.ResourceGroupName, id.StorageAccountName))
+		account, err := client.From(meta).GetAccount(ctx, commonids.NewStorageAccountID(id.SubscriptionId, id.ResourceGroupName, id.StorageAccountName))
 		if err != nil {
 			return fmt.Errorf("retrieving Account for Container %q: %v", id, err)
 		}
@@ -48,7 +47,7 @@ func resourceStorageContainerFlatten(ctx context.Context, d *pluginsdk.ResourceD
 		}
 
 		// Parse the blob endpoint as a data plane account ID
-		accountId, err := accounts.ParseAccountID(*endpoint, meta.(*clients.Client).Storage.StorageDomainSuffix)
+		accountId, err := accounts.ParseAccountID(*endpoint, client.From(meta).StorageDomainSuffix)
 		if err != nil {
 			return fmt.Errorf("parsing Account ID: %v", err)
 		}

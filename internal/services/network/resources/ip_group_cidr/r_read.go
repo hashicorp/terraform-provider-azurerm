@@ -11,15 +11,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/ipgroups"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	networkClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceIpGroupCidrRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Network.IPGroups
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := networkClient.From(meta).IPGroups
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := parse.IpGroupCidrID(d.Id())

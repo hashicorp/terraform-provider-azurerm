@@ -11,16 +11,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/endpoints"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceCdnEndpointUpdate(d *pluginsdk.ResourceData, meta any) error {
-	endpointsClient := meta.(*clients.Client).Cdn.EndpointsClient
-	profilesClient := meta.(*clients.Client).Cdn.ProfilesClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	endpointsClient := client.From(meta).EndpointsClient
+	profilesClient := client.From(meta).ProfilesClient
+	ctx, cancel := timeouts.ForUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := endpoints.ParseEndpointID(d.Id())

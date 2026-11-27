@@ -11,7 +11,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	appserviceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/client"
 )
 
 func (r Resource) Create() sdk.ResourceFunc {
@@ -26,9 +28,9 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			id := resourceproviders.NewSourceControlID(sourceControlToken.Type)
 
-			client := metadata.Client.AppService.ResourceProvidersClient
+			client := appserviceClient.From(metadata.Client).ResourceProvidersClient
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.GetSourceControl(ctx, id)
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {

@@ -8,14 +8,15 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/account"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	clientsAccount "github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	datashareClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceDataShareAccountUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).DataShare.AccountClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	client := datashareClient.From(meta).AccountClient
+	ctx, cancel := timeouts.ForUpdate(clientsAccount.StopContext(meta), d)
 	defer cancel()
 
 	id, err := account.ParseAccountID(d.Id())

@@ -14,7 +14,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/vaults"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	keyvaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -189,9 +190,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 }
 
 func dataSourceKeyVaultRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).KeyVault.VaultsClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := keyvaultClient.From(meta).VaultsClient
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id := commonids.NewKeyVaultID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
@@ -224,7 +225,7 @@ func dataSourceKeyVaultRead(d *pluginsdk.ResourceData, meta any) error {
 
 		d.Set("vault_uri", props.VaultUri)
 		if props.VaultUri != nil {
-			meta.(*clients.Client).KeyVault.AddToCache(id, *props.VaultUri)
+			keyvaultClient.From(meta).AddToCache(id, *props.VaultUri)
 		}
 
 		skuName := ""

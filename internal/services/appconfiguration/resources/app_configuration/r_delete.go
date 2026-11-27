@@ -13,16 +13,18 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2024-05-01/configurationstores"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2024-05-01/deletedconfigurationstores"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	appconfigurationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceAppConfigurationDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).AppConfiguration.ConfigurationStoresClient
-	deletedConfigurationStoresClient := meta.(*clients.Client).AppConfiguration.DeletedConfigurationStoresClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	client := appconfigurationClient.From(meta).ConfigurationStoresClient
+	deletedConfigurationStoresClient := appconfigurationClient.From(meta).DeletedConfigurationStoresClient
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
+	subscriptionId := account.From(meta).SubscriptionId
 	defer cancel()
 
 	id, err := configurationstores.ParseConfigurationStoreID(d.Id())
@@ -55,7 +57,7 @@ func resourceAppConfigurationDelete(d *pluginsdk.ResourceData, meta any) error {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
-	if meta.(*clients.Client).Features.AppConfiguration.PurgeSoftDeleteOnDestroy && softDeleteEnabled {
+	if features.From(meta).AppConfiguration.PurgeSoftDeleteOnDestroy && softDeleteEnabled {
 		deletedId := deletedconfigurationstores.NewDeletedConfigurationStoreID(subscriptionId, existing.Model.Location, id.ConfigurationStoreName)
 
 		// AppConfiguration with Purge Protection Enabled cannot be deleted unless done by Azure
@@ -92,14 +94,14 @@ func resourceAppConfigurationDelete(d *pluginsdk.ResourceData, meta any) error {
 		}
 
 		// retry checkNameAvailability until the name is released by purged app configuration, see https://github.com/Azure/AppConfiguration/issues/677
-		operationsClient := meta.(*clients.Client).AppConfiguration.OperationsClient
+		operationsClient := appconfigurationClient.From(meta).OperationsClient
 		if err = resourceConfigurationStoreWaitForNameAvailable(ctx, operationsClient, *id); err != nil {
 			return err
 		}
 		log.Printf("[DEBUG] Purged AppConfiguration %q.", id.ConfigurationStoreName)
 	}
 
-	meta.(*clients.Client).AppConfiguration.RemoveFromCache(*id)
+	appconfigurationClient.From(meta).RemoveFromCache(*id)
 
 	return nil
 }

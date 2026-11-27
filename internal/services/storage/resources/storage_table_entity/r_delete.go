@@ -9,17 +9,17 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-06-01/tables"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
+	clientsAccount "github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	storageClient2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/table/entities"
 )
 
 func resourceStorageTableEntityDelete(d *pluginsdk.ResourceData, meta any) error {
-	storageClient := meta.(*clients.Client).Storage
+	storageClient := storageClient2.From(meta)
 
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForDelete(clientsAccount.StopContext(meta), d)
 	defer cancel()
 
 	id, err := entities.ParseEntityID(d.Id(), storageClient.StorageDomainSuffix)
@@ -29,7 +29,7 @@ func resourceStorageTableEntityDelete(d *pluginsdk.ResourceData, meta any) error
 
 	var tableName string
 	var accountName string
-	var account *client.AccountDetails
+	var account *storageClient2.AccountDetails
 
 	tableIdRaw, ok := d.GetOk("storage_table_id")
 	if !ok || tableIdRaw.(string) == "" {

@@ -7,7 +7,8 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy" //nolint:staticcheck
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	policyClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -99,8 +100,8 @@ func PolicyDefinitionDataSourceSchema() map[string]*pluginsdk.Schema {
 
 func PolicyDefinitionReadFunc(builtInOnly bool) func(d *pluginsdk.ResourceData, meta any) error {
 	return func(d *pluginsdk.ResourceData, meta any) error {
-		client := meta.(*clients.Client).Policy.DefinitionsClient
-		ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+		client := policyClient.From(meta).DefinitionsClient
+		ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 		defer cancel()
 
 		displayName := d.Get("display_name").(string)

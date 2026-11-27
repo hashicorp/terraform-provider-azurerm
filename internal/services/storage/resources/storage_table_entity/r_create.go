@@ -11,8 +11,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-06-01/tables"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
+	clientsAccount "github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	storageClient2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
@@ -20,9 +21,9 @@ import (
 )
 
 func resourceStorageTableEntityCreate(d *pluginsdk.ResourceData, meta any) error {
-	storageClient := meta.(*clients.Client).Storage
+	storageClient := storageClient2.From(meta)
 
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(clientsAccount.StopContext(meta), d)
 	defer cancel()
 
 	partitionKey := d.Get("partition_key").(string)
@@ -30,7 +31,7 @@ func resourceStorageTableEntityCreate(d *pluginsdk.ResourceData, meta any) error
 
 	var tableName string
 	var accountName string
-	var account *client.AccountDetails
+	var account *storageClient2.AccountDetails
 	var err error
 
 	tableIdRaw, ok := d.GetOk("storage_table_id")
@@ -56,7 +57,7 @@ func resourceStorageTableEntityCreate(d *pluginsdk.ResourceData, meta any) error
 		return fmt.Errorf("the parent Storage Account %s was not found", accountName)
 	}
 
-	endpoint, err := account.DataPlaneEndpoint(client.EndpointTypeTable)
+	endpoint, err := account.DataPlaneEndpoint(storageClient2.EndpointTypeTable)
 	if err != nil {
 		return fmt.Errorf("retrieving the table data plane endpoint: %v", err)
 	}
@@ -79,7 +80,7 @@ func resourceStorageTableEntityCreate(d *pluginsdk.ResourceData, meta any) error
 		MetaDataLevel: entities.NoMetaData,
 	}
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, tableName, getEntityInput)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {

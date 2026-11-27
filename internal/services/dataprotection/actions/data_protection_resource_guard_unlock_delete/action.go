@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	recoveryservicesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/client"
 )
 
 const GuardOperationDeleteProtectedItem = "Microsoft.RecoveryServices/vaults/backupFabrics/protectionContainers/protectedItems/delete"
@@ -75,7 +76,7 @@ func (a *Action) Invoke(ctx context.Context, request action.InvokeRequest, resp 
 		return
 	}
 
-	client := a.Client.RecoveryServices
+	client := recoveryservicesClient.From(a.Client)
 	existing, err := client.ProtectedItemsClient.Get(ctx, *id, protecteditems.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(existing.HttpResponse) {

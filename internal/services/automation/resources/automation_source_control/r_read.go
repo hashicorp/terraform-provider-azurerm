@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/sourcecontrol"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	automationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/resources/automation_source_control/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -25,7 +26,7 @@ func (m Resource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			client := meta.Client.Automation.SourceControl
+			client := automationClient.From(meta.Client).SourceControl
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {

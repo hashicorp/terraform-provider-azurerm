@@ -13,7 +13,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxdeployment"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	nginxClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/nginx/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -249,8 +251,8 @@ func (m DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Nginx.NginxDeployment
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := nginxClient.From(metadata.Client).NginxDeployment
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 			var model DeploymentDataSourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return err

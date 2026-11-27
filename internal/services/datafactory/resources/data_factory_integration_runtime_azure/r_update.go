@@ -12,18 +12,19 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/integrationruntimeenableinteractivequery"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/integrationruntimes"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	datafactoryClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceDataFactoryIntegrationRuntimeAzureUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).DataFactory.IntegrationRuntimesClient
-	disableInteractiveQueryClient := meta.(*clients.Client).DataFactory.IntegrationRuntimeDisableInteractiveQueryClient
-	enableInteractiveQueryClient := meta.(*clients.Client).DataFactory.IntegrationRuntimeEnableInteractiveQueryClient
+	client := datafactoryClient.From(meta).IntegrationRuntimesClient
+	disableInteractiveQueryClient := datafactoryClient.From(meta).IntegrationRuntimeDisableInteractiveQueryClient
+	enableInteractiveQueryClient := datafactoryClient.From(meta).IntegrationRuntimeEnableInteractiveQueryClient
 
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := integrationruntimes.ParseIntegrationRuntimeID(d.Id())

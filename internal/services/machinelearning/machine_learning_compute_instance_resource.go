@@ -22,8 +22,10 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/workspaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	machinelearningClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -162,16 +164,16 @@ func resourceComputeInstance() *pluginsdk.Resource {
 }
 
 func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).MachineLearning.MachineLearningComputes
-	mlWorkspacesClient := meta.(*clients.Client).MachineLearning.Workspaces
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	client := machinelearningClient.From(meta).MachineLearningComputes
+	mlWorkspacesClient := machinelearningClient.From(meta).Workspaces
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	workspaceID, _ := workspaces.ParseWorkspaceID(d.Get("machine_learning_workspace_id").(string))
 	id := machinelearningcomputes.NewComputeID(subscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, d.Get("name").(string))
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.ComputeGet(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -261,9 +263,9 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta any) error {
 }
 
 func resourceComputeInstanceRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).MachineLearning.MachineLearningComputes
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := machinelearningClient.From(meta).MachineLearningComputes
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := machinelearningcomputes.ParseComputeID(d.Id())
@@ -317,7 +319,7 @@ func resourceComputeInstanceRead(d *pluginsdk.ResourceData, meta any) error {
 		// Only save the subnet ID to state if the instance's workspace is NOT using managed networking.
 		// Azure does not allow instances to have a user-defined subnet ID if they are to run in a workspace with managed networking.
 		if props.Properties.Subnet != nil {
-			if workspace, err := meta.(*clients.Client).MachineLearning.Workspaces.Get(ctx, workspaceId); err != nil || !hasManagedNetwork(workspace.Model) {
+			if workspace, err := machinelearningClient.From(meta).Workspaces.Get(ctx, workspaceId); err != nil || !hasManagedNetwork(workspace.Model) {
 				d.Set("subnet_resource_id", props.Properties.Subnet.Id)
 			}
 		}
@@ -329,8 +331,8 @@ func resourceComputeInstanceRead(d *pluginsdk.ResourceData, meta any) error {
 }
 
 func resourceComputeInstanceDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).MachineLearning.MachineLearningComputes
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := machinelearningClient.From(meta).MachineLearningComputes
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 	id, err := machinelearningcomputes.ParseComputeID(d.Id())
 	if err != nil {

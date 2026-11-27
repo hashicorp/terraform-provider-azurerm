@@ -11,15 +11,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/recordsets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	dnsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceDnsNsRecordCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Dns.RecordSets
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	client := dnsClient.From(meta).RecordSets
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
+	subscriptionId := account.From(meta).SubscriptionId
 	defer cancel()
 
 	name := d.Get("name").(string)
@@ -28,7 +30,7 @@ func resourceDnsNsRecordCreate(d *pluginsdk.ResourceData, meta any) error {
 
 	id := recordsets.NewRecordTypeID(subscriptionId, resGroup, zoneName, recordsets.RecordTypeNS, name)
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {

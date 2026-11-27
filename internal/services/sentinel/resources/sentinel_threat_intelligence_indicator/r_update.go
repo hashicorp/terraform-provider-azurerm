@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/threatintelligence"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	sentinelClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -20,7 +21,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Sentinel.ThreatIntelligenceClient
+			client := sentinelClient.From(metadata.Client).ThreatIntelligenceClient
 
 			id, err := threatintelligence.ParseIndicatorID(metadata.ResourceData.Id())
 			if err != nil {

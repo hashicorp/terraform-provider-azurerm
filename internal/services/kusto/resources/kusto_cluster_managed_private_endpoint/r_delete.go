@@ -8,13 +8,14 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/managedprivateendpoints"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	kustoClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceKustoClusterManagedPrivateEndpointDelete(d *schema.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Kusto.ClusterManagedPrivateEndpointClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	client := kustoClient.From(meta).ClusterManagedPrivateEndpointClient
+	ctx, cancel := timeouts.ForCreateUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := managedprivateendpoints.ParseManagedPrivateEndpointID(d.Id())

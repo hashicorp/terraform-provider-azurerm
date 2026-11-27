@@ -9,15 +9,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/bigdatapools"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	synapseClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceSynapseSparkPoolUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Synapse.SparkPoolClient
+	client := synapseClient.From(meta).SparkPoolClient
 
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := bigdatapools.ParseBigDataPoolID(d.Id())

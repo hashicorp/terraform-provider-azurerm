@@ -13,7 +13,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/workspaces"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	synapseClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -21,10 +22,10 @@ import (
 )
 
 func resourceSynapseSqlPoolRead(d *pluginsdk.ResourceData, meta any) error {
-	sqlClient := meta.(*clients.Client).Synapse.SqlPoolClient
-	sqlPTDEClient := meta.(*clients.Client).Synapse.SqlPoolTransparentDataEncryptionClient
-	geoBackUpClient := meta.(*clients.Client).Synapse.SqlPoolGeoBackupPoliciesClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	sqlClient := synapseClient.From(meta).SqlPoolClient
+	sqlPTDEClient := synapseClient.From(meta).SqlPoolTransparentDataEncryptionClient
+	geoBackUpClient := synapseClient.From(meta).SqlPoolGeoBackupPoliciesClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := parse.SqlPoolID(d.Id())

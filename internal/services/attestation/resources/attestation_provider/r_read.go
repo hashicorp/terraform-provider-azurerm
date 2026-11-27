@@ -12,15 +12,16 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/attestation/2020-10-01/attestationproviders"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/attestation/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/jackofallops/kermit/sdk/attestation/2022-08-01/attestation"
 )
 
 func resourceAttestationProviderRead(d *pluginsdk.ResourceData, meta any) error {
-	attestationClients := meta.(*clients.Client).Attestation
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	attestationClients := client.From(meta)
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := attestationproviders.ParseAttestationProvidersID(d.Id())

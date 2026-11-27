@@ -11,13 +11,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/packageresource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	automationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/client"
 )
 
 func (r Resource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Automation.PackageResource
+			client := automationClient.From(metadata.Client).PackageResource
 
 			id, err := packageresource.ParsePackageID(metadata.ResourceData.Id())
 			if err != nil {

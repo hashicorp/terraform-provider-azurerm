@@ -15,13 +15,15 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/namespaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	appserviceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/client"
+	relayClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/client"
 )
 
 func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AppService.WebAppsClient
+			client := appserviceClient.From(metadata.Client).WebAppsClient
 
 			id, err := webapps.ParseRelayID(metadata.ResourceData.Id())
 			if err != nil {
@@ -55,7 +57,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 				}
 
 				if appHybridConn.ServiceBusNamespace != "" && appHybridConn.SendKeyName != "" {
-					relayNamespaceClient := metadata.Client.Relay.NamespacesClient
+					relayNamespaceClient := relayClient.From(metadata.Client).NamespacesClient
 					relayId, err := hybridconnections.ParseHybridConnectionIDInsensitively(appHybridConn.RelayId)
 					if err != nil {
 						return err
@@ -66,7 +68,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 						return metadata.Encode(&appHybridConn)
 					}
 
-					hybridConnectionsClient := metadata.Client.Relay.HybridConnectionsClient
+					hybridConnectionsClient := relayClient.From(metadata.Client).HybridConnectionsClient
 					ruleID := hybridconnections.NewHybridConnectionAuthorizationRuleID(relayId.SubscriptionId, relayId.ResourceGroupName, appHybridConn.ServiceBusNamespace, pointer.From(model.Name), appHybridConn.SendKeyName)
 					keys, err := hybridConnectionsClient.ListKeys(ctx, ruleID)
 					if err != nil && keys.Model != nil {

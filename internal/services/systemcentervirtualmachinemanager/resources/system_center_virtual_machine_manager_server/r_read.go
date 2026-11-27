@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/inventoryitems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/vmmservers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	systemcentervirtualmachinemanagerClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/systemcentervirtualmachinemanager/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -20,7 +21,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.SystemCenterVirtualMachineManager.VMmServers
+			client := systemcentervirtualmachinemanagerClient.From(metadata.Client).VMmServers
 
 			id, err := vmmservers.ParseVMmServerID(metadata.ResourceData.Id())
 			if err != nil {
@@ -42,7 +43,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 
 func systemCenterVirtualMachineManagerServerStateRefreshFunc(ctx context.Context, metadata sdk.ResourceMetaData, id vmmservers.VMmServerId) pluginsdk.StateRefreshFunc {
 	return func() (any, string, error) {
-		client := metadata.Client.SystemCenterVirtualMachineManager.InventoryItems
+		client := systemcentervirtualmachinemanagerClient.From(metadata.Client).InventoryItems
 		scvmmServerId := inventoryitems.NewVMmServerID(id.SubscriptionId, id.ResourceGroupName, id.VmmServerName)
 		checkTimes := 10
 		lastInventoryItemCount := 0

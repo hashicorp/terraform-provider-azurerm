@@ -15,13 +15,14 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/dataconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	kustoClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/client"
 )
 
 func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Kusto.DataConnectionsClient
+			client := kustoClient.From(metadata.Client).DataConnectionsClient
 
 			id, err := dataconnections.ParseDataConnectionID(metadata.ResourceData.Id())
 			if err != nil {

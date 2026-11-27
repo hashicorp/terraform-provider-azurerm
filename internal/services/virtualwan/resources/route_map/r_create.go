@@ -11,7 +11,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualwans"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	virtualwanClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/virtualwan/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -24,7 +26,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.VirtualWan.VirtualWANs
+			client := virtualwanClient.From(metadata.Client).VirtualWANs
 			virtualHubId, err := virtualwans.ParseVirtualHubID(model.VirtualHubId)
 			if err != nil {
 				return err
@@ -32,7 +34,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			id := virtualwans.NewRouteMapID(virtualHubId.SubscriptionId, virtualHubId.ResourceGroupName, virtualHubId.VirtualHubName, model.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.RouteMapsGet(ctx, id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)

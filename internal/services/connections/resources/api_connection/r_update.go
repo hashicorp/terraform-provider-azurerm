@@ -10,13 +10,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2016-06-01/connections"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	connectionsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/connections/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceApiConnectionUpdate(d *schema.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Connections.ConnectionsClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	client := connectionsClient.From(meta).ConnectionsClient
+	ctx, cancel := timeouts.ForUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := connections.ParseConnectionID(d.Id())

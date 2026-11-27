@@ -12,7 +12,10 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/databases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/redisenterprise"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/custompollers"
 )
 
@@ -20,9 +23,9 @@ func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 45 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			clusterClient := metadata.Client.ManagedRedis.Client
-			dbClient := metadata.Client.ManagedRedis.DatabaseClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			clusterClient := client.From(metadata.Client).Client
+			dbClient := client.From(metadata.Client).DatabaseClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			var model ManagedRedisResourceModel
 			if err := metadata.Decode(&model); err != nil {
@@ -31,7 +34,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			clusterId := redisenterprise.NewRedisEnterpriseID(subscriptionId, model.ResourceGroupName, model.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existingCluster, err := clusterClient.Get(ctx, clusterId)
 				if err != nil {
 					if !response.WasNotFound(existingCluster.HttpResponse) {

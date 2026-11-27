@@ -16,22 +16,24 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	loadbalancerClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceArmLoadBalancerCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	client := loadbalancerClient.From(meta).LoadBalancersClient
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	id := loadbalancers.NewLoadBalancerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	// Casting because of a bug in provider ID generation due to a data issue that needs investigation.
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, loadbalancers.ProviderLoadBalancerId(id), loadbalancers.GetOperationOptions{})
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {

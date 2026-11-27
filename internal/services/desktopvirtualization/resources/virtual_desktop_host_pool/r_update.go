@@ -9,15 +9,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2025-10-10/hostpool"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	desktopvirtualizationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceVirtualDesktopHostPoolUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).DesktopVirtualization.HostPoolsClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	client := desktopvirtualizationClient.From(meta).HostPoolsClient
+	ctx, cancel := timeouts.ForUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := hostpool.ParseHostPoolID(d.Id())

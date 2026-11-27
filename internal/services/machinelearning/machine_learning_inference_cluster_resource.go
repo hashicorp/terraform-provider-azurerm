@@ -18,8 +18,11 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/machinelearningcomputes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	containersClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
+	machinelearningClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -134,9 +137,9 @@ func resourceAksInferenceCluster() *pluginsdk.Resource {
 }
 
 func resourceAksInferenceClusterCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).MachineLearning.MachineLearningComputes
-	aksClient := meta.(*clients.Client).Containers.KubernetesClustersClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	client := machinelearningClient.From(meta).MachineLearningComputes
+	aksClient := containersClient.From(meta).KubernetesClustersClient
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	// Define Inference Cluster Name
@@ -150,7 +153,7 @@ func resourceAksInferenceClusterCreate(d *pluginsdk.ResourceData, meta any) erro
 	computeId := machinelearningcomputes.NewComputeID(workspaceID.SubscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, d.Get("name").(string))
 
 	// Check if Inference Cluster already exists
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.ComputeGet(ctx, computeId)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -189,7 +192,7 @@ func resourceAksInferenceClusterCreate(d *pluginsdk.ResourceData, meta any) erro
 		Tags:       tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
-	id := machinelearningcomputes.NewComputeID(meta.(*clients.Client).Account.SubscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, name)
+	id := machinelearningcomputes.NewComputeID(account.From(meta).SubscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, name)
 
 	if err := client.ComputeCreateOrUpdateCallbackThenPoll(ctx, computeId, inferenceClusterParameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating Inference Cluster %q in workspace %q (Resource Group %q): %+v", name, workspaceID.WorkspaceName, workspaceID.ResourceGroupName, err)
@@ -200,8 +203,8 @@ func resourceAksInferenceClusterCreate(d *pluginsdk.ResourceData, meta any) erro
 }
 
 func resourceAksInferenceClusterRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).MachineLearning.MachineLearningComputes
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := machinelearningClient.From(meta).MachineLearningComputes
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := machinelearningcomputes.ParseComputeID(d.Id())
@@ -223,7 +226,7 @@ func resourceAksInferenceClusterRead(d *pluginsdk.ResourceData, meta any) error 
 	}
 
 	// Retrieve Machine Learning Workspace ID
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	subscriptionId := account.From(meta).SubscriptionId
 	workspaceId := machinelearningcomputes.NewWorkspaceID(subscriptionId, id.ResourceGroupName, id.WorkspaceName)
 	d.Set("machine_learning_workspace_id", workspaceId.ID())
 
@@ -260,8 +263,8 @@ func resourceAksInferenceClusterRead(d *pluginsdk.ResourceData, meta any) error 
 }
 
 func resourceAksInferenceClusterDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).MachineLearning.MachineLearningComputes
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := machinelearningClient.From(meta).MachineLearningComputes
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 	id, err := machinelearningcomputes.ParseComputeID(d.Id())
 	if err != nil {

@@ -7,15 +7,16 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/authorizationrulesnamespaces"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceEventHubNamespaceAuthorizationRuleDelete(d *pluginsdk.ResourceData, meta any) error {
-	eventhubClient := meta.(*clients.Client).Eventhub.NamespaceAuthorizationRulesClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	eventhubClient := client.From(meta).NamespaceAuthorizationRulesClient
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := authorizationrulesnamespaces.ParseAuthorizationRuleID(d.Id())

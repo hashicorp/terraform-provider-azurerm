@@ -16,15 +16,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-07-01/maintenanceconfigurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-07-01/managedclusters"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	containersClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Containers.KubernetesClustersClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := containersClient.From(meta).KubernetesClustersClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := commonids.ParseKubernetesClusterID(d.Id())
@@ -321,7 +322,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta any) error {
 		}
 
 		var maintenanceWindow any
-		maintenanceConfigurationsClient := meta.(*clients.Client).Containers.MaintenanceConfigurationsClient
+		maintenanceConfigurationsClient := containersClient.From(meta).MaintenanceConfigurationsClient
 		maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "default")
 		configResp, _ := maintenanceConfigurationsClient.Get(ctx, maintenanceId)
 		if configurationBody := configResp.Model; configurationBody != nil && configurationBody.Properties != nil {

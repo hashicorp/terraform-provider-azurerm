@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatedns"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 func resourcePrivateDnsZoneFlatten(ctx context.Context, d *pluginsdk.ResourceData, meta any, id *privatezones.PrivateDnsZoneId, privateZone *privatezones.PrivateZone, includeResource bool) error {
-	recordSetsClient := meta.(*clients.Client).PrivateDns.RecordSetsClient
+	recordSetsClient := client.From(meta).RecordSetsClient
 
 	d.Set("name", id.PrivateDnsZoneName)
 	d.Set("resource_group_name", id.ResourceGroupName)

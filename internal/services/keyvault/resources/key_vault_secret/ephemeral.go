@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	keyvaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
@@ -97,7 +98,7 @@ func (e *KeyVaultSecretEphemeralResource) Schema(_ context.Context, _ ephemeral.
 }
 
 func (e *KeyVaultSecretEphemeralResource) Open(ctx context.Context, req ephemeral.OpenRequest, resp *ephemeral.OpenResponse) {
-	keyVaultsClient := e.Client.KeyVault
+	keyVaultsClient := keyvaultClient.From(e.Client)
 	ctx, cancel := context.WithTimeout(ctx, time.Minute*5)
 	defer cancel()
 
@@ -119,7 +120,7 @@ func (e *KeyVaultSecretEphemeralResource) Open(ctx context.Context, req ephemera
 		return
 	}
 
-	client := e.Client.KeyVault.DataPlaneKeyVaultClient.Secrets.Clone(*keyVaultBaseUri)
+	client := keyvaultClient.From(e.Client).DataPlaneKeyVaultClient.Secrets.Clone(*keyVaultBaseUri)
 	secretVersionId := secrets.NewSecretversionID(*keyVaultBaseUri, data.Name.ValueString(), data.Version.ValueString())
 
 	getResp, err := client.GetSecret(ctx, secretVersionId)

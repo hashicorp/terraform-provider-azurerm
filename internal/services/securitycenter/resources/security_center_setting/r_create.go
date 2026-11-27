@@ -8,22 +8,24 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2022-05-01/settings"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	securitycenterClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceSecurityCenterSettingUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).SecurityCenter.SettingClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	client := securitycenterClient.From(meta).SettingClient
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	settingName := d.Get("setting_name").(string)
 	id := settings.NewSettingID(subscriptionId, settings.SettingName(settingName))
 
 	if d.IsNewResource() {
-		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 			existing, err := client.Get(ctx, id)
 			if err != nil {
 				return fmt.Errorf("checking for presence of existing %s: %v", id, err)

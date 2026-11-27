@@ -14,17 +14,19 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	computeClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceWindowsVirtualMachineDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Compute.VirtualMachinesClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := computeClient.From(meta).VirtualMachinesClient
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := virtualmachines.ParseVirtualMachineID(d.Id())
@@ -48,16 +50,16 @@ func resourceWindowsVirtualMachineDelete(d *pluginsdk.ResourceData, meta any) er
 	// as such we default this to `nil` which matches the previous behaviour (where this isn't sent) and
 	// conditionally set this if required
 	options := virtualmachines.DefaultDeleteOperationOptions()
-	if meta.(*clients.Client).Features.VirtualMachine.SkipShutdownAndForceDelete {
+	if features.From(meta).VirtualMachine.SkipShutdownAndForceDelete {
 		options.ForceDeletion = pointer.To(true)
 	}
 	if err := client.DeleteThenPoll(ctx, *id, options); err != nil {
 		return fmt.Errorf("deleting Windows %s: %+v", id, err)
 	}
 
-	deleteOSDisk := meta.(*clients.Client).Features.VirtualMachine.DeleteOSDiskOnDeletion
+	deleteOSDisk := features.From(meta).VirtualMachine.DeleteOSDiskOnDeletion
 	if deleteOSDisk {
-		disksClient := meta.(*clients.Client).Compute.DisksClient
+		disksClient := computeClient.From(meta).DisksClient
 		managedDiskId := ""
 		if model := existing.Model; model != nil {
 			if props := model.Properties; props.StorageProfile != nil && props.StorageProfile.OsDisk != nil {

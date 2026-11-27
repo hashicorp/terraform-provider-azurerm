@@ -15,9 +15,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/netappaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	keyVaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
+	netappClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 )
 
@@ -25,9 +28,9 @@ func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.NetApp.AccountClient
-			keyVaultsClient := metadata.Client.KeyVault
-			subscriptionId := commonids.NewSubscriptionID(metadata.Client.Account.SubscriptionId)
+			client := netappClient.From(metadata.Client).AccountClient
+			keyVaultsClient := keyVaultClient.From(metadata.Client)
+			subscriptionId := commonids.NewSubscriptionID(account.From(metadata.Client).SubscriptionId)
 
 			var model models.NetAppAccountEncryption
 			if err := metadata.Decode(&model); err != nil {
@@ -46,7 +49,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 			locks.ByID(accountID.ID())
 			defer locks.UnlockByID(accountID.ID())
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.AccountsGet(ctx, pointer.From(accountID))
 				if err != nil {
 					if response.WasNotFound(existing.HttpResponse) {

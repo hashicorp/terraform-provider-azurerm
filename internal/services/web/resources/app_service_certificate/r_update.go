@@ -8,18 +8,19 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/certificates"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	webClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/web/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceAppServiceCertificateUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Web.CertificatesClient
+	client := webClient.From(meta).CertificatesClient
 
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForUpdate(account.StopContext(meta), d)
 	defer cancel()
 
-	id := certificates.NewCertificateID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := certificates.NewCertificateID(account.From(meta).SubscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	existing, err := client.Get(ctx, id)
 	if err != nil {

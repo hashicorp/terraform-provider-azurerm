@@ -15,7 +15,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/tasks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	containersClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/base64"
 )
 
@@ -23,8 +25,8 @@ func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Containers.ContainerRegistryClient_v2019_06_01_preview.Tasks
-			registryClient := metadata.Client.Containers.ContainerRegistryClient.Registries
+			client := containersClient.From(metadata.Client).ContainerRegistryClient_v2019_06_01_preview.Tasks
+			registryClient := containersClient.From(metadata.Client).ContainerRegistryClient.Registries
 
 			var model ContainerRegistryTaskModel
 			if err := metadata.Decode(&model); err != nil {
@@ -43,7 +45,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			id := tasks.NewTaskID(registryId.SubscriptionId, registryId.ResourceGroupName, registryId.RegistryName, model.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {

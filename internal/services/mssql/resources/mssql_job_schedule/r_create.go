@@ -11,15 +11,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/jobs"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	mssqlClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/client"
 )
 
 func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MSSQL.JobsClient
+			client := mssqlClient.From(metadata.Client).JobsClient
 
 			var config MsSqlJobScheduleResourceModel
 			if err := metadata.Decode(&config); err != nil {
@@ -58,7 +60,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 			// Default schedule is disabled when created using the API
 			// if schedule is enabled we can reasonably assume the schedule was modified outside of Terraform and should be imported.
 			schedule := existing.Model.Properties.Schedule
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				if pointer.From(schedule.Enabled) {
 					return metadata.ResourceRequiresImport(r.ResourceType(), jobId)
 				}

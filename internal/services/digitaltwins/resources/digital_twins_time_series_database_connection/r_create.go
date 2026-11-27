@@ -11,14 +11,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/digitaltwins/2023-01-31/timeseriesdatabaseconnections"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	digitaltwinsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/digitaltwins/client"
 )
 
 func (m Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DigitalTwins.TimeSeriesDatabaseConnectionsClient
+			client := digitaltwinsClient.From(metadata.Client).TimeSeriesDatabaseConnectionsClient
 
 			var model TimeSeriesDatabaseConnectionModel
 			if err := metadata.Decode(&model); err != nil {
@@ -32,7 +34,7 @@ func (m Resource) Create() sdk.ResourceFunc {
 
 			id := timeseriesdatabaseconnections.NewTimeSeriesDatabaseConnectionID(digitalTwinsId.SubscriptionId, digitalTwinsId.ResourceGroupName, digitalTwinsId.DigitalTwinsInstanceName, model.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if !response.WasNotFound(existing.HttpResponse) {
 					if err != nil {

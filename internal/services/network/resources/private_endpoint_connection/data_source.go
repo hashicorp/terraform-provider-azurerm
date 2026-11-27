@@ -11,7 +11,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/privateendpoints"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	networkClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -82,10 +83,10 @@ func RegisterDataSource() *pluginsdk.Resource {
 }
 
 func dataSourcePrivateEndpointConnectionRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Network.PrivateEndpoints
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	nicsClient := meta.(*clients.Client).Network.NetworkInterfaces
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := networkClient.From(meta).PrivateEndpoints
+	subscriptionId := account.From(meta).SubscriptionId
+	nicsClient := networkClient.From(meta).NetworkInterfaces
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id := privateendpoints.NewPrivateEndpointID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))

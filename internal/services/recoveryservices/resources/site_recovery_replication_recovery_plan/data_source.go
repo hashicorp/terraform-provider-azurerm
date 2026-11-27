@@ -12,7 +12,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationrecoveryplans"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	recoveryservicesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -77,8 +79,8 @@ func (r DataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-			client := metadata.Client.RecoveryServices.ReplicationRecoveryPlansClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := recoveryservicesClient.From(metadata.Client).ReplicationRecoveryPlansClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			vaultId, err := replicationrecoveryplans.ParseVaultID(metaModel.RecoveryVaultId)
 			if err != nil {

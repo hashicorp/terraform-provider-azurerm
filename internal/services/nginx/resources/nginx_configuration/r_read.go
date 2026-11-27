@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxconfiguration"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxdeployment"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	nginxClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/nginx/client"
 )
 
 func (m Resource) Read() sdk.ResourceFunc {
@@ -24,7 +25,7 @@ func (m Resource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			client := meta.Client.Nginx.NginxConfiguration
+			client := nginxClient.From(meta.Client).NginxConfiguration
 			result, err := client.ConfigurationsGet(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(result.HttpResponse) {

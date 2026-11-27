@@ -11,8 +11,10 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	iothubClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub" // azignore:AZG010 - package name does not match its path
 )
@@ -20,7 +22,7 @@ import (
 func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.IoTHub.ResourceClient
+			client := iothubClient.From(metadata.Client).ResourceClient
 			var state IotHubFileUploadResourceModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
@@ -43,7 +45,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %q: %+v", id, err)
 			}
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				if iotHub.Properties != nil && iotHub.Properties.MessagingEndpoints != nil {
 					if storageEndpoint, ok := iotHub.Properties.StorageEndpoints["$default"]; ok {
 						if storageEndpoint.ConnectionString != nil && *storageEndpoint.ConnectionString != "" && storageEndpoint.ContainerName != nil && *storageEndpoint.ContainerName != "" {

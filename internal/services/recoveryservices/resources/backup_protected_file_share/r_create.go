@@ -17,21 +17,23 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protectioncontainers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	recoveryservicesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceBackupProtectedFileShareCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
-	protectedClient := meta.(*clients.Client).RecoveryServices.ProtectedItemsGroupClient
-	protectableClient := meta.(*clients.Client).RecoveryServices.ProtectableItemsClient
-	protectionContainerClient := meta.(*clients.Client).RecoveryServices.BackupProtectionContainersClient
-	client := meta.(*clients.Client).RecoveryServices.ProtectedItemsClient
-	opResultClient := meta.(*clients.Client).RecoveryServices.ProtectionContainerOperationResultsClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	protectedClient := recoveryservicesClient.From(meta).ProtectedItemsGroupClient
+	protectableClient := recoveryservicesClient.From(meta).ProtectableItemsClient
+	protectionContainerClient := recoveryservicesClient.From(meta).BackupProtectionContainersClient
+	client := recoveryservicesClient.From(meta).ProtectedItemsClient
+	opResultClient := recoveryservicesClient.From(meta).ProtectionContainerOperationResultsClient
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForCreateUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -160,7 +162,7 @@ func resourceBackupProtectedFileShareCreateUpdate(d *pluginsdk.ResourceData, met
 	id := protecteditems.NewProtectedItemID(subscriptionId, d.Get("resource_group_name").(string), d.Get("recovery_vault_name").(string), "Azure", containerName, fileShareSystemName)
 
 	if d.IsNewResource() {
-		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 			existing, err2 := client.Get(ctx, id, protecteditems.GetOperationOptions{})
 			if err2 != nil {
 				if !response.WasNotFound(existing.HttpResponse) {

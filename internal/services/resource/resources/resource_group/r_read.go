@@ -9,14 +9,15 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	resourceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceResourceGroupRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Resource.ResourceGroupsClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := resourceClient.From(meta).ResourceGroupsClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := commonids.ParseResourceGroupIDInsensitively(d.Id())

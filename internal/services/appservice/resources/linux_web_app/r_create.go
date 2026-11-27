@@ -17,7 +17,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	appserviceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 )
 
@@ -30,15 +33,15 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.AppService.WebAppsClient
-			resourceProvidersClient := metadata.Client.AppService.ResourceProvidersClient
-			aseClient := metadata.Client.AppService.AppServiceEnvironmentClient
-			servicePlanClient := metadata.Client.AppService.ServicePlanClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := appserviceClient.From(metadata.Client).WebAppsClient
+			resourceProvidersClient := appserviceClient.From(metadata.Client).ResourceProvidersClient
+			aseClient := appserviceClient.From(metadata.Client).AppServiceEnvironmentClient
+			servicePlanClient := appserviceClient.From(metadata.Client).ServicePlanClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			id := commonids.NewAppServiceID(subscriptionId, webApp.ResourceGroup, webApp.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing Linux %s: %+v", id, err)

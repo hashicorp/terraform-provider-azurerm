@@ -7,14 +7,15 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/cloudendpointresource"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	storageClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceStorageSyncCloudEndpointDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Storage.SyncCloudEndpointsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := storageClient.From(meta).SyncCloudEndpointsClient
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := cloudendpointresource.ParseCloudEndpointID(d.Id())

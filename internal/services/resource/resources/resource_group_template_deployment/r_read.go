@@ -11,7 +11,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources" //nolint:staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/deployments"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	resourceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -19,8 +20,8 @@ import (
 )
 
 func resourceGroupTemplateDeploymentResourceRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Resource.LegacyDeploymentsClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := resourceClient.From(meta).LegacyDeploymentsClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := deployments.ParseResourceGroupProviderDeploymentID(d.Id())

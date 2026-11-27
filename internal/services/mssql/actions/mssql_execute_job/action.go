@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	mssqlClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/custompollers"
 )
 
@@ -69,8 +70,8 @@ func (m *Action) Metadata(_ context.Context, _ action.MetadataRequest, response 
 }
 
 func (m *Action) Invoke(ctx context.Context, request action.InvokeRequest, response *action.InvokeResponse) {
-	client := m.Client.MSSQL.JobExecutionsClient
-	jobStepExecutionsClient := m.Client.MSSQL.JobStepExecutionsClient
+	client := mssqlClient.From(m.Client).JobExecutionsClient
+	jobStepExecutionsClient := mssqlClient.From(m.Client).JobStepExecutionsClient
 
 	model := MsSqlJobExecuteActionModel{}
 

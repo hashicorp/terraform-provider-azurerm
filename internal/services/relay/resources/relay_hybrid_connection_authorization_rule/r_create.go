@@ -10,21 +10,23 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/hybridconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	relayClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceRelayHybridConnectionAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Relay.HybridConnectionsClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	client := relayClient.From(meta).HybridConnectionsClient
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForCreateUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	resourceId := hybridconnections.NewHybridConnectionAuthorizationRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("hybrid_connection_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 			existing, err := client.GetAuthorizationRule(ctx, resourceId)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {

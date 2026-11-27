@@ -12,8 +12,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	cosmosClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -92,9 +94,9 @@ func resourceCosmosDbCassandraTable() *pluginsdk.Resource {
 }
 
 func resourceCosmosDbCassandraTableCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := cosmosClient.From(meta).CosmosDBClient
 
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	keyspaceId, err := cosmosdb.ParseCassandraKeyspaceID(d.Get("cassandra_keyspace_id").(string))
@@ -102,9 +104,9 @@ func resourceCosmosDbCassandraTableCreate(d *pluginsdk.ResourceData, meta any) e
 		return err
 	}
 
-	id := cosmosdb.NewCassandraKeyspaceTableID(meta.(*clients.Client).Account.SubscriptionId, keyspaceId.ResourceGroupName, keyspaceId.DatabaseAccountName, keyspaceId.CassandraKeyspaceName, d.Get("name").(string))
+	id := cosmosdb.NewCassandraKeyspaceTableID(account.From(meta).SubscriptionId, keyspaceId.ResourceGroupName, keyspaceId.DatabaseAccountName, keyspaceId.CassandraKeyspaceName, d.Get("name").(string))
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.CassandraResourcesGetCassandraTable(ctx, id)
 		if !response.WasNotFound(existing.HttpResponse) {
 			if err != nil {
@@ -152,9 +154,9 @@ func resourceCosmosDbCassandraTableCreate(d *pluginsdk.ResourceData, meta any) e
 }
 
 func resourceCosmosDbCassandraTableUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := cosmosClient.From(meta).CosmosDBClient
 
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := cosmosdb.ParseCassandraKeyspaceTableID(d.Id())
@@ -212,9 +214,9 @@ func resourceCosmosDbCassandraTableUpdate(d *pluginsdk.ResourceData, meta any) e
 }
 
 func resourceCosmosDbCassandraTableRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := cosmosClient.From(meta).CosmosDBClient
 
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := cosmosdb.ParseCassandraKeyspaceTableID(d.Id())
@@ -268,9 +270,9 @@ func resourceCosmosDbCassandraTableRead(d *pluginsdk.ResourceData, meta any) err
 }
 
 func resourceCosmosDbCassandraTableDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := cosmosClient.From(meta).CosmosDBClient
 
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := cosmosdb.ParseCassandraKeyspaceTableID(d.Id())

@@ -7,7 +7,6 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/action"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
@@ -16,7 +15,7 @@ type Action interface {
 }
 
 type ActionMetadata struct {
-	Client *clients.Client
+	Client ClientProvider
 
 	SubscriptionId string
 
@@ -29,13 +28,15 @@ func (a *ActionMetadata) Defaults(_ context.Context, request action.ConfigureReq
 		return
 	}
 
-	c, ok := request.ProviderData.(*clients.Client)
+	c, ok := request.ProviderData.(ClientProvider)
 	if !ok {
 		response.Diagnostics.AddError("Client Provider Data Error", "invalid provider data supplied")
 		return
 	}
 
 	a.Client = c
-	a.SubscriptionId = c.Account.SubscriptionId
-	a.Features = c.Features
+	if acc := c.ClientAccount(); acc != nil {
+		a.SubscriptionId = acc.SubscriptionId
+	}
+	a.Features = c.UserFeatures()
 }

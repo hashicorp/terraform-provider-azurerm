@@ -7,14 +7,15 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2025-10-10/scalingplan"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	desktopvirtualizationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceVirtualDesktopScalingPlanDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).DesktopVirtualization.ScalingPlansClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := desktopvirtualizationClient.From(meta).ScalingPlansClient
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := scalingplan.ParseScalingPlanID(d.Id())

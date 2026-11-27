@@ -13,13 +13,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-03-01/updateruns"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	containersClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
 )
 
 func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Containers.FleetUpdateRunsClient
+			client := containersClient.From(metadata.Client).FleetUpdateRunsClient
 			schema := KubernetesFleetUpdateRunResourceSchema{}
 
 			id, err := updateruns.ParseUpdateRunID(metadata.ResourceData.Id())

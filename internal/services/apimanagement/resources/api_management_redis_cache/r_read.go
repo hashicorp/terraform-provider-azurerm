@@ -12,20 +12,21 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/cache"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	apimanagementClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceApiManagementRedisCacheRead(d *pluginsdk.ResourceData, meta any) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	client := meta.(*clients.Client).ApiManagement.CacheClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	subscriptionId := account.From(meta).SubscriptionId
+	client := apimanagementClient.From(meta).CacheClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
-	resourceManagerEndpoint, ok := meta.(*clients.Client).Account.Environment.ResourceManager.Endpoint()
+	resourceManagerEndpoint, ok := account.From(meta).Environment.ResourceManager.Endpoint()
 	if !ok {
-		return fmt.Errorf("could not determine Resource Manager endpoint suffix for environment %q", meta.(*clients.Client).Account.Environment.Name)
+		return fmt.Errorf("could not determine Resource Manager endpoint suffix for environment %q", account.From(meta).Environment.Name)
 	}
 
 	id, err := cache.ParseCacheID(d.Id())

@@ -18,25 +18,27 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2024-05-01/deletedconfigurationstores"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2024-05-01/replicas"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	appconfigurationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).AppConfiguration.ConfigurationStoresClient
-	deletedConfigurationStoresClient := meta.(*clients.Client).AppConfiguration.DeletedConfigurationStoresClient
+	client := appconfigurationClient.From(meta).ConfigurationStoresClient
+	deletedConfigurationStoresClient := appconfigurationClient.From(meta).DeletedConfigurationStoresClient
 
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	resourceId := configurationstores.NewConfigurationStoreID(subscriptionId, resourceGroup, name)
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, resourceId)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -51,7 +53,7 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta any) error {
 	location := location.Normalize(d.Get("location").(string))
 
 	recoverSoftDeleted := false
-	if meta.(*clients.Client).Features.AppConfiguration.RecoverSoftDeleted {
+	if features.From(meta).AppConfiguration.RecoverSoftDeleted {
 		deletedConfigurationStoresId := deletedconfigurationstores.NewDeletedConfigurationStoreID(subscriptionId, location, name)
 		deleted, err := deletedConfigurationStoresClient.ConfigurationStoresGetDeleted(ctx, deletedConfigurationStoresId)
 		if err != nil {
@@ -122,14 +124,14 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta any) error {
 	if resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.Endpoint == nil {
 		return fmt.Errorf("retrieving %s: `model.properties.Endpoint` was nil", resourceId)
 	}
-	meta.(*clients.Client).AppConfiguration.AddToCache(resourceId, *resp.Model.Properties.Endpoint)
+	appconfigurationClient.From(meta).AddToCache(resourceId, *resp.Model.Properties.Endpoint)
 
 	expandedReplicas, err := expandAppConfigurationReplicas(d.Get("replica").(*pluginsdk.Set).List(), name, location)
 	if err != nil {
 		return fmt.Errorf("expanding `replica`: %+v", err)
 	}
 
-	replicaClient := meta.(*clients.Client).AppConfiguration.ReplicasClient
+	replicaClient := appconfigurationClient.From(meta).ReplicasClient
 	for _, replica := range *expandedReplicas {
 		replicaId := replicas.NewReplicaID(resourceId.SubscriptionId, resourceId.ResourceGroupName, resourceId.ConfigurationStoreName, *replica.Name)
 

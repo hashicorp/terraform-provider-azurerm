@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	datafactoryClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 )
 
@@ -18,7 +19,7 @@ func (Resource) Delete() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			d := metadata.ResourceData
-			client := metadata.Client.DataFactory.DatasetClient
+			client := datafactoryClient.From(metadata.Client).DatasetClient
 
 			id, err := parse.DataSetID(d.Id())
 			if err != nil {

@@ -15,7 +15,10 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupinstanceresources"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupvaultresources"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/basebackuppolicyresources"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	dataprotectionClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -28,7 +31,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.DataProtection.BackupInstanceClient
+			client := dataprotectionClient.From(metadata.Client).BackupInstanceClient
 
 			vaultId, err := backupvaultresources.ParseBackupVaultID(model.VaultId)
 			if err != nil {
@@ -37,7 +40,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			id := backupinstanceresources.NewBackupInstanceID(vaultId.SubscriptionId, vaultId.ResourceGroupName, vaultId.BackupVaultName, model.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.BackupInstancesGet(ctx, id)
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {
@@ -60,7 +63,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			snapshotResourceGroupId := commonids.NewResourceGroupID(metadata.Client.Account.SubscriptionId, model.SnapshotResourceGroupName)
+			snapshotResourceGroupId := commonids.NewResourceGroupID(account.From(metadata.Client).SubscriptionId, model.SnapshotResourceGroupName)
 			parameters := backupinstanceresources.BackupInstanceResource{
 				Properties: &backupinstanceresources.BackupInstance{
 					DataSourceInfo: backupinstanceresources.Datasource{

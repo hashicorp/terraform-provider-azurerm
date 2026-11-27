@@ -12,8 +12,10 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	iothubClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub" // azignore:AZG010 - package name does not match its path
 )
@@ -21,8 +23,8 @@ import (
 func (r Resource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.IoTHub.ResourceClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := iothubClient.From(metadata.Client).ResourceClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			id, err := parse.EndpointCosmosDBAccountID(metadata.ResourceData.Id())
 			if err != nil {

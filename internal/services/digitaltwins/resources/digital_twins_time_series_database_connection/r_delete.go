@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/digitaltwins/2023-01-31/timeseriesdatabaseconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	digitaltwinsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/digitaltwins/client"
 )
 
 func (m Resource) Delete() sdk.ResourceFunc {
@@ -21,7 +22,7 @@ func (m Resource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			client := meta.Client.DigitalTwins.TimeSeriesDatabaseConnectionsClient
+			client := digitaltwinsClient.From(meta.Client).TimeSeriesDatabaseConnectionsClient
 			if err = client.DeleteThenPoll(ctx, *id, timeseriesdatabaseconnections.DefaultDeleteOperationOptions()); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}

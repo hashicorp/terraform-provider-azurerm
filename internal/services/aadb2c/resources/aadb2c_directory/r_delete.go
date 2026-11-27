@@ -10,13 +10,14 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview/tenants"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	aadb2cClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/aadb2c/client"
 )
 
 func (r Resource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AadB2c.Tenants
+			client := aadb2cClient.From(metadata.Client).Tenants
 
 			id, err := tenants.ParseB2CDirectoryID(metadata.ResourceData.Id())
 			if err != nil {

@@ -11,13 +11,14 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2024-03-01/webpubsub"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	signalrClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/client"
 )
 
 func (w Resource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.SignalR.WebPubSubClient.WebPubSub
+			client := signalrClient.From(metadata.Client).WebPubSubClient.WebPubSub
 
 			id, err := webpubsub.ParseWebPubSubID(metadata.ResourceData.Id())
 			if err != nil {

@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/serverdnsaliases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	mssqlClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/client"
 )
 
 func (m Resource) Delete() sdk.ResourceFunc {
@@ -20,7 +21,7 @@ func (m Resource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			client := metadata.Client.MSSQL.ServerDNSAliasClient
+			client := mssqlClient.From(metadata.Client).ServerDNSAliasClient
 			if err = client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %v", id, err)
 			}

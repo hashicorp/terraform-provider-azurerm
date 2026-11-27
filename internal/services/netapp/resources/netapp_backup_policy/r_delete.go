@@ -11,13 +11,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/backuppolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	netappClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/client"
 )
 
 func (r Resource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 120 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.NetApp.BackupPolicyClient
+			client := netappClient.From(metadata.Client).BackupPolicyClient
 
 			id, err := backuppolicies.ParseBackupPolicyID(metadata.ResourceData.Id())
 			if err != nil {

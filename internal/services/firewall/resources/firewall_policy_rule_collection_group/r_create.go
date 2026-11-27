@@ -11,16 +11,18 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/firewallpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/firewallpolicyrulecollectiongroups"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	networkClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceFirewallPolicyRuleCollectionGroupCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Network.FirewallPolicyRuleCollectionGroups
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	client := networkClient.From(meta).FirewallPolicyRuleCollectionGroups
+	ctx, cancel := timeouts.ForCreateUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	policyId, err := firewallpolicies.ParseFirewallPolicyID(d.Get("firewall_policy_id").(string))
@@ -31,7 +33,7 @@ func resourceFirewallPolicyRuleCollectionGroupCreateUpdate(d *pluginsdk.Resource
 	id := firewallpolicyrulecollectiongroups.NewRuleCollectionGroupID(policyId.SubscriptionId, policyId.ResourceGroupName, policyId.FirewallPolicyName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 			resp, err := client.Get(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(resp.HttpResponse) {

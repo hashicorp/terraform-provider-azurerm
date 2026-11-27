@@ -11,14 +11,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/analyticsitemsapis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	applicationinsightsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceApplicationInsightsAnalyticsItemRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).AppInsights.AnalyticsItemsClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := applicationinsightsClient.From(meta).AnalyticsItemsClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, itemId, err := ParseGeneratedAnalyticsItemId(d.Id())

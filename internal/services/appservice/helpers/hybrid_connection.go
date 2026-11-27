@@ -11,10 +11,11 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/hybridconnections"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/client"
 )
 
 func GetSendKeyValue(ctx context.Context, metadata sdk.ResourceMetaData, id hybridconnections.HybridConnectionId, sendKeyName string) (*string, error) {
-	relayNamespaceClient := metadata.Client.Relay.NamespacesClient
+	relayNamespaceClient := client.From(metadata.Client).NamespacesClient
 	relayConnectionId := namespaces.NewAuthorizationRuleID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, sendKeyName)
 	relayKeys, err := relayNamespaceClient.ListKeys(ctx, relayConnectionId)
 	if err != nil && !response.WasNotFound(relayKeys.HttpResponse) {
@@ -24,7 +25,7 @@ func GetSendKeyValue(ctx context.Context, metadata sdk.ResourceMetaData, id hybr
 		return relayKeys.Model.PrimaryKey, nil
 	}
 
-	hybridConnectionsClient := metadata.Client.Relay.HybridConnectionsClient
+	hybridConnectionsClient := client.From(metadata.Client).HybridConnectionsClient
 	connectionId := hybridconnections.NewHybridConnectionAuthorizationRuleID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, id.HybridConnectionName, sendKeyName)
 	keys, err := hybridConnectionsClient.ListKeys(ctx, connectionId)
 	if err != nil {

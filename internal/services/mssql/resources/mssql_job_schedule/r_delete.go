@@ -12,13 +12,14 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/jobs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	mssqlClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/client"
 )
 
 func (Resource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MSSQL.JobsClient
+			client := mssqlClient.From(metadata.Client).JobsClient
 
 			jobId, err := jobs.ParseJobID(metadata.ResourceData.Id())
 			if err != nil {

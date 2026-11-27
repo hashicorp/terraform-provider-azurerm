@@ -9,8 +9,8 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/dataconnectors"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	sentinelClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -40,7 +40,7 @@ func ImportSentinelDataConnector(expectKind dataconnectors.DataConnectorKind) fu
 			return err
 		}
 
-		client := meta.(*clients.Client).Sentinel.DataConnectorsClient
+		client := sentinelClient.From(meta).DataConnectorsClient
 
 		resp, err := client.Get(ctx, *id)
 		if err != nil {

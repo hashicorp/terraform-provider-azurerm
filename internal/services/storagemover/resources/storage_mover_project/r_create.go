@@ -11,7 +11,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2025-07-01/projects"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2025-07-01/storagemovers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	storagemoverClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/storagemover/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -24,7 +26,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.StorageMover.ProjectsClient
+			client := storagemoverClient.From(metadata.Client).ProjectsClient
 			storageMoverId, err := storagemovers.ParseStorageMoverID(model.StorageMoverId)
 			if err != nil {
 				return err
@@ -32,7 +34,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			id := projects.NewProjectID(storageMoverId.SubscriptionId, storageMoverId.ResourceGroupName, storageMoverId.StorageMoverName, model.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for existing %s: %+v", id, err)

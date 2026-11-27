@@ -13,13 +13,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	servicebusClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/client"
 )
 
 func (r Resource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ServiceBus.NamespacesClient
+			client := servicebusClient.From(metadata.Client).NamespacesClient
 			var cmk ServiceBusNamespaceCustomerManagedKeyModel
 
 			if err := metadata.Decode(&cmk); err != nil {

@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dnsresolver/2022-07-01/dnsresolvers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dnsresolver/2022-07-01/outboundendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	privatednsresolverClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/privatednsresolver/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -74,7 +75,7 @@ func (r DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PrivateDnsResolver.OutboundEndpointsClient
+			client := privatednsresolverClient.From(metadata.Client).OutboundEndpointsClient
 
 			var state PrivateDNSResolverOutboundEndpointDataSourceModel
 			if err := metadata.Decode(&state); err != nil {

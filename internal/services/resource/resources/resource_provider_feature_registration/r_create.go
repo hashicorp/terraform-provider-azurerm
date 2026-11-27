@@ -12,7 +12,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2021-07-01/features"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	providerFeatures "github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	resourceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -20,14 +23,14 @@ import (
 func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Resource.FeaturesClient
+			client := resourceClient.From(metadata.Client).FeaturesClient
 
 			var obj ResourceProviderFeatureRegistrationModel
 			if err := metadata.Decode(&obj); err != nil {
 				return err
 			}
 
-			featureId := features.NewFeatureID(metadata.Client.Account.SubscriptionId, obj.ProviderName, obj.Name)
+			featureId := features.NewFeatureID(account.From(metadata.Client).SubscriptionId, obj.ProviderName, obj.Name)
 
 			provider, err := client.Get(ctx, featureId)
 			if err != nil {
@@ -47,7 +50,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: `registrationState` was nil", featureId)
 			}
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !providerFeatures.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				if strings.EqualFold(registrationState, Registered) {
 					return metadata.ResourceRequiresImport(r.ResourceType(), featureId)
 				}

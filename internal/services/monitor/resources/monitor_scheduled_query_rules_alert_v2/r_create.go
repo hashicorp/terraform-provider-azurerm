@@ -14,7 +14,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-15-preview/scheduledqueryrules"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	monitorClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -27,11 +30,11 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.Monitor.ScheduledQueryRulesV2Client
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := monitorClient.From(metadata.Client).ScheduledQueryRulesV2Client
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 			id := scheduledqueryrules.NewScheduledQueryRuleID(subscriptionId, model.ResourceGroupName, model.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for existing %s: %+v", id, err)

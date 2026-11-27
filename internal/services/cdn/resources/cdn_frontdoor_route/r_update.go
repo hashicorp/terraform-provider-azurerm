@@ -9,8 +9,9 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/routes"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	cdnClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -18,9 +19,9 @@ import (
 )
 
 func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cdn.FrontDoorRoutesClient
+	client := cdnClient.From(meta).FrontDoorRoutesClient
 
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := routes.ParseRouteID(d.Id())

@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	horizondbClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/horizondb/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -41,7 +42,7 @@ func (HorizondbClusterListResource) List(ctx context.Context, request list.ListR
 		subscriptionId = config.SubscriptionId.ValueString()
 	}
 
-	client := metadata.Client.HorizonDB.ClustersClient
+	client := horizondbClient.From(metadata.Client).ClustersClient
 	var items []clusters.Cluster
 	if !config.ResourceGroupName.IsNull() {
 		resp, err := client.ListByResourceGroupComplete(ctx, commonids.NewResourceGroupID(subscriptionId, config.ResourceGroupName.ValueString()))
@@ -92,7 +93,7 @@ func (HorizondbClusterListResource) List(ctx context.Context, request list.ListR
 					return
 				}
 
-				administratorLogin, err = readHorizondbClusterAdministratorLogin(ctx, metadata.Client.HorizonDB.PasswordAuthenticationsClient, *id)
+				administratorLogin, err = readHorizondbClusterAdministratorLogin(ctx, horizondbClient.From(metadata.Client).PasswordAuthenticationsClient, *id)
 				if err != nil {
 					sdk.SetErrorDiagnosticAndPushListResult(result, push, "retrieving HorizonDB Cluster administrator login", err)
 					return

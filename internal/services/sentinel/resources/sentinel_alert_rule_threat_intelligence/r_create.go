@@ -14,7 +14,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/alertruletemplates"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2023-12-01-preview/alertrules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	sentinelClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/client"
 )
 
 func (a Resource) Create() sdk.ResourceFunc {
@@ -26,8 +28,8 @@ func (a Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-			client := metadata.Client.Sentinel.AlertRulesClient
-			alertRuleTemplatesClient := metadata.Client.Sentinel.AlertRuleTemplatesClient
+			client := sentinelClient.From(metadata.Client).AlertRulesClient
+			alertRuleTemplatesClient := sentinelClient.From(metadata.Client).AlertRuleTemplatesClient
 
 			workspaceID, err := workspaces.ParseWorkspaceID(config.WorkspaceId)
 			if err != nil {
@@ -36,7 +38,7 @@ func (a Resource) Create() sdk.ResourceFunc {
 
 			id := alertrules.NewAlertRuleID(workspaceID.SubscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, config.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				resp, err := client.Get(ctx, id)
 				if err != nil {
 					if !response.WasNotFound(resp.HttpResponse) {

@@ -10,13 +10,14 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/localuseroperationgroup"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	storageClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 )
 
 func (r Resource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Storage.ResourceManager.LocalUserOperationGroup
+			client := storageClient.From(metadata.Client).ResourceManager.LocalUserOperationGroup
 
 			id, err := localuseroperationgroup.ParseLocalUserID(metadata.ResourceData.Id())
 			if err != nil {

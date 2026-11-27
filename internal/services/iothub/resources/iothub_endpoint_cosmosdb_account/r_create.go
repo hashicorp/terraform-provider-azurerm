@@ -13,8 +13,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	iothubClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub" // azignore:AZG010 - package name does not match its path
 )
@@ -27,8 +30,8 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.IoTHub.ResourceClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := iothubClient.From(metadata.Client).ResourceClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			iotHubId, err := parse.IotHubID(state.IothubId)
 			if err != nil {
@@ -112,7 +115,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			for _, existingEndpoint := range pointer.From(routing.Endpoints.CosmosDBSQLCollections) {
 				if strings.EqualFold(pointer.From(existingEndpoint.Name), id.EndpointName) {
-					if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+					if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 						return tf.ImportAsExistsError(r.ResourceType(), id.ID())
 					}
 				}

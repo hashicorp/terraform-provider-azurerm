@@ -10,14 +10,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	computeClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceWindowsVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Compute.VirtualMachineScaleSetsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := computeClient.From(meta).VirtualMachineScaleSetsClient
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := virtualmachinescalesets.ParseVirtualMachineScaleSetID(d.Id())
@@ -35,7 +37,7 @@ func resourceWindowsVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData, meta
 	}
 
 	// If rolling upgrades are configured and running we need to cancel them before trying to delete the VMSS
-	if err := meta.(*clients.Client).Compute.CancelRollingUpgradesBeforeDeletion(ctx, *id); err != nil {
+	if err := computeClient.From(meta).CancelRollingUpgradesBeforeDeletion(ctx, *id); err != nil {
 		return fmt.Errorf("cancelling rolling upgrades for %s: %+v", *id, err)
 	}
 
@@ -45,7 +47,7 @@ func resourceWindowsVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData, meta
 	// Original Error: Code="InUseSubnetCannotBeDeleted" Message="Subnet internal is in use by
 	// /{nicResourceID}/|providers|Microsoft.Compute|virtualMachineScaleSets|acctestvmss-190923101253410278|virtualMachines|0|networkInterfaces|example/ipConfigurations/internal and cannot be deleted.
 	// In order to delete the subnet, delete all the resources within the subnet. See aka.ms/deletesubnet.
-	scaleToZeroOnDelete := meta.(*clients.Client).Features.VirtualMachineScaleSet.ScaleToZeroOnDelete
+	scaleToZeroOnDelete := features.From(meta).VirtualMachineScaleSet.ScaleToZeroOnDelete
 	if scaleToZeroOnDelete && resp.Model != nil && resp.Model.Sku != nil {
 		resp.Model.Sku.Capacity = pointer.To(int64(0))
 

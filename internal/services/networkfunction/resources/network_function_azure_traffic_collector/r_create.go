@@ -11,7 +11,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/networkfunction/2022-11-01/azuretrafficcollectors"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	networkfunctionClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/networkfunction/client"
 )
 
 func (r Resource) Create() sdk.ResourceFunc {
@@ -23,10 +26,10 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.NetworkFunction.AzureTrafficCollectorsClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := networkfunctionClient.From(metadata.Client).AzureTrafficCollectorsClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 			id := azuretrafficcollectors.NewAzureTrafficCollectorID(subscriptionId, model.ResourceGroupName, model.Name)
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for existing %s: %+v", id, err)

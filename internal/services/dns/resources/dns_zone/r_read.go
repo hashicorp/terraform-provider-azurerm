@@ -13,14 +13,15 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/recordsets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/client"
 )
 
 func (Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			zonesClient := metadata.Client.Dns.Zones
-			recordSetsClient := metadata.Client.Dns.RecordSets
+			zonesClient := client.From(metadata.Client).Zones
+			recordSetsClient := client.From(metadata.Client).RecordSets
 
 			state := DnsZoneResourceModel{}
 

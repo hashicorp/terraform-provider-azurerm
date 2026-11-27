@@ -17,7 +17,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-11-01/redispatchschedules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-11-01/redisresources"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	redisClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -247,10 +248,10 @@ func RegisterDataSource() *pluginsdk.Resource {
 }
 
 func dataSourceRedisCacheRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Redis.RedisResourcesClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	patchSchedulesClient := meta.(*clients.Client).Redis.PatchSchedulesClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := redisClient.From(meta).RedisResourcesClient
+	subscriptionId := account.From(meta).SubscriptionId
+	patchSchedulesClient := redisClient.From(meta).PatchSchedulesClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id := redisresources.NewRediID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))

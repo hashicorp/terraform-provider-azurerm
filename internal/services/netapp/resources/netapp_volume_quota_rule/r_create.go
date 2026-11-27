@@ -14,7 +14,10 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/volumequotarules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	netappClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 )
@@ -23,8 +26,8 @@ func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.NetApp.VolumeQuotaRules
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := netappClient.From(metadata.Client).VolumeQuotaRules
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			var model models.NetAppVolumeQuotaRuleModel
 			if err := metadata.Decode(&model); err != nil {
@@ -38,7 +41,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			id := volumequotarules.NewVolumeQuotaRuleID(subscriptionId, volumeID.ResourceGroupName, volumeID.NetAppAccountName, volumeID.CapacityPoolName, volumeID.VolumeName, model.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {

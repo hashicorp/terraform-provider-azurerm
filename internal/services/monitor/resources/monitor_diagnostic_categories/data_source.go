@@ -11,7 +11,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-05-01-preview/diagnosticsettingscategories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -61,8 +62,8 @@ func RegisterDataSource() *pluginsdk.Resource {
 }
 
 func dataSourceMonitorDiagnosticCategoriesRead(d *pluginsdk.ResourceData, meta any) error {
-	categoriesClient := meta.(*clients.Client).Monitor.DiagnosticSettingsCategoryClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	categoriesClient := client.From(meta).DiagnosticSettingsCategoryClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	actualResourceId := commonids.NewScopeID(d.Get("resource_id").(string))

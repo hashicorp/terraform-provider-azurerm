@@ -7,14 +7,15 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2023-12-01-preview/alertrules"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	sentinelClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceSentinelAlertRuleNrtDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Sentinel.AlertRulesClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := sentinelClient.From(meta).AlertRulesClient
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := alertrules.ParseAlertRuleID(d.Id())

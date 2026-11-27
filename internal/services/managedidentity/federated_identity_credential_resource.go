@@ -13,9 +13,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2024-11-30/federatedidentitycredentials"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	managedidentityClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedidentity/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -96,7 +99,7 @@ func (r FederatedIdentityCredentialResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ManagedIdentity.V20241130.FederatedIdentityCredentials
+			client := managedidentityClient.From(metadata.Client).V20241130.FederatedIdentityCredentials
 
 			var config FederatedIdentityCredentialResourceSchema
 			if err := metadata.Decode(&config); err != nil {
@@ -111,9 +114,9 @@ func (r FederatedIdentityCredentialResource) Create() sdk.ResourceFunc {
 			locks.ByID(parentId.ID())
 			defer locks.UnlockByID(parentId.ID())
 
-			id := federatedidentitycredentials.NewFederatedIdentityCredentialID(metadata.Client.Account.SubscriptionId, parentId.ResourceGroupName, parentId.UserAssignedIdentityName, config.Name)
+			id := federatedidentitycredentials.NewFederatedIdentityCredentialID(account.From(metadata.Client).SubscriptionId, parentId.ResourceGroupName, parentId.UserAssignedIdentityName, config.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {
@@ -156,7 +159,7 @@ func (r FederatedIdentityCredentialResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ManagedIdentity.V20241130.FederatedIdentityCredentials
+			client := managedidentityClient.From(metadata.Client).V20241130.FederatedIdentityCredentials
 
 			id, err := federatedidentitycredentials.ParseFederatedIdentityCredentialID(metadata.ResourceData.Id())
 			if err != nil {
@@ -199,7 +202,7 @@ func (r FederatedIdentityCredentialResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, rmd sdk.ResourceMetaData) error {
-			client := rmd.Client.ManagedIdentity.V20241130.FederatedIdentityCredentials
+			client := managedidentityClient.From(rmd.Client).V20241130.FederatedIdentityCredentials
 
 			var config FederatedIdentityCredentialResourceSchema
 			if err := rmd.Decode(&config); err != nil {
@@ -254,7 +257,7 @@ func (r FederatedIdentityCredentialResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ManagedIdentity.V20241130.FederatedIdentityCredentials
+			client := managedidentityClient.From(metadata.Client).V20241130.FederatedIdentityCredentials
 
 			var config FederatedIdentityCredentialResourceSchema
 			if err := metadata.Decode(&config); err != nil {

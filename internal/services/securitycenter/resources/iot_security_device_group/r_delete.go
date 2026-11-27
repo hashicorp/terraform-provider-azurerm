@@ -6,15 +6,16 @@ package iot_security_device_group
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	securitycenterClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceIotSecurityDeviceGroupDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).SecurityCenter.DeviceSecurityGroupsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := securitycenterClient.From(meta).DeviceSecurityGroupsClient
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := parse.IotSecurityDeviceGroupID(d.Id())

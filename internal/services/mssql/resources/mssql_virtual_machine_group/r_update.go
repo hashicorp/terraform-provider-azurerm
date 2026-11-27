@@ -11,7 +11,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2023-10-01/sqlvirtualmachinegroups"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	mssqlClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/client"
 )
 
 func (r Resource) Update() sdk.ResourceFunc {
@@ -23,8 +25,8 @@ func (r Resource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.MSSQL.VirtualMachineGroupsClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := mssqlClient.From(metadata.Client).VirtualMachineGroupsClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			id := sqlvirtualmachinegroups.NewSqlVirtualMachineGroupID(subscriptionId, model.ResourceGroup, model.Name)
 

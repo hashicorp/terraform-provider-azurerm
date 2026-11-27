@@ -13,7 +13,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2016-06-01/connections"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	connectionsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/connections/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -94,8 +96,8 @@ func (r DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Connections.ConnectionsClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := connectionsClient.From(metadata.Client).ConnectionsClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			var state ApiConnectionDataSourceModel
 			if err := metadata.Decode(&state); err != nil {

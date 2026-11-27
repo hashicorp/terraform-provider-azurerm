@@ -9,14 +9,15 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2026-10-01/firewallrules"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	postgresClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourcePostgresqlFlexibleServerFirewallRuleRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Postgres.FlexibleServerFirewallRuleClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := postgresClient.From(meta).FlexibleServerFirewallRuleClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := firewallrules.ParseFirewallRuleID(d.Id())

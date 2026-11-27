@@ -11,15 +11,17 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/analyticsitemsapis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	applicationinsightsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceApplicationInsightsAnalyticsItemCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).AppInsights.AnalyticsItemsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	client := applicationinsightsClient.From(meta).AnalyticsItemsClient
+	ctx, cancel := timeouts.ForCreateUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	appInsightsId, err := componentsapis.ParseComponentID(d.Get("application_insights_id").(string))
@@ -41,7 +43,7 @@ func resourceApplicationInsightsAnalyticsItemCreate(d *pluginsdk.ResourceData, m
 
 	id := analyticsitemsapis.NewProviderComponentID(appInsightsId.SubscriptionId, appInsightsId.ResourceGroupName, appInsightsId.ComponentName, itemScopePath)
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		// We cannot get specific analytics items without their itemID which is why we need to list all the
 		// available items of a certain type and scope in order to check whether a resource already exists and needs
 		// to be imported first

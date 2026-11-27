@@ -8,15 +8,16 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/vnetpeering"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	databricksClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceDatabricksVirtualNetworkPeeringUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).DataBricks.VnetPeeringClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	client := databricksClient.From(meta).VnetPeeringClient
+	ctx, cancel := timeouts.ForCreateUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := vnetpeering.ParseVirtualNetworkPeeringID(d.Id())

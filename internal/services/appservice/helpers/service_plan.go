@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	appserviceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/client"
 )
 
 const (
@@ -218,8 +219,8 @@ func PlanSupportsZoneBalancing(input string) bool {
 
 // ServicePlanInfoForApp returns the OS type and Service Plan SKU for a given App Service Resource
 func ServicePlanInfoForApp(ctx context.Context, metadata sdk.ResourceMetaData, id commonids.AppServiceId) (osType *string, planSku *string, err error) {
-	client := metadata.Client.AppService.WebAppsClient
-	servicePlanClient := metadata.Client.AppService.ServicePlanClient
+	client := appserviceClient.From(metadata.Client).WebAppsClient
+	servicePlanClient := appserviceClient.From(metadata.Client).ServicePlanClient
 
 	site, err := client.Get(ctx, id)
 	if err != nil || site.Model == nil || site.Model.Properties == nil {
@@ -254,8 +255,8 @@ func ServicePlanInfoForApp(ctx context.Context, metadata sdk.ResourceMetaData, i
 
 // ServicePlanInfoForAppSlot returns the OS type and Service Plan SKU for a given App Service Resource
 func ServicePlanInfoForAppSlot(ctx context.Context, metadata sdk.ResourceMetaData, id webapps.SlotId) (osType *string, planSku *string, err error) {
-	client := metadata.Client.AppService.WebAppsClient
-	servicePlanClient := metadata.Client.AppService.ServicePlanClient
+	client := appserviceClient.From(metadata.Client).WebAppsClient
+	servicePlanClient := appserviceClient.From(metadata.Client).ServicePlanClient
 
 	site, err := client.GetSlot(ctx, id)
 	if err != nil || site.Model == nil || site.Model.Properties == nil {

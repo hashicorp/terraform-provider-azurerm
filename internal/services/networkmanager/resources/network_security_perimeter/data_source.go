@@ -14,7 +14,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networksecurityperimeters"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	networkmanagerClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/networkmanager/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -66,8 +68,8 @@ func (DataSource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.NetworkManager.NetworkSecurityPerimetersClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := networkmanagerClient.From(metadata.Client).NetworkSecurityPerimetersClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			var state NetworkSecurityPerimeterDataSourceModel
 			if err := metadata.Decode(&state); err != nil {

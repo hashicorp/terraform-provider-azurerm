@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/rulesets"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	cdnClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -31,7 +31,7 @@ func RegisterResource() *pluginsdk.Resource {
 			_, err := rulesets.ParseRuleSetID(id)
 			return err
 		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta any) ([]*pluginsdk.ResourceData, error) {
-			client := meta.(*clients.Client).Cdn.FrontDoorRuleSetsClient
+			client := cdnClient.From(meta).FrontDoorRuleSetsClient
 
 			id, _ := rulesets.ParseRuleSetID(d.Id())
 			resp, err := client.Get(ctx, *id)

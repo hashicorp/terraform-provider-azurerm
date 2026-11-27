@@ -9,14 +9,15 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/snapshots"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	netappClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceNetAppSnapshotDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).NetApp.SnapshotClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := netappClient.From(meta).SnapshotClient
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := snapshots.ParseSnapshotID(d.Id())

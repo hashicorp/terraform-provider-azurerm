@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/accessconnector"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	databricksClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/client"
 )
 
 func (r Resource) Delete() sdk.ResourceFunc {
@@ -21,7 +22,7 @@ func (r Resource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
 			}
 
-			client := metadata.Client.DataBricks.AccessConnectorClient
+			client := databricksClient.From(metadata.Client).AccessConnectorClient
 
 			if err = client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting Databricks %s: %+v", *id, err)

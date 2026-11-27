@@ -11,13 +11,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mongocluster/2026-06-01/firewallrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	mongoclusterClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/mongocluster/client"
 )
 
 func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MongoCluster.FirewallRulesClient
+			client := mongoclusterClient.From(metadata.Client).FirewallRulesClient
 
 			id, err := firewallrules.ParseFirewallRuleID(metadata.ResourceData.Id())
 			if err != nil {

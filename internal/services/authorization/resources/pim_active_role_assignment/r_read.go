@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleassignmentschedulerequests"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleassignmentschedules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	authorizationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -27,8 +28,8 @@ func (r Resource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			schedulesClient := metadata.Client.Authorization.RoleAssignmentSchedulesClient
-			requestsClient := metadata.Client.Authorization.RoleAssignmentScheduleRequestClient
+			schedulesClient := authorizationClient.From(metadata.Client).RoleAssignmentSchedulesClient
+			requestsClient := authorizationClient.From(metadata.Client).RoleAssignmentScheduleRequestClient
 
 			// Retrieve existing state as we may not be able to populate everything after the initial request has expired
 			var state PimActiveRoleAssignmentModel

@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/immutabilitypolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	storageClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 )
 
@@ -20,7 +21,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Storage.ResourceManager.ImmutabilityPolicies
+			client := storageClient.From(metadata.Client).ResourceManager.ImmutabilityPolicies
 
 			id, err := parse.StorageContainerImmutabilityPolicyID(metadata.ResourceData.Id())
 			if err != nil {

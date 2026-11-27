@@ -12,13 +12,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/appserviceenvironments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	appserviceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/client"
 )
 
 func (r Resource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 6 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AppService.AppServiceEnvironmentClient
+			client := appserviceClient.From(metadata.Client).AppServiceEnvironmentClient
 
 			id, err := commonids.ParseAppServiceEnvironmentID(metadata.ResourceData.Id())
 			if err != nil {

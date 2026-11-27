@@ -17,13 +17,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/loadtestservice/2022-12-01/loadtests"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	loadtestserviceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadtestservice/client"
 )
 
 func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.LoadTestService.V20221201.LoadTests
+			client := loadtestserviceClient.From(metadata.Client).V20221201.LoadTests
 			schema := LoadTestResourceSchema{}
 
 			id, err := loadtests.ParseLoadTestID(metadata.ResourceData.Id())

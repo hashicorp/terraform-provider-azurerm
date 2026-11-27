@@ -11,7 +11,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2025-02-01/catalogs"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	devcenterClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/devcenter/client"
 )
 
 func (r Resource) Create() sdk.ResourceFunc {
@@ -23,8 +26,8 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-			client := metadata.Client.DevCenter.V20250201.Catalogs
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := devcenterClient.From(metadata.Client).V20250201.Catalogs
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 			devCenterId, err := catalogs.ParseDevCenterID(model.DevCenterID)
 			if err != nil {
 				return fmt.Errorf("parsing dev center id: %+v", err)
@@ -32,7 +35,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 			devCenterName := devCenterId.DevCenterName
 			id := catalogs.NewDevCenterCatalogID(subscriptionId, model.ResourceGroupName, devCenterName, model.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {

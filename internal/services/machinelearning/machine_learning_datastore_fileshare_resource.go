@@ -17,7 +17,10 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/fileshares"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	machinelearningClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
 	storageAccountHelper "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
@@ -137,8 +140,8 @@ func (r MachineLearningDataStoreFileShare) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MachineLearning.Datastore
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := machinelearningClient.From(metadata.Client).Datastore
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			var model MachineLearningDataStoreFileShareModel
 			if err := metadata.Decode(&model); err != nil {
@@ -152,7 +155,7 @@ func (r MachineLearningDataStoreFileShare) Create() sdk.ResourceFunc {
 
 			id := datastore.NewDataStoreID(subscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, model.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {
@@ -176,7 +179,7 @@ func (r MachineLearningDataStoreFileShare) Create() sdk.ResourceFunc {
 
 			props := &datastore.AzureFileDatastore{
 				AccountName:                   shareId.StorageAccountName,
-				Endpoint:                      pointer.To(metadata.Client.Storage.StorageDomainSuffix),
+				Endpoint:                      pointer.To(storageAccountHelper.From(metadata.Client).StorageDomainSuffix),
 				FileShareName:                 shareId.ShareName,
 				Description:                   pointer.To(model.Description),
 				ServiceDataAccessAuthIdentity: pointer.ToEnum[datastore.ServiceDataAccessAuthIdentity](model.ServiceDataIdentity),
@@ -216,7 +219,7 @@ func (r MachineLearningDataStoreFileShare) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MachineLearning.Datastore
+			client := machinelearningClient.From(metadata.Client).Datastore
 
 			id, err := datastore.ParseDataStoreID(metadata.ResourceData.Id())
 			if err != nil {
@@ -278,9 +281,9 @@ func (r MachineLearningDataStoreFileShare) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MachineLearning.Datastore
-			storageClient := metadata.Client.Storage
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := machinelearningClient.From(metadata.Client).Datastore
+			storageClient := storageAccountHelper.From(metadata.Client)
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			id, err := datastore.ParseDataStoreID(metadata.ResourceData.Id())
 			if err != nil {
@@ -361,7 +364,7 @@ func (r MachineLearningDataStoreFileShare) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MachineLearning.Datastore
+			client := machinelearningClient.From(metadata.Client).Datastore
 
 			id, err := datastore.ParseDataStoreID(metadata.ResourceData.Id())
 			if err != nil {

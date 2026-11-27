@@ -7,14 +7,15 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/dataconnections"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	kustoClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceKustoIotHubDataConnectionDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Kusto.DataConnectionsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := kustoClient.From(meta).DataConnectionsClient
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := dataconnections.ParseDataConnectionID(d.Id())

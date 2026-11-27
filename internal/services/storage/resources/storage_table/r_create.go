@@ -8,7 +8,9 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	clientsAccount "github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -16,9 +18,9 @@ import (
 )
 
 func resourceStorageTableCreate(d *pluginsdk.ResourceData, meta any) error {
-	storageClient := meta.(*clients.Client).Storage
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	storageClient := client.From(meta)
+	subscriptionId := clientsAccount.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForCreate(clientsAccount.StopContext(meta), d)
 	defer cancel()
 
 	tableName := d.Get("name").(string)
@@ -46,7 +48,7 @@ func resourceStorageTableCreate(d *pluginsdk.ResourceData, meta any) error {
 
 	id := parse.NewStorageTableResourceManagerID(subscriptionId, accountId.ResourceGroupName, accountName, "default", tableName)
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		exists, err := tablesDataPlaneClient.Exists(ctx, tableName)
 		if err != nil {
 			return fmt.Errorf("checking for existing %s: %v", id, err)

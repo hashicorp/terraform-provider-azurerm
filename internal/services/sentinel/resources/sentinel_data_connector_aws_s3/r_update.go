@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/dataconnectors"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	sentinelClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/client"
 )
 
 func (Resource) Update() sdk.ResourceFunc {
@@ -26,7 +27,7 @@ func (Resource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.Sentinel.DataConnectorsClient
+			client := sentinelClient.From(metadata.Client).DataConnectorsClient
 
 			resp, err := client.Get(ctx, *id)
 			if err != nil {

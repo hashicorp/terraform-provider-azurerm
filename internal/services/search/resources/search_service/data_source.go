@@ -17,7 +17,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/adminkeys"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/querykeys"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/services"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	searchClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/search/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -102,9 +103,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 }
 
 func dataSourceSearchServiceRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Search.ServicesClient
-	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := searchClient.From(meta).ServicesClient
+	subscriptionID := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id := services.NewSearchServiceID(subscriptionID, d.Get("resource_group_name").(string), d.Get("name").(string))
@@ -168,7 +169,7 @@ func dataSourceSearchServiceRead(d *pluginsdk.ResourceData, meta any) error {
 
 	primaryKey := ""
 	secondaryKey := ""
-	adminKeysClient := meta.(*clients.Client).Search.AdminKeysClient
+	adminKeysClient := searchClient.From(meta).AdminKeysClient
 	adminKeysId, err := adminkeys.ParseSearchServiceID(d.Id())
 	if err != nil {
 		return err
@@ -184,7 +185,7 @@ func dataSourceSearchServiceRead(d *pluginsdk.ResourceData, meta any) error {
 	d.Set("primary_key", primaryKey)
 	d.Set("secondary_key", secondaryKey)
 
-	queryKeysClient := meta.(*clients.Client).Search.QueryKeysClient
+	queryKeysClient := searchClient.From(meta).QueryKeysClient
 	queryKeysId, err := querykeys.ParseSearchServiceID(d.Id())
 	if err != nil {
 		return err

@@ -11,13 +11,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/hybridrunbookworkergroup"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	automationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/client"
 )
 
 func (m Resource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) (err error) {
-			client := meta.Client.Automation.HybridRunbookWorkerGroup
+			client := automationClient.From(meta.Client).HybridRunbookWorkerGroup
 			id, err := hybridrunbookworkergroup.ParseHybridRunbookWorkerGroupID(meta.ResourceData.Id())
 			if err != nil {
 				return err

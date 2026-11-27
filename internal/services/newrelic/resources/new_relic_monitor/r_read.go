@@ -15,13 +15,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2024-03-01/monitors"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	newrelicClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/newrelic/client"
 )
 
 func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.NewRelic.MonitorsClient
+			client := newrelicClient.From(metadata.Client).MonitorsClient
 
 			id, err := monitors.ParseMonitorID(metadata.ResourceData.Id())
 			if err != nil {

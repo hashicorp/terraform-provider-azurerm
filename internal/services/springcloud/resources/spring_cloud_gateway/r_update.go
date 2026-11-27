@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	springcloudClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/client"
 )
 
 func (s Resource) Update() sdk.ResourceFunc {
@@ -27,7 +28,7 @@ func (s Resource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.AppPlatform.AppPlatformClient
+			client := springcloudClient.From(metadata.Client).AppPlatformClient
 			resp, err := client.GatewaysGet(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)

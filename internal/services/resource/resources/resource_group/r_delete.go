@@ -12,15 +12,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/resourcegroups"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	resourceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Resource.ResourceGroupsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := resourceClient.From(meta).ResourceGroupsClient
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := commonids.ParseResourceGroupIDInsensitively(d.Id())
@@ -29,7 +31,7 @@ func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta any) error {
 	}
 
 	// conditionally check for nested resources and error if they exist
-	if meta.(*clients.Client).Features.ResourceGroup.PreventDeletionIfContainsResources {
+	if features.From(meta).ResourceGroup.PreventDeletionIfContainsResources {
 		// Resource groups sometimes hold on to resource information after the resources have been deleted. We'll retry this check to account for that eventual consistency.
 		deletePollerContext, deletePollerCancel := context.WithTimeout(context.Background(), 10*time.Minute)
 		defer deletePollerCancel()

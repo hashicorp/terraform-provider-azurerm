@@ -9,14 +9,15 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	computeClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceAvailabilitySetRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Compute.AvailabilitySetsClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := computeClient.From(meta).AvailabilitySetsClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := commonids.ParseAvailabilitySetID(d.Id())

@@ -11,15 +11,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/natgateways"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/subnets"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	networkClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceSubnetNatGatewayAssociationDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Network.Subnets
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := networkClient.From(meta).Subnets
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := commonids.ParseSubnetID(d.Id())

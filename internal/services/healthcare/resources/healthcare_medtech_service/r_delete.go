@@ -7,14 +7,15 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/iotconnectors"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	healthcareClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceHealthcareApisMedTechServiceDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceIotConnectorsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := healthcareClient.From(meta).HealthcareWorkspaceIotConnectorsClient
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := iotconnectors.ParseIotConnectorID(d.Id())

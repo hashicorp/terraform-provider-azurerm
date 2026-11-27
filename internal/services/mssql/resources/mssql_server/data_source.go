@@ -16,7 +16,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/sqlvulnerabilityassessmentssettings"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	mssqlClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -88,11 +89,11 @@ func RegisterDataSource() *pluginsdk.Resource {
 }
 
 func dataSourceMsSqlServerRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).MSSQL.ServersClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	restorableDroppedDatabasesClient := meta.(*clients.Client).MSSQL.RestorableDroppedDatabasesClient
-	vaClient := meta.(*clients.Client).MSSQL.SqlVulnerabilityAssessmentSettingsClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := mssqlClient.From(meta).ServersClient
+	subscriptionId := account.From(meta).SubscriptionId
+	restorableDroppedDatabasesClient := mssqlClient.From(meta).RestorableDroppedDatabasesClient
+	vaClient := mssqlClient.From(meta).SqlVulnerabilityAssessmentSettingsClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id := commonids.NewSqlServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))

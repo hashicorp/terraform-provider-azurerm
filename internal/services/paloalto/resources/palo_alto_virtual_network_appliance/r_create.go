@@ -13,14 +13,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networkvirtualappliances"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualwans"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	networkClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/client"
 )
 
 func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.NetworkVirtualAppliances
+			client := networkClient.From(metadata.Client).NetworkVirtualAppliances
 
 			model := NetworkVirtualApplianceResourceModel{}
 
@@ -35,7 +37,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			id := networkvirtualappliances.NewNetworkVirtualApplianceID(hubID.SubscriptionId, hubID.ResourceGroupName, model.Name)
 
-			hub, err := metadata.Client.Network.VirtualWANs.VirtualHubsGet(ctx, *hubID)
+			hub, err := networkClient.From(metadata.Client).VirtualWANs.VirtualHubsGet(ctx, *hubID)
 			if err != nil {
 				return fmt.Errorf("retrieving %s for %s: %+v", hubID, id, err)
 			}
@@ -45,7 +47,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			loc := location.Normalize(pointer.From(hub.Model.Location))
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id, networkvirtualappliances.DefaultGetOperationOptions())
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {

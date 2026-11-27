@@ -11,16 +11,18 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2026-10-01/configurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2026-10-01/servers"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	postgresClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceFlexibleServerConfigurationDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Postgres.FlexibleServersConfigurationsClient
-	serverClient := meta.(*clients.Client).Postgres.FlexibleServersClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := postgresClient.From(meta).FlexibleServersConfigurationsClient
+	serverClient := postgresClient.From(meta).FlexibleServersClient
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := configurations.ParseConfigurationID(d.Id())
@@ -94,8 +96,8 @@ func resourceFlexibleServerConfigurationDelete(d *pluginsdk.ResourceData, meta a
 
 		if isDynamicConfig := props.IsDynamicConfig; isDynamicConfig != nil && !*isDynamicConfig {
 			if isReadOnly := props.IsReadOnly; isReadOnly != nil && !*isReadOnly {
-				if meta.(*clients.Client).Features.PostgresqlFlexibleServer.RestartServerOnConfigurationValueChange {
-					if err := meta.(*clients.Client).Postgres.RestartServer(ctx, serverID); err != nil {
+				if features.From(meta).PostgresqlFlexibleServer.RestartServerOnConfigurationValueChange {
+					if err := postgresClient.From(meta).RestartServer(ctx, serverID); err != nil {
 						return fmt.Errorf("restarting server %s: %+v", id, err)
 					}
 				}

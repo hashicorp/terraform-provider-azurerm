@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/databases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	managedredisClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/client"
 )
 
 func (r Resource) Read() sdk.ResourceFunc {
@@ -24,7 +25,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.ManagedRedis.DatabaseClient
+			client := managedredisClient.From(metadata.Client).DatabaseClient
 
 			resp, err := client.AccessPolicyAssignmentGet(ctx, *id)
 			if err != nil {

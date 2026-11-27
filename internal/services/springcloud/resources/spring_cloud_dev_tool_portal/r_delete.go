@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	springcloudClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 )
 
@@ -17,7 +18,7 @@ func (s Resource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AppPlatform.DevToolPortalClient
+			client := springcloudClient.From(metadata.Client).DevToolPortalClient
 
 			id, err := parse.SpringCloudDevToolPortalID(metadata.ResourceData.Id())
 			if err != nil {

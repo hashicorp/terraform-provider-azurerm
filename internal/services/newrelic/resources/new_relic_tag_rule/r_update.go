@@ -12,13 +12,14 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2024-03-01/monitors"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2024-03-01/tagrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	newrelicClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/newrelic/client"
 )
 
 func (r Resource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.NewRelic.TagRulesClient
+			client := newrelicClient.From(metadata.Client).TagRulesClient
 
 			id, err := tagrules.ParseTagRuleID(metadata.ResourceData.Id())
 			if err != nil {
@@ -53,7 +54,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			email, err := r.getEmail(ctx, metadata.Client.NewRelic.MonitorsClient, monitorId)
+			email, err := r.getEmail(ctx, newrelicClient.From(metadata.Client).MonitorsClient, monitorId)
 			if err != nil {
 				return err
 			}

@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationnetworkmappings"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationnetworks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	recoveryservicesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/helpers"
 )
 
@@ -27,7 +28,7 @@ func (s Resource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("parsing id: %+v", err)
 			}
 
-			client := metadata.Client.RecoveryServices.NetworkMappingClient
+			client := recoveryservicesClient.From(metadata.Client).NetworkMappingClient
 
 			resp, err := client.Get(ctx, *id)
 			if err != nil {

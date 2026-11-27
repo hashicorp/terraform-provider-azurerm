@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	signalrClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -50,7 +51,7 @@ func (r ListResource) ListResourceConfigSchema(_ context.Context, _ list.ListRes
 }
 
 func (r ListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
-	client := metadata.Client.SignalR.WebPubSubClient.WebPubSub
+	client := signalrClient.From(metadata.Client).WebPubSubClient.WebPubSub
 
 	var data CustomDomainWebPubsubListModel
 	if diags := request.Config.Get(ctx, &data); diags.HasError() {

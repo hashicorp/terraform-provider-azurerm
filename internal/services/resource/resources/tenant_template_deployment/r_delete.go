@@ -7,15 +7,16 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	resourceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func tenantTemplateDeploymentResourceDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Resource.LegacyDeploymentsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := resourceClient.From(meta).LegacyDeploymentsClient
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := parse.TenantTemplateDeploymentID(d.Id())

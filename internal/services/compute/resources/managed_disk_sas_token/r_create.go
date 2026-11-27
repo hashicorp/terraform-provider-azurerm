@@ -8,14 +8,16 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	computeClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceManagedDiskSasTokenCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Compute.DisksClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	client := computeClient.From(meta).DisksClient
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	durationInSeconds := int64(d.Get("duration_in_seconds").(int))
@@ -55,7 +57,7 @@ func resourceManagedDiskSasTokenCreate(d *pluginsdk.ResourceData, meta any) erro
 	}
 
 	// Normally we would use `CallbackThenPoll` but we need the last response for the SAS access URL
-	if !meta.(*clients.Client).Features.PersistIDOnCreateBeforePollingForCompletion {
+	if !features.From(meta).PersistIDOnCreateBeforePollingForCompletion {
 		d.SetId(diskId.ID())
 	}
 

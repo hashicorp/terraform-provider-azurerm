@@ -10,15 +10,17 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/volumes"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	netappClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).NetApp.VolumeClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := netappClient.From(meta).VolumeClient
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := volumes.ParseVolumeID(d.Id())
@@ -32,7 +34,7 @@ func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta any) error {
 	}
 
 	// Preventing unintentional severe data loss
-	if meta.(*clients.Client).Features.NetApp.PreventVolumeDestruction {
+	if features.From(meta).NetApp.PreventVolumeDestruction {
 		return fmt.Errorf("deleting NetApp Volume %q (Resource Group %q) is not allowed due to prevent_volume_destruction feature flag", id.VolumeName, id.ResourceGroupName)
 	}
 

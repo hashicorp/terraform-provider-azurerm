@@ -7,14 +7,15 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/dataflows"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	datafactoryClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceDataFactoryFlowletDataFlowDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).DataFactory.DataFlowClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := datafactoryClient.From(meta).DataFlowClient
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := dataflows.ParseDataflowID(d.Id())

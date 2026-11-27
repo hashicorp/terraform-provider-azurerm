@@ -12,13 +12,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/buckets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	netappClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/client"
 )
 
 func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.NetApp.BucketsClient
+			client := netappClient.From(metadata.Client).BucketsClient
 
 			id, err := buckets.ParseBucketID(metadata.ResourceData.Id())
 			if err != nil {

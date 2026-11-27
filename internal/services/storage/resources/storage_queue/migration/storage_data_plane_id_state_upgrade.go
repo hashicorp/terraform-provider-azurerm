@@ -11,7 +11,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	clientsAccount "github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	storageClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 )
 
 // resolveStorageAccountIDForStateUpgrade determines the parent storage account ID during a state migration
@@ -27,8 +28,8 @@ func resolveStorageAccountIDForStateUpgrade(ctx context.Context, meta any, rawSt
 
 	// `resource_manager_id` was introduced in v3.39.0
 	// The find account logic is only here for edge cases where users upgrade from < v3.39.0 directly to >= 5.0.0
-	client := meta.(*clients.Client).Storage
-	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
+	client := storageClient.From(meta)
+	subscriptionID := clientsAccount.From(meta).SubscriptionId
 
 	storageAccountNameRaw, ok := rawState["storage_account_name"]
 	if !ok {

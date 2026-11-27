@@ -14,13 +14,14 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridkubernetes/2024-01-01/connectedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2024-11-01/extensions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	arckubernetesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/arckubernetes/client"
 )
 
 func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ArcKubernetes.ExtensionsClient
+			client := arckubernetesClient.From(metadata.Client).ExtensionsClient
 
 			id, err := extensions.ParseScopedExtensionID(metadata.ResourceData.Id())
 			if err != nil {

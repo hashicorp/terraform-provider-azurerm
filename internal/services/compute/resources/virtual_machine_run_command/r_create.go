@@ -14,7 +14,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-03-01/virtualmachineruncommands"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	computeClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -22,14 +25,14 @@ func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Compute.VirtualMachineRunCommandsClient
+			client := computeClient.From(metadata.Client).VirtualMachineRunCommandsClient
 
 			var config VirtualMachineRunCommandResourceSchema
 			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			virtualMachineId, err := commonids.ParseVirtualMachineID(config.VirtualMachineId)
 			if err != nil {
@@ -38,7 +41,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			id := virtualmachineruncommands.NewVirtualMachineRunCommandID(subscriptionId, virtualMachineId.ResourceGroupName, virtualMachineId.VirtualMachineName, config.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.GetByVirtualMachine(ctx, id, virtualmachineruncommands.DefaultGetByVirtualMachineOperationOptions())
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {

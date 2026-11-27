@@ -9,14 +9,15 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/servers"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	mysqlClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).MySQL.FlexibleServers.Servers
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := mysqlClient.From(meta).FlexibleServers.Servers
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := servers.ParseFlexibleServerID(d.Id())

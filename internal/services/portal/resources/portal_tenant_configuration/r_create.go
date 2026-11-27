@@ -10,22 +10,24 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/portal/2019-01-01-preview/tenantconfiguration"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	portalClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/portal/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/portal/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourcePortalTenantConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Portal.TenantConfigurationsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	client := portalClient.From(meta).TenantConfigurationsClient
+	ctx, cancel := timeouts.ForCreateUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	// NOTE: we're using a Terraform-internal Resource ID here since the Go SDK no longer exposes one
 	// since this is an operation on a Tenant (which doesn't expose any configurable values).
 	id := parse.NewPortalTenantConfigurationID("default")
 	if d.IsNewResource() {
-		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 			existing, err := client.Get(ctx)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {

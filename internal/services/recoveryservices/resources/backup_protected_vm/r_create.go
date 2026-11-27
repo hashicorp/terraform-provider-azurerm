@@ -14,17 +14,19 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2025-08-01/vaults"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protecteditems"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	recoveryservicesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceRecoveryServicesBackupProtectedVMCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).RecoveryServices.ProtectedItemsClient
-	vaultClient := meta.(*clients.Client).RecoveryServices.VaultsClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	client := recoveryservicesClient.From(meta).ProtectedItemsClient
+	vaultClient := recoveryservicesClient.From(meta).VaultsClient
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -69,7 +71,7 @@ func resourceRecoveryServicesBackupProtectedVMCreate(d *pluginsdk.ResourceData, 
 		}
 
 		if isSoftDeleted {
-			if meta.(*clients.Client).Features.RecoveryServicesVault.RecoverSoftDeletedBackupProtectedVM {
+			if features.From(meta).RecoveryServicesVault.RecoverSoftDeletedBackupProtectedVM {
 				if err = resourceRecoveryServicesVaultBackupProtectedVMRecoverSoftDeleted(ctx, client, id); err != nil {
 					return fmt.Errorf("recovering soft deleted %s: %+v", id, err)
 				}
@@ -79,7 +81,7 @@ func resourceRecoveryServicesBackupProtectedVMCreate(d *pluginsdk.ResourceData, 
 		}
 
 		if !isSoftDeleted {
-			if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				return tf.ImportAsExistsError("azurerm_backup_protected_vm", id.ID())
 			}
 		}

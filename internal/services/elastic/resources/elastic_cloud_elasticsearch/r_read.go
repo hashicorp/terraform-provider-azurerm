@@ -13,15 +13,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/elastic/2023-06-01/monitorsresource"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/elastic/2023-06-01/rules"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	elasticClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceElasticsearchRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Elastic.MonitorClient
-	logsClient := meta.(*clients.Client).Elastic.TagRuleClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := elasticClient.From(meta).MonitorClient
+	logsClient := elasticClient.From(meta).TagRuleClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := monitorsresource.ParseMonitorID(d.Id())

@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	attestationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/attestation/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -30,7 +31,7 @@ func (ListResource) ResourceFunc() *pluginsdk.Resource {
 }
 
 func (ListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
-	client := metadata.Client.Attestation.ProviderClient
+	client := attestationClient.From(metadata.Client).ProviderClient
 
 	var data sdk.DefaultListModel
 	diags := request.Config.Get(ctx, &data)
@@ -88,7 +89,7 @@ func (ListResource) List(ctx context.Context, request list.ListRequest, stream *
 			}
 			rd.SetId(id.ID())
 
-			if err := resourceAttestationProviderFlatten(ctx, metadata.Client.Attestation, rd, id, &item, request.IncludeResource); err != nil {
+			if err := resourceAttestationProviderFlatten(ctx, attestationClient.From(metadata.Client), rd, id, &item, request.IncludeResource); err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", attestationProviderResourceName), err)
 				return
 			}

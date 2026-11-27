@@ -12,7 +12,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupvaultresources"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/resourceguardproxybaseresources"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	dataprotectionClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -25,7 +27,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.DataProtection.ResourceGuardProxyClient
+			client := dataprotectionClient.From(metadata.Client).ResourceGuardProxyClient
 
 			vaultId, err := backupvaultresources.ParseBackupVaultID(model.DataProtectionBackupVaultId)
 			if err != nil {
@@ -34,7 +36,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			id := resourceguardproxybaseresources.NewBackupResourceGuardProxyID(vaultId.SubscriptionId, vaultId.ResourceGroupName, vaultId.BackupVaultName, dataProtectionBackupVaultResourceGuardAssociationProxyName)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.DppResourceGuardProxyGet(ctx, id)
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {

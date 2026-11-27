@@ -12,16 +12,18 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesetextensions"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	computeClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceVirtualMachineScaleSetExtensionCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Compute.VirtualMachineScaleSetExtensionsClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	client := computeClient.From(meta).VirtualMachineScaleSetExtensionsClient
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	virtualMachineScaleSetId, err := commonids.ParseVirtualMachineScaleSetID(d.Get("virtual_machine_scale_set_id").(string))
@@ -30,7 +32,7 @@ func resourceVirtualMachineScaleSetExtensionCreate(d *pluginsdk.ResourceData, me
 	}
 	id := virtualmachinescalesetextensions.NewVirtualMachineScaleSetExtensionID(virtualMachineScaleSetId.SubscriptionId, virtualMachineScaleSetId.ResourceGroupName, virtualMachineScaleSetId.VirtualMachineScaleSetName, d.Get("name").(string))
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		resp, err := client.Get(ctx, id, virtualmachinescalesetextensions.DefaultGetOperationOptions())
 		if err != nil {
 			if !response.WasNotFound(resp.HttpResponse) {

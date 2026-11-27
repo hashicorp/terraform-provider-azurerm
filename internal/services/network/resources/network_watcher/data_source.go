@@ -12,7 +12,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networkwatchers"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	networkClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -41,9 +42,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 }
 
 func dataSourceNetworkWatcherRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Network.NetworkWatchers
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := networkClient.From(meta).NetworkWatchers
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id := networkwatchers.NewNetworkWatcherID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))

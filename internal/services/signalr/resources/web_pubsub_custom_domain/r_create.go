@@ -11,8 +11,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2024-03-01/webpubsub"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	signalrClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -24,7 +26,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 			if err := metadata.Decode(&customDomainWebPubsubModel); err != nil {
 				return err
 			}
-			client := metadata.Client.SignalR.WebPubSubClient.WebPubSub
+			client := signalrClient.From(metadata.Client).WebPubSubClient.WebPubSub
 
 			webPubsubId, err := webpubsub.ParseWebPubSubIDInsensitively(metadata.ResourceData.Get("web_pubsub_id").(string))
 			if err != nil {
@@ -40,7 +42,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("parsing custom certificate for %s: %+v", id, err)
 			}
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.CustomDomainsGet(ctx, id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)

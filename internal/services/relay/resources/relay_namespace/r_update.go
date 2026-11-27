@@ -12,13 +12,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	relayClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/client"
 )
 
 func (r Resource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Relay.NamespacesClient
+			client := relayClient.From(metadata.Client).NamespacesClient
 
 			id, err := namespaces.ParseNamespaceID(metadata.ResourceData.Id())
 			if err != nil {

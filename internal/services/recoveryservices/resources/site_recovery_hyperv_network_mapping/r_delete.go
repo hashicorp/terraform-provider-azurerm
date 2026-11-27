@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationnetworkmappings"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	recoveryservicesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/client"
 )
 
 func (s Resource) Delete() sdk.ResourceFunc {
@@ -21,7 +22,7 @@ func (s Resource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("parsing id: %+v", err)
 			}
 
-			client := metadata.Client.RecoveryServices.NetworkMappingClient
+			client := recoveryservicesClient.From(metadata.Client).NetworkMappingClient
 
 			if err = client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %v", id, err)

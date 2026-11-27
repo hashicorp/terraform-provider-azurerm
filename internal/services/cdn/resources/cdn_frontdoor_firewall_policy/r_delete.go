@@ -7,14 +7,15 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2025-03-01/webapplicationfirewallpolicies"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	cdnClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceCdnFrontDoorFirewallPolicyDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cdn.FrontDoorFirewallPoliciesClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := cdnClient.From(meta).FrontDoorFirewallPoliciesClient
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := webapplicationfirewallpolicies.ParseFrontDoorWebApplicationFirewallPolicyID(d.Id())

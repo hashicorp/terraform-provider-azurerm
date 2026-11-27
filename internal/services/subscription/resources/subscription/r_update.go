@@ -11,15 +11,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	tagsSdk "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/subscription/2021-10-01/subscriptions"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	resourceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceSubscriptionUpdate(d *pluginsdk.ResourceData, meta any) error {
-	aliasClient := meta.(*clients.Client).Subscription.AliasClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	aliasClient := client.From(meta).AliasClient
+	ctx, cancel := timeouts.ForUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := subscriptions.ParseAliasID(d.Id())
@@ -49,7 +51,7 @@ func resourceSubscriptionUpdate(d *pluginsdk.ResourceData, meta any) error {
 	}
 
 	if d.HasChange("tags") {
-		tagsClient := meta.(*clients.Client).Resource.TagsClient
+		tagsClient := resourceClient.From(meta).TagsClient
 		t := tags.Expand(d.Get("tags").(map[string]any))
 		scope := commonids.NewScopeID(subscriptionId.ID())
 		tagsResource := tagsSdk.TagsResource{

@@ -10,20 +10,22 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/emailtemplates"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	apimanagementClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceApiManagementEmailTemplateCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).ApiManagement.EmailTemplatesClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	client := apimanagementClient.From(meta).EmailTemplatesClient
+	ctx, cancel := timeouts.ForCreateUpdate(account.StopContext(meta), d)
+	subscriptionId := account.From(meta).SubscriptionId
 	defer cancel()
 
 	id := emailtemplates.NewTemplateID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), emailtemplates.TemplateName(d.Get("template_name").(string)))
 	if d.IsNewResource() {
-		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 			existing, err := client.EmailTemplateGet(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {

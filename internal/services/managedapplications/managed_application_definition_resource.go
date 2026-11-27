@@ -15,7 +15,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/managedapplications/2021-07-01/applicationdefinitions"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	managedapplicationsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedapplications/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedapplications/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -128,14 +130,14 @@ func resourceManagedApplicationDefinition() *pluginsdk.Resource {
 }
 
 func resourceManagedApplicationDefinitionCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).ManagedApplication.ApplicationDefinitionClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	client := managedapplicationsClient.From(meta).ApplicationDefinitionClient
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForCreateUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	id := applicationdefinitions.NewApplicationDefinitionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -181,8 +183,8 @@ func resourceManagedApplicationDefinitionCreate(d *pluginsdk.ResourceData, meta 
 }
 
 func resourceManagedApplicationDefinitionUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).ManagedApplication.ApplicationDefinitionClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	client := managedapplicationsClient.From(meta).ApplicationDefinitionClient
+	ctx, cancel := timeouts.ForUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := applicationdefinitions.ParseApplicationDefinitionID(d.Id())
@@ -250,8 +252,8 @@ func resourceManagedApplicationDefinitionUpdate(d *pluginsdk.ResourceData, meta 
 }
 
 func resourceManagedApplicationDefinitionRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).ManagedApplication.ApplicationDefinitionClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := managedapplicationsClient.From(meta).ApplicationDefinitionClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := applicationdefinitions.ParseApplicationDefinitionID(d.Id())
@@ -305,8 +307,8 @@ func resourceManagedApplicationDefinitionRead(d *pluginsdk.ResourceData, meta an
 }
 
 func resourceManagedApplicationDefinitionDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).ManagedApplication.ApplicationDefinitionClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := managedapplicationsClient.From(meta).ApplicationDefinitionClient
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := applicationdefinitions.ParseApplicationDefinitionID(d.Id())

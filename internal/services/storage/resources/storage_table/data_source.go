@@ -122,7 +122,7 @@ func (k DataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-			storageClient := metadata.Client.Storage
+			storageClient := client.From(metadata.Client)
 
 			var accountName string
 			var account *client.AccountDetails

@@ -15,7 +15,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2019-08-01/containerservices"
 	"github.com/hashicorp/go-version"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	containersClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -68,9 +69,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 }
 
 func dataSourceKubernetesServiceVersionsRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Containers.ServicesClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := containersClient.From(meta).ServicesClient
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id := containerservices.NewLocationID(subscriptionId, location.Normalize(d.Get("location").(string)))

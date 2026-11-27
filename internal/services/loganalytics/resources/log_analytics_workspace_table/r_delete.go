@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/tables"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	loganalyticsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/client"
 )
 
 func (r Resource) Delete() sdk.ResourceFunc {
@@ -21,7 +22,7 @@ func (r Resource) Delete() sdk.ResourceFunc {
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding %+v", err)
 			}
-			client := metadata.Client.LogAnalytics.TablesClient
+			client := loganalyticsClient.From(metadata.Client).TablesClient
 			id, err := tables.ParseTableID(metadata.ResourceData.Id())
 			if err != nil {
 				return fmt.Errorf("while parsing resource ID: %+v", err)

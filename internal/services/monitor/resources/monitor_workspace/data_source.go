@@ -13,7 +13,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/monitor/2023-04-03/azuremonitorworkspaces"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	monitorClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -91,8 +93,8 @@ func (d DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Monitor.WorkspacesClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := monitorClient.From(metadata.Client).WorkspacesClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			var state WorkspaceDataSourceModel
 			if err := metadata.Decode(&state); err != nil {

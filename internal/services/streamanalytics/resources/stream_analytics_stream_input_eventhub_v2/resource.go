@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/inputs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	streamanalyticsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/resources/stream_analytics_stream_input_eventhub_v2/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -35,7 +36,7 @@ func (r Resource) CustomImporter() sdk.ResourceRunFunc {
 			return err
 		}
 
-		client := metadata.Client.StreamAnalytics.InputsClient
+		client := streamanalyticsClient.From(metadata.Client).InputsClient
 		resp, err := client.Get(ctx, *id)
 		if err != nil || resp.Model == nil || resp.Model.Properties == nil {
 			return fmt.Errorf("retrieving %s: %+v", *id, err)

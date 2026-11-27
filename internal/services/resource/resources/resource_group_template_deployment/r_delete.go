@@ -10,14 +10,16 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/deployments"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	resourceClient2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceGroupTemplateDeploymentResourceDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Resource.LegacyDeploymentsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := resourceClient2.From(meta).LegacyDeploymentsClient
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := deployments.ParseResourceGroupProviderDeploymentID(d.Id())
@@ -37,9 +39,9 @@ func resourceGroupTemplateDeploymentResourceDelete(d *pluginsdk.ResourceData, me
 		return errors.New("`properties` was nil for template`")
 	}
 
-	deleteItemsInTemplate := meta.(*clients.Client).Features.TemplateDeployment.DeleteNestedItemsDuringDeletion
+	deleteItemsInTemplate := features.From(meta).TemplateDeployment.DeleteNestedItemsDuringDeletion
 	if deleteItemsInTemplate {
-		resourceClient := meta.(*clients.Client).Resource
+		resourceClient := resourceClient2.From(meta)
 		log.Printf("[DEBUG] Removing items provisioned by the Template Deployment %q (Resource Group %q)..", id.DeploymentName, id.ResourceGroupName)
 		if err := deleteItemsProvisionedByTemplate(ctx, resourceClient, *template.Properties, id.SubscriptionId); err != nil {
 			return fmt.Errorf("removing items provisioned by this Template Deployment: %+v", err)

@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	redisClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -30,7 +31,7 @@ func (r ListResource) Metadata(_ context.Context, _ resource.MetadataRequest, re
 }
 
 func (ListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
-	client := metadata.Client.Redis.RedisResourcesClient
+	client := redisClient.From(metadata.Client).RedisResourcesClient
 
 	// retrieve the deadline from the supplied context
 	deadline, ok := ctx.Deadline()

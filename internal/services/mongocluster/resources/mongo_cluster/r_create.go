@@ -14,15 +14,18 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mongocluster/2026-06-01/mongoclusters"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	mongoclusterClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/mongocluster/client"
 )
 
 func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MongoCluster.MongoClustersClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := mongoclusterClient.From(metadata.Client).MongoClustersClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			var state MongoClusterResourceModel
 			if err := metadata.Decode(&state); err != nil {
@@ -31,7 +34,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			id := mongoclusters.NewMongoClusterID(subscriptionId, state.ResourceGroupName, state.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {

@@ -10,14 +10,16 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mongocluster/2026-06-01/firewallrules"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	mongoclusterClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/mongocluster/client"
 )
 
 func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MongoCluster.FirewallRulesClient
+			client := mongoclusterClient.From(metadata.Client).FirewallRulesClient
 
 			var state MongoClusterFirewallRuleResourceModel
 			if err := metadata.Decode(&state); err != nil {
@@ -31,7 +33,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			id := firewallrules.NewFirewallRuleID(mongoClusterId.SubscriptionId, mongoClusterId.ResourceGroupName, mongoClusterId.MongoClusterName, state.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {

@@ -11,14 +11,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/queues"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	servicebusClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).ServiceBus.QueuesClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := servicebusClient.From(meta).QueuesClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := queues.ParseQueueID(d.Id())
@@ -35,7 +36,7 @@ func resourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta any) error {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	namespacesClient := meta.(*clients.Client).ServiceBus.NamespacesClient
+	namespacesClient := servicebusClient.From(meta).NamespacesClient
 
 	return resourceServiceBusQueueFlatten(ctx, namespacesClient, d, id, resp.Model, true)
 }

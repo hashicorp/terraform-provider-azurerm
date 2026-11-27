@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	videoindexerClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/videoindexer/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -29,7 +30,7 @@ func (ListResource) ResourceFunc() *pluginsdk.Resource {
 }
 
 func (ListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
-	client := metadata.Client.VideoIndexer.AccountClient
+	client := videoindexerClient.From(metadata.Client).AccountClient
 
 	var data sdk.DefaultListModel
 	diags := request.Config.Get(ctx, &data)

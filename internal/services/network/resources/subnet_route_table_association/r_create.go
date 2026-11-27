@@ -14,18 +14,20 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/routetables"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/subnets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	networkClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceSubnetRouteTableAssociationCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Network.Subnets
-	vnetClient := meta.(*clients.Client).Network.VirtualNetworks
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	client := networkClient.From(meta).Subnets
+	vnetClient := networkClient.From(meta).VirtualNetworks
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := commonids.ParseSubnetID(d.Get("subnet_id").(string))
@@ -95,7 +97,7 @@ func resourceSubnetRouteTableAssociationCreate(d *pluginsdk.ResourceData, meta a
 
 	if model := subnet.Model; model != nil {
 		if props := model.Properties; props != nil {
-			if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				if rt := props.RouteTable; rt != nil {
 					// we're intentionally not checking the ID - if there's a RouteTable, it needs to be imported
 					if rt.Id != nil && model.Id != nil {

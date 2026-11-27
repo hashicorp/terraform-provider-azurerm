@@ -13,16 +13,18 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/profiles"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/secrets"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	cdnClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/client"
+	keyvaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceCdnFrontDoorSecretRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cdn.FrontDoorSecretsClient
+	client := cdnClient.From(meta).FrontDoorSecretsClient
 
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := secrets.ParseSecretID(d.Id())
@@ -60,7 +62,7 @@ func resourceCdnFrontDoorSecretRead(d *pluginsdk.ResourceData, meta any) error {
 }
 
 func flattenCdnFrontDoorSecretParameters(ctx context.Context, input secrets.SecretParameters, meta any) ([]any, error) {
-	client := meta.(*clients.Client).KeyVault
+	client := keyvaultClient.From(meta)
 
 	results := make([]any, 0)
 	if input == nil {

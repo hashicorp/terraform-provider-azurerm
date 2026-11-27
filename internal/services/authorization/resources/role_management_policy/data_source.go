@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/rolemanagementpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	authorizationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/billing/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -321,14 +322,14 @@ func (r DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Authorization.RoleManagementPoliciesClient
+			client := authorizationClient.From(metadata.Client).RoleManagementPoliciesClient
 
 			var config RoleManagementPolicyModel
 			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-			id, err := FindRoleManagementPolicyId(ctx, metadata.Client.Authorization.RoleManagementPoliciesClient, config.Scope, config.RoleDefinitionId)
+			id, err := FindRoleManagementPolicyId(ctx, authorizationClient.From(metadata.Client).RoleManagementPoliciesClient, config.Scope, config.RoleDefinitionId)
 			if err != nil {
 				return err
 			}

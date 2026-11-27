@@ -15,8 +15,11 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/certificateobjectlocalrulestackresources"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/localrulesresources"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/localrulestackresources"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	paloaltoClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/schema"
 )
 
@@ -24,8 +27,8 @@ func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.LocalRulesResources
-			rulestackClient := metadata.Client.PaloAlto.LocalRulestackResources
+			client := paloaltoClient.From(metadata.Client).LocalRulesResources
+			rulestackClient := paloaltoClient.From(metadata.Client).LocalRulestackResources
 
 			model := LocalRuleModel{}
 
@@ -41,9 +44,9 @@ func (r Resource) Create() sdk.ResourceFunc {
 			defer locks.UnlockByID(rulestackId.ID())
 
 			// API uses Priority not Name for ID, despite swagger defining `ruleName` as required, not Priority - https://github.com/Azure/azure-rest-api-specs/issues/24697
-			id := localrulesresources.NewLocalRuleID(metadata.Client.Account.SubscriptionId, rulestackId.ResourceGroupName, rulestackId.LocalRulestackName, strconv.FormatInt(model.Priority, 10))
+			id := localrulesresources.NewLocalRuleID(account.From(metadata.Client).SubscriptionId, rulestackId.ResourceGroupName, rulestackId.LocalRulestackName, strconv.FormatInt(model.Priority, 10))
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.LocalRulesGet(ctx, id)
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {

@@ -12,8 +12,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	keyvaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
@@ -21,8 +23,8 @@ import (
 func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			vaultClient := metadata.Client.KeyVault
-			client := metadata.Client.KeyVault.ManagementClient
+			vaultClient := keyvaultClient.From(metadata.Client)
+			client := keyvaultClient.From(metadata.Client).ManagementClient
 			var state KeyVaultCertificateContactsResourceModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
@@ -46,7 +48,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 			locks.ByID(id.ID())
 			defer locks.UnlockByID(id.ID())
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.GetCertificateContacts(ctx, *keyVaultBaseUri)
 				if err != nil {
 					if !response.WasNotFound(existing.Response.Response) {

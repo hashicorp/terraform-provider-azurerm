@@ -20,7 +20,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	appgatewayClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/appgateway/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appgateway/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appgateway/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -601,14 +603,14 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 }
 
 func resourceWebApplicationFirewallPolicyCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).AppGateway.WebApplicationFirewallPolicies
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	client := appgatewayClient.From(meta).WebApplicationFirewallPolicies
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	id := webapplicationfirewallpolicies.NewApplicationGatewayWebApplicationFirewallPolicyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		resp, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(resp.HttpResponse) {
@@ -649,9 +651,9 @@ func resourceWebApplicationFirewallPolicyCreate(d *pluginsdk.ResourceData, meta 
 }
 
 func resourceWebApplicationFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).AppGateway.WebApplicationFirewallPolicies
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	client := appgatewayClient.From(meta).WebApplicationFirewallPolicies
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	id := webapplicationfirewallpolicies.NewApplicationGatewayWebApplicationFirewallPolicyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
@@ -694,8 +696,8 @@ func resourceWebApplicationFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta 
 }
 
 func resourceWebApplicationFirewallPolicyRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).AppGateway.WebApplicationFirewallPolicies
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := appgatewayClient.From(meta).WebApplicationFirewallPolicies
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := webapplicationfirewallpolicies.ParseApplicationGatewayWebApplicationFirewallPolicyID(d.Id())
@@ -746,8 +748,8 @@ func resourceWebApplicationFirewallPolicySetFlatten(d *pluginsdk.ResourceData, i
 }
 
 func resourceWebApplicationFirewallPolicyDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).AppGateway.WebApplicationFirewallPolicies
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := appgatewayClient.From(meta).WebApplicationFirewallPolicies
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := webapplicationfirewallpolicies.ParseApplicationGatewayWebApplicationFirewallPolicyID(d.Id())

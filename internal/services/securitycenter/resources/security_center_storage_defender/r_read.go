@@ -13,13 +13,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/topics"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	securitycenterClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/client"
 )
 
 func (s Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.SecurityCenter.DefenderForStorageClient
+			client := securitycenterClient.From(metadata.Client).DefenderForStorageClient
 
 			id, err := commonids.ParseScopeID(metadata.ResourceData.Id())
 			if err != nil {

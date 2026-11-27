@@ -89,7 +89,7 @@ func (r DataSource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			blobServicesClient := metadata.Client.Storage.ResourceManager.BlobServices
+			blobServicesClient := client.From(metadata.Client).ResourceManager.BlobServices
 
 			var plan storageContainersDataSourceModel
 			if err := metadata.Decode(&plan); err != nil {
@@ -101,7 +101,7 @@ func (r DataSource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			account, err := metadata.Client.Storage.GetAccount(ctx, *id)
+			account, err := client.From(metadata.Client).GetAccount(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving Storage Account %q: %v", id.StorageAccountName, err)
 			}
@@ -116,7 +116,7 @@ func (r DataSource) Read() sdk.ResourceFunc {
 			}
 
 			// Parse the blob endpoint as a data plane account ID
-			accountId, err := accounts.ParseAccountID(*endpoint, metadata.Client.Storage.StorageDomainSuffix)
+			accountId, err := accounts.ParseAccountID(*endpoint, client.From(metadata.Client).StorageDomainSuffix)
 			if err != nil {
 				return fmt.Errorf("parsing Account ID: %v", err)
 			}

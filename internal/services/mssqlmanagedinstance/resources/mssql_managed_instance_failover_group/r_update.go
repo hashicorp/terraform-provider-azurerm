@@ -12,13 +12,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/instancefailovergroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	mssqlmanagedinstanceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/client"
 )
 
 func (r Resource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MSSQLManagedInstance.ManagedInstanceFailoverGroupsClient
+			client := mssqlmanagedinstanceClient.From(metadata.Client).ManagedInstanceFailoverGroupsClient
 
 			id, err := instancefailovergroups.ParseInstanceFailoverGroupID(metadata.ResourceData.Id())
 			if err != nil {
@@ -42,7 +43,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			instancesClient := metadata.Client.MSSQLManagedInstance.ManagedInstancesClientForSubscription(partnerId.SubscriptionId)
+			instancesClient := mssqlmanagedinstanceClient.From(metadata.Client).ManagedInstancesClientForSubscription(partnerId.SubscriptionId)
 			partner, err := instancesClient.Get(ctx, partnerId.ResourceGroupName, partnerId.ManagedInstanceName, "")
 			if err != nil || partner.Location == nil || *partner.Location == "" {
 				return fmt.Errorf("checking for existence and region of Partner of %q: %+v", id, err)

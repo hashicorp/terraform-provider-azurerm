@@ -10,14 +10,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protecteditems"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	providerFeatures "github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	recoveryservicesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceRecoveryServicesBackupProtectedVMDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).RecoveryServices.ProtectedItemsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := recoveryservicesClient.From(meta).ProtectedItemsClient
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := protecteditems.ParseProtectedItemID(d.Id())
@@ -25,7 +27,7 @@ func resourceRecoveryServicesBackupProtectedVMDelete(d *pluginsdk.ResourceData, 
 		return err
 	}
 
-	features := meta.(*clients.Client).Features.RecoveryService
+	features := providerFeatures.From(meta).RecoveryService
 
 	if features.VMBackupStopProtectionAndRetainDataOnDestroy || features.VMBackupSuspendProtectionAndRetainDataOnDestroy {
 		log.Printf("[DEBUG] Retaining Data and Stopping Protection for %s", id)

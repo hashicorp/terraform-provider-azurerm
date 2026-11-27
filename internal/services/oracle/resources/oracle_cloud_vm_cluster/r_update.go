@@ -11,13 +11,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/cloudvmclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	oracleClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/client"
 )
 
 func (r Resource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Oracle.OracleClient.CloudVMClusters
+			client := oracleClient.From(metadata.Client).OracleClient.CloudVMClusters
 			id, err := cloudvmclusters.ParseCloudVMClusterID(metadata.ResourceData.Id())
 			if err != nil {
 				return err

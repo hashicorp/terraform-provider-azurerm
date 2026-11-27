@@ -11,16 +11,19 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/partnernamespaces"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	eventgridClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/client"
 )
 
 func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.EventGrid.PartnerNamespaces
+			client := eventgridClient.From(metadata.Client).PartnerNamespaces
 
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			var config EventGridPartnerNamespaceResourceModel
 			if err := metadata.Decode(&config); err != nil {
@@ -28,7 +31,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 			}
 			id := partnernamespaces.NewPartnerNamespaceID(subscriptionId, config.ResourceGroup, config.PartnerNamespaceName)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)

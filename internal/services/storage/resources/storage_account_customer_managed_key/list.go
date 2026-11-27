@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	storageClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -30,7 +31,7 @@ func (r ListResource) Metadata(_ context.Context, _ resource.MetadataRequest, re
 }
 
 func (ListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
-	client := metadata.Client.Storage.ResourceManager.StorageAccounts
+	client := storageClient.From(metadata.Client).ResourceManager.StorageAccounts
 
 	// retrieve the deadline from the supplied context
 	deadline, ok := ctx.Deadline()

@@ -12,7 +12,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagediscovery/2025-09-01/storagediscoveryworkspaces"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	storageClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -20,8 +23,8 @@ func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Storage.StorageDiscoveryWorkspacesClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := storageClient.From(metadata.Client).StorageDiscoveryWorkspacesClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			var model StorageDiscoveryWorkspaceModel
 			if err := metadata.Decode(&model); err != nil {
@@ -30,7 +33,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			id := storagediscoveryworkspaces.NewProviderStorageDiscoveryWorkspaceID(subscriptionId, model.ResourceGroupName, model.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {

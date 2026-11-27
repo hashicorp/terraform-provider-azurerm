@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/hybridrunbookworkergroup"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/listallhybridrunbookworkergroupinautomationaccount"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	automationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/client"
 )
 
 func (m Resource) Delete() sdk.ResourceFunc {
@@ -26,7 +27,7 @@ func (m Resource) Delete() sdk.ResourceFunc {
 			// in the ListAllHybridRunbookWorkerGroupInAutomationAccount client, not in the
 			// main HybridRunbookWorkerGroup client where it logically belongs
 			// Issue tracked in: https://github.com/Azure/azure-rest-api-specs/issues/38703
-			client := meta.Client.Automation.ListAllHybridRunbookWorkerGroupInAutomationAccount
+			client := automationClient.From(meta.Client).ListAllHybridRunbookWorkerGroupInAutomationAccount
 
 			// Convert the ID to the listallhybridrunbookworkergroupinautomationaccount package format
 			deleteId := listallhybridrunbookworkergroupinautomationaccount.NewHybridRunbookWorkerGroupID(

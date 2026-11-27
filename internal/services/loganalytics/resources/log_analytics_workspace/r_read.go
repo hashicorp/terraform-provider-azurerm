@@ -12,15 +12,16 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2025-07-01/workspaces"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	loganalyticsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta any) error {
-	sharedKeyClient := meta.(*clients.Client).LogAnalytics.SharedKeyWorkspacesClient
-	client := meta.(*clients.Client).LogAnalytics.WorkspaceClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	sharedKeyClient := loganalyticsClient.From(meta).SharedKeyWorkspacesClient
+	client := loganalyticsClient.From(meta).WorkspaceClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := workspaces.ParseWorkspaceID(d.Id())

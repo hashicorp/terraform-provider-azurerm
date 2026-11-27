@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/python3package"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	automationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/client"
 )
 
 func (m Resource) Delete() sdk.ResourceFunc {
@@ -21,7 +22,7 @@ func (m Resource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			client := meta.Client.Automation.Python3Package
+			client := automationClient.From(meta.Client).Python3Package
 			if _, err = client.Delete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %v", id, err)
 			}

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2025-03-01/scheduledactionoperationgroup"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -141,7 +142,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			if metadata.Client.Account.AuthenticatedAsAServicePrincipal && metadata.ResourceDiff.Get("email_address_sender") == "" {
+			if account.From(metadata.Client).AuthenticatedAsAServicePrincipal && metadata.ResourceDiff.Get("email_address_sender") == "" {
 				return errors.New("`email_address_sender` is required when authenticated as a service principal")
 			}
 			return nil

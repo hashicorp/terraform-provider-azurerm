@@ -14,13 +14,14 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2025-01-01/securitypoliciesinterface"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	servicenetworkingClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicenetworking/client"
 )
 
 func (f Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ServiceNetworking.SecurityPoliciesInterface
+			client := servicenetworkingClient.From(metadata.Client).SecurityPoliciesInterface
 
 			id, err := securitypoliciesinterface.ParseSecurityPolicyID(metadata.ResourceData.Id())
 			if err != nil {

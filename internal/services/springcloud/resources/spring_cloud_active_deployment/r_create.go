@@ -8,16 +8,18 @@ import (
 
 	appplatform_rm "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	springcloudClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/jackofallops/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
 )
 
 func resourceSpringCloudActiveDeploymentCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).AppPlatform.AppsClient
-	deploymentClient := meta.(*clients.Client).AppPlatform.DeploymentsClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	client := springcloudClient.From(meta).AppsClient
+	deploymentClient := springcloudClient.From(meta).DeploymentsClient
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	deploymentName := d.Get("deployment_name").(string)
@@ -28,7 +30,7 @@ func resourceSpringCloudActiveDeploymentCreate(d *pluginsdk.ResourceData, meta a
 		return err
 	}
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		activeDeployments, err := listSpringCloudActiveDeployments(ctx, deploymentClient, appId)
 		if err != nil {
 			return err

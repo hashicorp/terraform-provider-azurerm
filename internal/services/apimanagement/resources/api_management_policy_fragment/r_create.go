@@ -11,15 +11,17 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/policyfragment"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	apimanagementClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceApiManagementPolicyFragmentCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).ApiManagement.PolicyFragmentClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	client := apimanagementClient.From(meta).PolicyFragmentClient
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	apiManagementId, err := apimanagementservice.ParseServiceID(d.Get("api_management_id").(string))
@@ -32,7 +34,7 @@ func resourceApiManagementPolicyFragmentCreate(d *pluginsdk.ResourceData, meta a
 	opts := policyfragment.DefaultGetOperationOptions()
 	opts.Format = &format
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id, opts)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {

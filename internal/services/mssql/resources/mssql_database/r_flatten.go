@@ -17,19 +17,20 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/databasesecurityalertpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/geobackuppolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/transparentdataencryptions"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-func resourceMssqlDatabaseSetFlatten(d *pluginsdk.ResourceData, id *commonids.SqlDatabaseId, model *databases.Database, metaClient *clients.Client) error {
-	securityAlertPoliciesClient := metaClient.MSSQL.DatabaseSecurityAlertPoliciesClient
+func resourceMssqlDatabaseSetFlatten(d *pluginsdk.ResourceData, id *commonids.SqlDatabaseId, model *databases.Database, metaClient any) error {
+	securityAlertPoliciesClient := client.From(metaClient).DatabaseSecurityAlertPoliciesClient
 
-	longTermRetentionClient := metaClient.MSSQL.LongTermRetentionPoliciesClient
-	shortTermRetentionClient := metaClient.MSSQL.BackupShortTermRetentionPoliciesClient
-	geoBackupPoliciesClient := metaClient.MSSQL.GeoBackupPoliciesClient
-	transparentEncryptionClient := metaClient.MSSQL.TransparentDataEncryptionsClient
-	ctx, cancel := timeouts.ForRead(metaClient.StopContext, d)
+	longTermRetentionClient := client.From(metaClient).LongTermRetentionPoliciesClient
+	shortTermRetentionClient := client.From(metaClient).BackupShortTermRetentionPoliciesClient
+	geoBackupPoliciesClient := client.From(metaClient).GeoBackupPoliciesClient
+	transparentEncryptionClient := client.From(metaClient).TransparentDataEncryptionsClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(metaClient), d)
 	defer cancel()
 
 	geoBackupPolicy := true

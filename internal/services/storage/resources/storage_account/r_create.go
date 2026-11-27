@@ -16,30 +16,32 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/storageaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	clientsAccount "github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	keyvaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
+	storageClient2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta any) error {
-	tenantId := meta.(*clients.Client).Account.TenantId
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	storageUtils := meta.(*clients.Client).Storage
-	storageClient := meta.(*clients.Client).Storage.ResourceManager
+	tenantId := clientsAccount.From(meta).TenantId
+	subscriptionId := clientsAccount.From(meta).SubscriptionId
+	storageUtils := storageClient2.From(meta)
+	storageClient := storageClient2.From(meta).ResourceManager
 	client := storageClient.StorageAccounts
-	keyVaultClient := meta.(*clients.Client).KeyVault
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	keyVaultClient := keyvaultClient.From(meta)
+	ctx, cancel := timeouts.ForCreate(clientsAccount.StopContext(meta), d)
 	defer cancel()
 
 	id := commonids.NewStorageAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	locks.ByName(id.StorageAccountName, storageAccountResourceName)
 	defer locks.UnlockByName(id.StorageAccountName, storageAccountResourceName)
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.GetProperties(ctx, id, storageaccounts.DefaultGetPropertiesOperationOptions())
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {

@@ -10,13 +10,14 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/serverendpointresource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	storageClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 )
 
 func (r Resource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Storage.SyncServerEndpointsClient
+			client := storageClient.From(metadata.Client).SyncServerEndpointsClient
 
 			id, err := serverendpointresource.ParseServerEndpointID(metadata.ResourceData.Id())
 			if err != nil {

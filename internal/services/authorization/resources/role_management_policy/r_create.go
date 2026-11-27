@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	authorizationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/parse"
 )
 
@@ -17,7 +18,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Authorization.RoleManagementPoliciesClient
+			client := authorizationClient.From(metadata.Client).RoleManagementPoliciesClient
 
 			var config RoleManagementPolicyModel
 			if err := metadata.Decode(&config); err != nil {
@@ -25,7 +26,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 			}
 
 			// Resources already have a default policy, so retrieve its ID in order that we can update it
-			policyId, err := FindRoleManagementPolicyId(ctx, metadata.Client.Authorization.RoleManagementPoliciesClient, config.Scope, config.RoleDefinitionId)
+			policyId, err := FindRoleManagementPolicyId(ctx, authorizationClient.From(metadata.Client).RoleManagementPoliciesClient, config.Scope, config.RoleDefinitionId)
 			if err != nil {
 				return err
 			}

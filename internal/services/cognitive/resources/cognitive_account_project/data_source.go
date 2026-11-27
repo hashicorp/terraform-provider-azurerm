@@ -15,7 +15,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/cognitiveservicesprojects"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	cognitiveClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -114,8 +116,8 @@ func (r DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Cognitive.ProjectsClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := cognitiveClient.From(metadata.Client).ProjectsClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			var model CognitiveAccountProjectDataSourceModel
 			if err := metadata.Decode(&model); err != nil {

@@ -12,7 +12,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2024-03-01/monitors"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2024-03-01/tagrules"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	newrelicClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/newrelic/client"
 )
 
 func (r Resource) Create() sdk.ResourceFunc {
@@ -24,7 +26,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.NewRelic.TagRulesClient
+			client := newrelicClient.From(metadata.Client).TagRulesClient
 			monitorId, err := monitors.ParseMonitorID(model.NewRelicMonitorId)
 			if err != nil {
 				return err
@@ -32,7 +34,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			id := tagrules.NewTagRuleID(monitorId.SubscriptionId, monitorId.ResourceGroupName, monitorId.MonitorName, "default")
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -50,7 +52,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				SendSubscriptionLogs: pointer.To(tagrules.SendSubscriptionLogsStatusDisabled),
 			}
 
-			email, err := r.getEmail(ctx, metadata.Client.NewRelic.MonitorsClient, monitorId)
+			email, err := r.getEmail(ctx, newrelicClient.From(metadata.Client).MonitorsClient, monitorId)
 			if err != nil {
 				return err
 			}

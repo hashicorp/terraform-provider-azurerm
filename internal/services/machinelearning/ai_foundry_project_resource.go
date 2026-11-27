@@ -19,7 +19,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	machinelearningClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -58,7 +61,7 @@ func (r AIFoundryProject) CustomImporter() sdk.ResourceRunFunc {
 			return err
 		}
 
-		client := metadata.Client.MachineLearning.Workspaces
+		client := machinelearningClient.From(metadata.Client).Workspaces
 		resp, err := client.Get(ctx, *id)
 		if err != nil || resp.Model == nil || resp.Model.Kind == nil {
 			return fmt.Errorf("retrieving %s: %+v", *id, err)
@@ -143,8 +146,8 @@ func (r AIFoundryProject) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MachineLearning.Workspaces
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := machinelearningClient.From(metadata.Client).Workspaces
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			var model AIFoundryProjectModel
 			if err := metadata.Decode(&model); err != nil {
@@ -158,7 +161,7 @@ func (r AIFoundryProject) Create() sdk.ResourceFunc {
 
 			id := workspaces.NewWorkspaceID(subscriptionId, hubId.ResourceGroupName, model.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {
@@ -222,7 +225,7 @@ func (r AIFoundryProject) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MachineLearning.Workspaces
+			client := machinelearningClient.From(metadata.Client).Workspaces
 
 			id, err := workspaces.ParseWorkspaceID(metadata.ResourceData.Id())
 			if err != nil {
@@ -298,7 +301,7 @@ func (r AIFoundryProject) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MachineLearning.Workspaces
+			client := machinelearningClient.From(metadata.Client).Workspaces
 
 			id, err := workspaces.ParseWorkspaceID(metadata.ResourceData.Id())
 			if err != nil {
@@ -353,7 +356,7 @@ func (r AIFoundryProject) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MachineLearning.Workspaces
+			client := machinelearningClient.From(metadata.Client).Workspaces
 
 			id, err := workspaces.ParseWorkspaceID(metadata.ResourceData.Id())
 			if err != nil {

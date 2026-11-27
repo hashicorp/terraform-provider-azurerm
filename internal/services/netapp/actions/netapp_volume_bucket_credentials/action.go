@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	netappClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/client"
 )
 
 type Action struct {
@@ -72,7 +73,7 @@ func (a *Action) Schema(_ context.Context, _ action.SchemaRequest, response *act
 }
 
 func (a *Action) Invoke(ctx context.Context, request action.InvokeRequest, response *action.InvokeResponse) {
-	client := a.Client.NetApp.BucketsClient
+	client := netappClient.From(a.Client).BucketsClient
 
 	model := NetAppVolumeBucketCredentialsActionModel{}
 

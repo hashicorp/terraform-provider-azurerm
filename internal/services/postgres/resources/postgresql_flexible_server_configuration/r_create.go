@@ -9,17 +9,19 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2026-10-01/configurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2026-10-01/servers"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	postgresClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceFlexibleServerConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	client := meta.(*clients.Client).Postgres.FlexibleServersConfigurationsClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	subscriptionId := account.From(meta).SubscriptionId
+	client := postgresClient.From(meta).FlexibleServersConfigurationsClient
+	ctx, cancel := timeouts.ForUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	serverId, err := servers.ParseFlexibleServerID(d.Get("server_id").(string))
@@ -56,8 +58,8 @@ func resourceFlexibleServerConfigurationCreateUpdate(d *pluginsdk.ResourceData, 
 
 		if isDynamicConfig := props.IsDynamicConfig; isDynamicConfig != nil && !*isDynamicConfig {
 			if isReadOnly := props.IsReadOnly; isReadOnly != nil && !*isReadOnly {
-				if meta.(*clients.Client).Features.PostgresqlFlexibleServer.RestartServerOnConfigurationValueChange {
-					if err := meta.(*clients.Client).Postgres.RestartServer(ctx, *serverId); err != nil {
+				if features.From(meta).PostgresqlFlexibleServer.RestartServerOnConfigurationValueChange {
+					if err := postgresClient.From(meta).RestartServer(ctx, *serverId); err != nil {
 						return fmt.Errorf("restarting server %s: %+v", serverId, err)
 					}
 				}

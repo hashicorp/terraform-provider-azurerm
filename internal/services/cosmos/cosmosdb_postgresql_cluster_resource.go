@@ -17,7 +17,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/clusters"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	cosmosClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -348,11 +351,11 @@ func (r CosmosDbPostgreSQLClusterResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.Cosmos.ClustersClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := cosmosClient.From(metadata.Client).ClustersClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 			id := clusters.NewServerGroupsv2ID(subscriptionId, model.ResourceGroupName, model.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -447,7 +450,7 @@ func (r CosmosDbPostgreSQLClusterResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 3 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Cosmos.ClustersClient
+			client := cosmosClient.From(metadata.Client).ClustersClient
 
 			id, err := clusters.ParseServerGroupsv2ID(metadata.ResourceData.Id())
 			if err != nil {
@@ -556,7 +559,7 @@ func (r CosmosDbPostgreSQLClusterResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Cosmos.ClustersClient
+			client := cosmosClient.From(metadata.Client).ClustersClient
 
 			id, err := clusters.ParseServerGroupsv2ID(metadata.ResourceData.Id())
 			if err != nil {
@@ -627,7 +630,7 @@ func (r CosmosDbPostgreSQLClusterResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 3 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Cosmos.ClustersClient
+			client := cosmosClient.From(metadata.Client).ClustersClient
 
 			id, err := clusters.ParseServerGroupsv2ID(metadata.ResourceData.Id())
 			if err != nil {

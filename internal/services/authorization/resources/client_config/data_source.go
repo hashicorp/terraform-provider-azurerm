@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -51,16 +51,15 @@ func RegisterDataSource() *pluginsdk.Resource {
 }
 
 func dataSourceArmClientConfigRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client)
-	_, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	_, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
-	id := fmt.Sprintf("clientConfigs/clientId=%s;objectId=%s;subscriptionId=%s;tenantId=%s", client.Account.ClientId, client.Account.ObjectId, client.Account.SubscriptionId, client.Account.TenantId)
+	id := fmt.Sprintf("clientConfigs/clientId=%s;objectId=%s;subscriptionId=%s;tenantId=%s", account.From(meta).ClientId, account.From(meta).ObjectId, account.From(meta).SubscriptionId, account.From(meta).TenantId)
 	d.SetId(base64.StdEncoding.EncodeToString([]byte(id)))
-	d.Set("client_id", client.Account.ClientId)
-	d.Set("object_id", client.Account.ObjectId)
-	d.Set("subscription_id", client.Account.SubscriptionId)
-	d.Set("tenant_id", client.Account.TenantId)
+	d.Set("client_id", account.From(meta).ClientId)
+	d.Set("object_id", account.From(meta).ObjectId)
+	d.Set("subscription_id", account.From(meta).SubscriptionId)
+	d.Set("tenant_id", account.From(meta).TenantId)
 
 	return nil
 }

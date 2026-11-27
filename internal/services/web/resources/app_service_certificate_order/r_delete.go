@@ -7,15 +7,16 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/certificateregistration/2023-12-01/appservicecertificateorders"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	webClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/web/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceAppServiceCertificateOrderDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Web.AppServiceCertificateOrdersClient
+	client := webClient.From(meta).AppServiceCertificateOrdersClient
 
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := appservicecertificateorders.ParseCertificateOrderID(d.Id())

@@ -7,7 +7,8 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	clientsAccount "github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -15,9 +16,9 @@ import (
 )
 
 func resourceStorageDataLakeGen2PathUpdate(d *pluginsdk.ResourceData, meta any) error {
-	storageClient := meta.(*clients.Client).Storage
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	storageClient := client.From(meta)
+	subscriptionId := clientsAccount.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForUpdate(clientsAccount.StopContext(meta), d)
 	defer cancel()
 
 	id, err := paths.ParsePathID(d.Id(), storageClient.StorageDomainSuffix)

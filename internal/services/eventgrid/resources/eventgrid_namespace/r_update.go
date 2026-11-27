@@ -12,13 +12,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2023-12-15-preview/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	eventgridClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/client"
 )
 
 func (r Resource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.EventGrid.NamespacesClient
+			client := eventgridClient.From(metadata.Client).NamespacesClient
 
 			var model EventGridNamespaceResourceModel
 			if err := metadata.Decode(&model); err != nil {

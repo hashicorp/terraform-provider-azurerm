@@ -14,7 +14,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-07-01/agentpools"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -195,10 +196,10 @@ func RegisterDataSource() *pluginsdk.Resource {
 }
 
 func dataSourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta any) error {
-	clustersClient := meta.(*clients.Client).Containers.KubernetesClustersClient
-	poolsClient := meta.(*clients.Client).Containers.AgentPoolsClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	clustersClient := client.From(meta).KubernetesClustersClient
+	poolsClient := client.From(meta).AgentPoolsClient
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	clusterId := commonids.NewKubernetesClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("kubernetes_cluster_name").(string))

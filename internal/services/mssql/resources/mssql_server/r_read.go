@@ -12,15 +12,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/servers"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	mssqlClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).MSSQL.ServersClient
+	client := mssqlClient.From(meta).ServersClient
 
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := commonids.ParseSqlServerID(d.Id())
@@ -38,7 +39,7 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta any) error {
 
 		return fmt.Errorf("retrieving SQL Server %s: %v", id, err)
 	}
-	return resourceMssqlServerSetFlatten(ctx, d, id, resp.Model, meta.(*clients.Client))
+	return resourceMssqlServerSetFlatten(ctx, d, id, resp.Model, meta)
 }
 
 func msSqlMinimumTLSVersionDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ any) (err error) {

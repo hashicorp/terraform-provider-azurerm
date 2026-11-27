@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2020-05-01/frontdoors"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	frontdoorClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/resources/frontdoor_custom_https_configuration/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -27,7 +27,7 @@ func RegisterResource() *pluginsdk.Resource {
 			_, err := parse.CustomHttpsConfigurationID(id)
 			return err
 		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta any) ([]*pluginsdk.ResourceData, error) {
-			client := meta.(*clients.Client).Frontdoor.FrontDoorsClient
+			client := frontdoorClient.From(meta).FrontDoorsClient
 
 			// validate that the passed ID is a valid custom HTTPS configuration ID
 			custom, err := parse.CustomHttpsConfigurationID(d.Id())

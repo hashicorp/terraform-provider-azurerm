@@ -13,8 +13,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	domainservicesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/domainservices/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/domainservices/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/domainservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -22,9 +24,9 @@ import (
 )
 
 func resourceActiveDirectoryDomainServiceCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).DomainServices.DomainServicesClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	client := domainservicesClient.From(meta).DomainServicesClient
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForCreateUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	name := d.Get("name").(string)
@@ -41,7 +43,7 @@ func resourceActiveDirectoryDomainServiceCreateUpdate(d *pluginsdk.ResourceData,
 	idsdk := domainservices.NewDomainServiceID(subscriptionId, resourceGroup, name)
 
 	if d.IsNewResource() {
-		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 			existing, err := client.Get(ctx, idsdk)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {

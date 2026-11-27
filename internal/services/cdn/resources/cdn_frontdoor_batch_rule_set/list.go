@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	cdnClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -52,7 +53,7 @@ func (ListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResou
 }
 
 func (ListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
-	client := metadata.Client.Cdn.FrontDoorRuleSetsClient
+	client := cdnClient.From(metadata.Client).FrontDoorRuleSetsClient
 
 	var data CdnFrontDoorBatchRuleSetListModel
 	diags := request.Config.Get(ctx, &data)

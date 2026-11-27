@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	springcloudClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/client"
 )
 
 func (s Resource) Update() sdk.ResourceFunc {
@@ -30,7 +31,7 @@ func (s Resource) Update() sdk.ResourceFunc {
 			}
 			id := appplatform.NewConfigurationServiceID(springId.SubscriptionId, springId.ResourceGroupName, springId.ServiceName, model.Name)
 
-			client := metadata.Client.AppPlatform.AppPlatformClient
+			client := springcloudClient.From(metadata.Client).AppPlatformClient
 			existing, err := client.ConfigurationServicesGet(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {

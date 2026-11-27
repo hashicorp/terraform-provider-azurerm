@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roleassignments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	authorizationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -150,7 +151,7 @@ func (r DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Authorization.ScopedRoleAssignmentsClient
+			client := authorizationClient.From(metadata.Client).ScopedRoleAssignmentsClient
 
 			var state RoleAssignmentsDataSourceModel
 			if err := metadata.Decode(&state); err != nil {

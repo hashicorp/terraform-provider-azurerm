@@ -13,7 +13,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dnsresolver/2022-07-01/dnsresolvers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dnsresolver/2022-07-01/inboundendpoints"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	privatednsresolverClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/privatednsresolver/client"
 )
 
 func (r Resource) Create() sdk.ResourceFunc {
@@ -25,7 +27,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.PrivateDnsResolver.InboundEndpointsClient
+			client := privatednsresolverClient.From(metadata.Client).InboundEndpointsClient
 			dnsResolverId, err := dnsresolvers.ParseDnsResolverID(model.PrivateDNSResolverId)
 			if err != nil {
 				return err
@@ -33,7 +35,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			id := inboundendpoints.NewInboundEndpointID(dnsResolverId.SubscriptionId, dnsResolverId.ResourceGroupName, dnsResolverId.DnsResolverName, model.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for existing %s: %+v", id, err)

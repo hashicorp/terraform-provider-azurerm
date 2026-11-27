@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -25,7 +25,7 @@ func (TableV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		tableName := rawState["name"].(string)
 		accountName := rawState["storage_account_name"].(string)
-		environment := meta.(*clients.Client).Account.Environment
+		environment := account.From(meta).Environment
 		storageDomainSuffix, ok := environment.Storage.DomainSuffix()
 		if !ok {
 			return nil, fmt.Errorf("could not determine Storage domain suffix for environment %q", environment.Name)
@@ -53,7 +53,7 @@ func (TableV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		tableName := rawState["name"].(string)
 		accountName := rawState["storage_account_name"].(string)
-		environment := meta.(*clients.Client).Account.Environment
+		environment := account.From(meta).Environment
 		storageDomainSuffix, ok := environment.Storage.DomainSuffix()
 		if !ok {
 			return nil, fmt.Errorf("could not determine Storage domain suffix for environment %q", environment.Name)

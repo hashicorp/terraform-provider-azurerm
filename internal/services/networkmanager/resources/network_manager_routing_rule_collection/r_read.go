@@ -13,13 +13,14 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networkgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/routingrulecollections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	networkmanagerClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/networkmanager/client"
 )
 
 func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.NetworkManager.RoutingRuleCollections
+			client := networkmanagerClient.From(metadata.Client).RoutingRuleCollections
 
 			id, err := routingrulecollections.ParseRuleCollectionID(metadata.ResourceData.Id())
 			if err != nil {

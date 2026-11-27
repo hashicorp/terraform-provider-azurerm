@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	netappClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -22,8 +23,8 @@ func (Resource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.NetApp.SnapshotPoliciesClient
-			volumeClient := metadata.Client.NetApp.VolumeClient
+			client := netappClient.From(metadata.Client).SnapshotPoliciesClient
+			volumeClient := netappClient.From(metadata.Client).VolumeClient
 
 			id, err := snapshotpolicies.ParseSnapshotPolicyID(metadata.ResourceData.Id())
 			if err != nil {

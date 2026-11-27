@@ -19,7 +19,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	policyClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -67,7 +69,7 @@ type AssignmentBaseModel struct {
 func (br AssignmentBaseResource) CreateFunc(resourceName, scopeFieldName string) sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Policy.AssignmentsClient
+			client := policyClient.From(metadata.Client).AssignmentsClient
 
 			var config AssignmentBaseModel
 			if err := metadata.Decode(&config); err != nil {
@@ -76,7 +78,7 @@ func (br AssignmentBaseResource) CreateFunc(resourceName, scopeFieldName string)
 
 			id := policyassignments.NewScopedPolicyAssignmentID(metadata.ResourceData.Get(scopeFieldName).(string), config.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {
@@ -176,7 +178,7 @@ func (br AssignmentBaseResource) CreateFunc(resourceName, scopeFieldName string)
 func (br AssignmentBaseResource) DeleteFunc() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Policy.AssignmentsClient
+			client := policyClient.From(metadata.Client).AssignmentsClient
 
 			id, err := policyassignments.ParseScopedPolicyAssignmentID(metadata.ResourceData.Id())
 			if err != nil {
@@ -202,7 +204,7 @@ func (br AssignmentBaseResource) DeleteFunc() sdk.ResourceFunc {
 func (br AssignmentBaseResource) ReadFunc(scopeFieldName string) sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Policy.AssignmentsClient
+			client := policyClient.From(metadata.Client).AssignmentsClient
 
 			id, err := policyassignments.ParseScopedPolicyAssignmentID(metadata.ResourceData.Id())
 			if err != nil {
@@ -268,7 +270,7 @@ func (br AssignmentBaseResource) ReadFunc(scopeFieldName string) sdk.ResourceFun
 func (br AssignmentBaseResource) UpdateFunc() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Policy.AssignmentsClient
+			client := policyClient.From(metadata.Client).AssignmentsClient
 
 			id, err := policyassignments.ParseScopedPolicyAssignmentID(metadata.ResourceData.Id())
 			if err != nil {

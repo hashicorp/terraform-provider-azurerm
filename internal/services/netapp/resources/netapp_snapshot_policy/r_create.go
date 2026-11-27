@@ -12,7 +12,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/snapshotpolicies"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	netappClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -20,8 +23,8 @@ func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.NetApp.SnapshotPoliciesClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := netappClient.From(metadata.Client).SnapshotPoliciesClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			var model NetAppSnapshotPolicyResourceModel
 			if err := metadata.Decode(&model); err != nil {
@@ -30,7 +33,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			id := snapshotpolicies.NewSnapshotPolicyID(subscriptionId, model.ResourceGroupName, model.AccountName, model.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {

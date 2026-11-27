@@ -6,15 +6,16 @@ package data_factory_trigger_custom_event
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	datafactoryClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceDataFactoryTriggerCustomEventDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).DataFactory.TriggersClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	client := datafactoryClient.From(meta).TriggersClient
+	ctx, cancel := timeouts.ForCreateUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := parse.TriggerID(d.Id())

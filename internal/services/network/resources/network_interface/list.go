@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	networkClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -36,7 +37,7 @@ func (r ListResource) ResourceFunc() *pluginsdk.Resource {
 }
 
 func (r ListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
-	client := metadata.Client.Network.NetworkInterfaces
+	client := networkClient.From(metadata.Client).NetworkInterfaces
 
 	var data NetworkInterfaceListModel
 	diags := request.Config.Get(ctx, &data)

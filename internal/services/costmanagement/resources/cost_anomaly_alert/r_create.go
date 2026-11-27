@@ -13,14 +13,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2025-03-01/scheduledactionoperationgroup"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2025-03-01/viewoperationgroup"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	costmanagementClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/costmanagement/client"
 )
 
 func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.CostManagement.ScheduledActionOperationGroupClient
+			client := costmanagementClient.From(metadata.Client).ScheduledActionOperationGroupClient
 
 			var config AnomalyAlertModel
 			if err := metadata.Decode(&config); err != nil {
@@ -29,11 +32,11 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			subscriptionId := config.SubscriptionId
 			if subscriptionId == "" {
-				subscriptionId = commonids.NewSubscriptionID(metadata.Client.Account.SubscriptionId).ID()
+				subscriptionId = commonids.NewSubscriptionID(account.From(metadata.Client).SubscriptionId).ID()
 			}
 			id := scheduledactionoperationgroup.NewScopedScheduledActionID(subscriptionId, config.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.ScheduledActionsGetByScope(ctx, id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)

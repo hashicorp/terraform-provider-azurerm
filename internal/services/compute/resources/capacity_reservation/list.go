@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	computeClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -52,7 +53,7 @@ func (ListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResou
 }
 
 func (r ListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
-	client := metadata.Client.Compute.CapacityReservationClient
+	client := computeClient.From(metadata.Client).CapacityReservationClient
 
 	var data CapacityReservationListModel
 	diags := request.Config.Get(ctx, &data)

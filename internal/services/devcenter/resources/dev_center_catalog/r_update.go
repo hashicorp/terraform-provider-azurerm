@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2025-02-01/catalogs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	devcenterClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/devcenter/client"
 )
 
 func (r Resource) Update() sdk.ResourceFunc {
@@ -21,7 +22,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-			client := metadata.Client.DevCenter.V20250201.Catalogs
+			client := devcenterClient.From(metadata.Client).V20250201.Catalogs
 			id, err := catalogs.ParseDevCenterCatalogID(metadata.ResourceData.Id())
 			if err != nil {
 				return fmt.Errorf("parsing catalog id: %+v", err)

@@ -11,7 +11,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networksecurityperimeterprofiles"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networksecurityperimeters"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	networkmanagerClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/networkmanager/client"
 )
 
 func (r Resource) Create() sdk.ResourceFunc {
@@ -19,9 +22,9 @@ func (r Resource) Create() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.NetworkManager.NetworkSecurityPerimeterProfilesClient
+			client := networkmanagerClient.From(metadata.Client).NetworkSecurityPerimeterProfilesClient
 
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			var config NetworkSecurityPerimeterProfileResourceModel
 			if err := metadata.Decode(&config); err != nil {
@@ -35,7 +38,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			id := networksecurityperimeterprofiles.NewProfileID(subscriptionId, nspId.ResourceGroupName, nspId.NetworkSecurityPerimeterName, config.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)

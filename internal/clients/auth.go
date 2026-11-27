@@ -13,22 +13,12 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/sdk/auth"
 	"github.com/hashicorp/go-azure-sdk/sdk/claims"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/graph"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
 )
 
-type ResourceManagerAccount struct {
-	Environment environments.Environment
-
-	ClientId       string
-	ObjectId       string
-	SubscriptionId string
-	TenantId       string
-
-	AuthenticatedAsAServicePrincipal bool
-	RegisteredResourceProviders      resourceproviders.ResourceProviders
-}
+type ResourceManagerAccount = account.ResourceManagerAccount
 
 func NewResourceManagerAccount(ctx context.Context, config auth.Credentials, subscriptionId string, registeredResourceProviders resourceproviders.ResourceProviders) (*ResourceManagerAccount, error) {
 	authorizer, err := auth.NewAuthorizerFromCredentials(ctx, config, config.Environment.MicrosoftGraph)

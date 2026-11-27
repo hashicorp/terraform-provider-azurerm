@@ -155,6 +155,8 @@ import (
 	workloads "github.com/hashicorp/terraform-provider-azurerm/internal/services/workloads/client"
 )
 
+//go:generate go run ../tools/generator-client-providers
+
 type Client struct {
 	autoClient
 

@@ -13,13 +13,14 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automanage/2022-05-04/configurationprofilehcrpassignments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automanage/2022-05-04/configurationprofiles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	automanageClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage/client"
 )
 
 func (v Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Automanage.ConfigurationProfileArcMachineAssignmentsClient
+			client := automanageClient.From(metadata.Client).ConfigurationProfileArcMachineAssignmentsClient
 			id, err := configurationprofilehcrpassignments.ParseProviders2ConfigurationProfileAssignmentID(metadata.ResourceData.Id())
 			if err != nil {
 				return err

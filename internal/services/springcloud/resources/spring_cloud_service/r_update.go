@@ -9,7 +9,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	springcloudClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -17,14 +18,14 @@ import (
 )
 
 func resourceSpringCloudServiceUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).AppPlatform.ServicesClient
-	configServersClient := meta.(*clients.Client).AppPlatform.ConfigServersClient
-	monitoringSettingsClient := meta.(*clients.Client).AppPlatform.MonitoringSettingsClient
-	serviceRegistryClient := meta.(*clients.Client).AppPlatform.ServiceRegistryClient
-	agentPoolClient := meta.(*clients.Client).AppPlatform.BuildServiceAgentPoolClient
-	buildServiceClient := meta.(*clients.Client).AppPlatform.BuildServiceClient
-	containerRegistryClient := meta.(*clients.Client).AppPlatform.ContainerRegistryClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	client := springcloudClient.From(meta).ServicesClient
+	configServersClient := springcloudClient.From(meta).ConfigServersClient
+	monitoringSettingsClient := springcloudClient.From(meta).MonitoringSettingsClient
+	serviceRegistryClient := springcloudClient.From(meta).ServiceRegistryClient
+	agentPoolClient := springcloudClient.From(meta).BuildServiceAgentPoolClient
+	buildServiceClient := springcloudClient.From(meta).BuildServiceClient
+	containerRegistryClient := springcloudClient.From(meta).ContainerRegistryClient
+	ctx, cancel := timeouts.ForUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -

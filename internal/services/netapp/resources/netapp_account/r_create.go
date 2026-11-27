@@ -14,25 +14,27 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/netappaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	netappClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceNetAppAccountCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).NetApp.AccountClient
+	client := netappClient.From(meta).AccountClient
 
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
-	id := netappaccounts.NewNetAppAccountID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := netappaccounts.NewNetAppAccountID(account.From(meta).SubscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	locks.ByID(id.ID())
 	defer locks.UnlockByID(id.ID())
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.AccountsGet(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {

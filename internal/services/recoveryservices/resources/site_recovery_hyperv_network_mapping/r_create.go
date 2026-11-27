@@ -12,7 +12,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationnetworkmappings"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	recoveryservicesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/client"
 )
 
 func (s Resource) Create() sdk.ResourceFunc {
@@ -24,9 +26,9 @@ func (s Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-			client := metadata.Client.RecoveryServices.NetworkMappingClient
-			fabricClient := metadata.Client.RecoveryServices.FabricClient
-			networksClient := metadata.Client.RecoveryServices.ReplicationNetworksClient
+			client := recoveryservicesClient.From(metadata.Client).NetworkMappingClient
+			fabricClient := recoveryservicesClient.From(metadata.Client).FabricClient
+			networksClient := recoveryservicesClient.From(metadata.Client).ReplicationNetworksClient
 
 			vaultId, err := replicationnetworkmappings.ParseVaultID(plan.VaultId)
 			if err != nil {
@@ -49,7 +51,7 @@ func (s Resource) Create() sdk.ResourceFunc {
 			}
 
 			id := replicationnetworkmappings.NewReplicationNetworkMappingID(parsedNetworkId.SubscriptionId, parsedNetworkId.ResourceGroupName, parsedNetworkId.VaultName, parsedNetworkId.ReplicationFabricName, parsedNetworkId.ReplicationNetworkName, plan.Name)
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {

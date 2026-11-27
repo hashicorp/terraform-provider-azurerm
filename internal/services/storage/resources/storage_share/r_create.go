@@ -13,7 +13,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/fileshares"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -21,8 +23,8 @@ import (
 )
 
 func resourceStorageShareCreate(d *pluginsdk.ResourceData, meta any) error {
-	sharesClient := meta.(*clients.Client).Storage.ResourceManager.FileShares
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	sharesClient := client.From(meta).ResourceManager.FileShares
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	accountId, err := commonids.ParseStorageAccountID(d.Get("storage_account_id").(string))
@@ -32,7 +34,7 @@ func resourceStorageShareCreate(d *pluginsdk.ResourceData, meta any) error {
 
 	id := fileshares.NewShareID(accountId.SubscriptionId, accountId.ResourceGroupName, accountId.StorageAccountName, d.Get("name").(string))
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := sharesClient.Get(ctx, id, fileshares.DefaultGetOperationOptions())
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {

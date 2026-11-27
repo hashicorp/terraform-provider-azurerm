@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2026-03-18/senderusernames"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	communicationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/communication/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -19,7 +20,7 @@ func (Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Communication.SenderUsernamesClient
+			client := communicationClient.From(metadata.Client).SenderUsernamesClient
 
 			id, err := senderusernames.ParseSenderUsernameID(metadata.ResourceData.Id())
 			if err != nil {

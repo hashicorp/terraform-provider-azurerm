@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	datafactoryClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -69,7 +70,7 @@ func (d DataSource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.DataFactory.TriggersClient
+			client := datafactoryClient.From(metadata.Client).TriggersClient
 
 			dataFactoryId, err := factories.ParseFactoryID(model.DataFactoryID)
 			if err != nil {

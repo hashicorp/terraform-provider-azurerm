@@ -9,7 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	computeClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -19,7 +19,7 @@ func ImportOrchestratedVirtualMachineScaleSet(ctx context.Context, d *pluginsdk.
 		return []*pluginsdk.ResourceData{}, err
 	}
 
-	client := meta.(*clients.Client).Compute.VirtualMachineScaleSetsClient
+	client := computeClient.From(meta).VirtualMachineScaleSetsClient
 	options := virtualmachinescalesets.DefaultGetOperationOptions()
 	options.Expand = pointer.To(virtualmachinescalesets.ExpandTypesForGetVMScaleSetsUserData)
 	if _, err = client.Get(ctx, *id, options); err != nil {
@@ -36,7 +36,7 @@ func ImportVirtualMachineScaleSet(osType virtualmachinescalesets.OperatingSystem
 			return []*pluginsdk.ResourceData{}, err
 		}
 
-		client := meta.(*clients.Client).Compute.VirtualMachineScaleSetsClient
+		client := computeClient.From(meta).VirtualMachineScaleSetsClient
 		options := virtualmachinescalesets.DefaultGetOperationOptions()
 		options.Expand = pointer.To(virtualmachinescalesets.ExpandTypesForGetVMScaleSetsUserData)
 		vm, err := client.Get(ctx, *id, options)

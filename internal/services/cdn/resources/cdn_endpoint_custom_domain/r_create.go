@@ -16,14 +16,17 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/customdomains"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/endpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	cdnClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/client"
+	keyvaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceArmCdnEndpointCustomDomainCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cdn.CustomDomainsClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	client := cdnClient.From(meta).CustomDomainsClient
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	// todo 6.0 - move to the case-sensitive parser when validation.AsGeneratedID is removed: this parses a config
@@ -35,7 +38,7 @@ func resourceArmCdnEndpointCustomDomainCreate(d *pluginsdk.ResourceData, meta an
 
 	id := customdomains.NewEndpointCustomDomainID(cdnEndpointId.SubscriptionId, cdnEndpointId.ResourceGroupName, cdnEndpointId.ProfileName, cdnEndpointId.EndpointName, d.Get("name").(string))
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id.ResourceGroupName, id.ProfileName, id.EndpointName, id.CustomDomainName)
 		if err != nil {
 			if !response.WasNotFound(existing.Response.Response) {
@@ -69,7 +72,7 @@ func resourceArmCdnEndpointCustomDomainCreate(d *pluginsdk.ResourceData, meta an
 	if v, ok := d.GetOk("user_managed_https"); ok {
 		// User managed certificate is only available for Azure CDN from Microsoft and Azure CDN from Verizon profiles.
 		// https://learn.microsoft.com/azure/cdn/cdn-custom-ssl?tabs=option-2-enable-https-with-your-own-certificate#tlsssl-certificates
-		pfClient := meta.(*clients.Client).Cdn.ProfilesClient
+		pfClient := cdnClient.From(meta).ProfilesClient
 		cdnEndpointResp, err := pfClient.Get(ctx, id.ResourceGroupName, id.ProfileName)
 		if err != nil {
 			return fmt.Errorf("retrieving Cdn Profile %q (Resource Group %q): %+v",
@@ -83,7 +86,7 @@ func resourceArmCdnEndpointCustomDomainCreate(d *pluginsdk.ResourceData, meta an
 		if cdnEndpointResp.Sku != nil && !supportedSku[cdnEndpointResp.Sku.Name] {
 			return errors.New("user managed HTTPS certificate is only available for Azure CDN from Microsoft or Azure CDN from Verizon profiles")
 		}
-		params, err = expandArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx, v.([]any), meta.(*clients.Client))
+		params, err = expandArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx, v.([]any), meta)
 		if err != nil {
 			return err
 		}
@@ -117,7 +120,7 @@ func expandArmCdnEndpointCustomDomainCdnManagedHttpsSettings(input []any) cdn.Ba
 	}
 }
 
-func expandArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx context.Context, input []any, clients *clients.Client) (cdn.BasicCustomDomainHTTPSParameters, error) {
+func expandArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx context.Context, input []any, clients any) (cdn.BasicCustomDomainHTTPSParameters, error) {
 	if len(input) == 0 || input[0] == nil {
 		return nil, nil
 	}
@@ -131,8 +134,8 @@ func expandArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx context.Contex
 		return nil, err
 	}
 
-	subscriptionId := commonids.NewSubscriptionID(clients.Account.SubscriptionId)
-	keyVaultIdRaw, err := clients.KeyVault.KeyVaultIDFromBaseUrl(ctx, subscriptionId, keyVaultSecretId.KeyVaultBaseURL)
+	subscriptionId := commonids.NewSubscriptionID(account.From(clients).SubscriptionId)
+	keyVaultIdRaw, err := keyvaultClient.From(clients).KeyVaultIDFromBaseUrl(ctx, subscriptionId, keyVaultSecretId.KeyVaultBaseURL)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", keyVaultSecretId.KeyVaultBaseURL, err)
 	}

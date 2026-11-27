@@ -13,7 +13,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-11/datacollectionendpoints"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	monitorClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -100,8 +102,8 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 func (d DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Monitor.DataCollectionEndpointsClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := monitorClient.From(metadata.Client).DataCollectionEndpointsClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			var state DataCollectionEndpoint
 			if err := metadata.Decode(&state); err != nil {

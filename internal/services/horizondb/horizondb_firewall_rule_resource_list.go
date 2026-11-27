@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/horizondb/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -62,7 +63,7 @@ func (r HorizondbFirewallRuleListResource) List(ctx context.Context, request lis
 		return
 	}
 
-	resp, err := metadata.Client.HorizonDB.FirewallRulesClient.ListComplete(ctx, *poolId)
+	resp, err := client.From(metadata.Client).FirewallRulesClient.ListComplete(ctx, *poolId)
 	if err != nil {
 		sdk.SetResponseErrorDiagnostic(stream, "listing HorizonDB Firewall Rules", err)
 		return

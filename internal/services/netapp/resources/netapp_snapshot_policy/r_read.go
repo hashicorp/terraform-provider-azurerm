@@ -16,8 +16,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/capacitypools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/snapshotpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/volumes"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	netappClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -25,7 +25,7 @@ func (Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.NetApp.SnapshotPoliciesClient
+			client := netappClient.From(metadata.Client).SnapshotPoliciesClient
 
 			id, err := snapshotpolicies.ParseSnapshotPolicyID(metadata.ResourceData.Id())
 			if err != nil {
@@ -64,9 +64,9 @@ func (Resource) Read() sdk.ResourceFunc {
 	}
 }
 
-func findVolumesUsingSnapshotPolicy(ctx context.Context, client *clients.Client, snapshotPolicyId snapshotpolicies.SnapshotPolicyId) ([]string, error) {
+func findVolumesUsingSnapshotPolicy(ctx context.Context, client any, snapshotPolicyId snapshotpolicies.SnapshotPolicyId) ([]string, error) {
 	volumeIds := make([]string, 0)
-	poolClient := client.NetApp.PoolClient
+	poolClient := netappClient.From(client).PoolClient
 	accountId := capacitypools.NewNetAppAccountID(snapshotPolicyId.SubscriptionId, snapshotPolicyId.ResourceGroupName, snapshotPolicyId.NetAppAccountName)
 
 	poolsResult, err := poolClient.PoolsList(ctx, accountId)
@@ -75,7 +75,7 @@ func findVolumesUsingSnapshotPolicy(ctx context.Context, client *clients.Client,
 	}
 
 	if model := poolsResult.Model; model != nil {
-		volumeClient := client.NetApp.VolumeClient
+		volumeClient := netappClient.From(client).VolumeClient
 
 		for _, pool := range *model {
 			if pool.Name == nil {

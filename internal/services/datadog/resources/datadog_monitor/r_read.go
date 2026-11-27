@@ -12,14 +12,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2025-06-11/datadogmonitorresources"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	datadogClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/datadog/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceDatadogMonitorRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Datadog.DatadogMonitorResources
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := datadogClient.From(meta).DatadogMonitorResources
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := datadogmonitorresources.ParseMonitorID(d.Id())

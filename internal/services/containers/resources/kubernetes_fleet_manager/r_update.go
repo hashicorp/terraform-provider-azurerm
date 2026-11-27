@@ -10,13 +10,14 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-04-01/fleets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	containersClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
 )
 
 func (r Resource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ContainerService.V20240401.Fleets
+			client := containersClient.AutoFrom(metadata.Client).V20240401.Fleets
 
 			id, err := fleets.ParseFleetID(metadata.ResourceData.Id())
 			if err != nil {

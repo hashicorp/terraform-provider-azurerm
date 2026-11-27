@@ -23,15 +23,16 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-03-01/redis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2024-03-01/signalr"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	networkClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourcePrivateEndpointRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Network.PrivateEndpoints
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := networkClient.From(meta).PrivateEndpoints
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := privateendpoints.ParsePrivateEndpointID(d.Id())
@@ -49,7 +50,7 @@ func resourcePrivateEndpointRead(d *pluginsdk.ResourceData, meta any) error {
 		return fmt.Errorf("reading %s: %+v", id, err)
 	}
 
-	return resourcePrivateEndpointFlatten(ctx, meta.(*clients.Client), d, id, resp.Model, true)
+	return resourcePrivateEndpointFlatten(ctx, meta, d, id, resp.Model, true)
 }
 
 func validatePrivateLinkServiceId(endpoints []privateendpoints.PrivateLinkServiceConnection) error {

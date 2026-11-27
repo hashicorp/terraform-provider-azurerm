@@ -10,7 +10,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-06-01/tables"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	clientsAccount "github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	storageClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	legacyTables "github.com/jackofallops/giovanni/storage/2023-11-03/table/tables"
 )
@@ -58,8 +59,8 @@ func (StorageTableEntityV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 			return rawState, nil
 		}
 
-		client := meta.(*clients.Client).Storage
-		subscriptionID := meta.(*clients.Client).Account.SubscriptionId
+		client := storageClient.From(meta)
+		subscriptionID := clientsAccount.From(meta).SubscriptionId
 
 		legacyStorageTableID, err := legacyTables.ParseTableID(rawStorageTableID, client.StorageDomainSuffix)
 		if err != nil {

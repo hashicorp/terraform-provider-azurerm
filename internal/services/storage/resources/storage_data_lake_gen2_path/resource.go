@@ -8,7 +8,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	clientsAccount "github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/datalakestore/paths"
@@ -25,11 +26,11 @@ func RegisterResource() *pluginsdk.Resource {
 			_, err := paths.ParsePathID(id, storageDomainSuffix)
 			return err
 		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta any) ([]*pluginsdk.ResourceData, error) {
-			subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+			subscriptionId := clientsAccount.From(meta).SubscriptionId
 			ctx, cancel := context.WithTimeout(ctx, d.Timeout(pluginsdk.TimeoutRead))
 			defer cancel()
 
-			storageClient := meta.(*clients.Client).Storage
+			storageClient := client.From(meta)
 
 			id, err := paths.ParsePathID(d.Id(), storageClient.StorageDomainSuffix)
 			if err != nil {

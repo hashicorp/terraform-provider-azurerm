@@ -11,22 +11,24 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/marketplaceordering/2015-06-01/agreements"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	computeClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceMarketplaceAgreementCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Compute.MarketplaceAgreementsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	client := computeClient.From(meta).MarketplaceAgreementsClient
+	ctx, cancel := timeouts.ForCreateUpdate(account.StopContext(meta), d)
+	subscriptionId := account.From(meta).SubscriptionId
 	defer cancel()
 
 	id := agreements.NewPlanID(subscriptionId, d.Get("publisher").(string), d.Get("offer").(string), d.Get("plan").(string))
 
 	agreementId := agreements.NewOfferPlanID(id.SubscriptionId, id.PublisherId, id.OfferId, id.PlanId)
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		term, err := client.MarketplaceAgreementsGet(ctx, agreementId)
 		if err != nil {
 			if !response.WasNotFound(term.HttpResponse) {

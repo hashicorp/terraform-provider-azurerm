@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	dataprotectionClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -52,7 +53,7 @@ func (ListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResou
 }
 
 func (ListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
-	client := metadata.Client.DataProtection.BackupPolicyClient20260601
+	client := dataprotectionClient.From(metadata.Client).BackupPolicyClient20260601
 
 	var data ListModel
 	diags := request.Config.Get(ctx, &data)

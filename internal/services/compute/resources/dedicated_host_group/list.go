@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	computeClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -30,7 +31,7 @@ func (ListResource) ResourceFunc() *pluginsdk.Resource {
 }
 
 func (ListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
-	client := metadata.Client.Compute.DedicatedHostGroupsClient
+	client := computeClient.From(metadata.Client).DedicatedHostGroupsClient
 
 	var data sdk.DefaultListModel
 	diags := request.Config.Get(ctx, &data)

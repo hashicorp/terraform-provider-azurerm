@@ -13,13 +13,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/partnernamespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	eventgridClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/client"
 )
 
 func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.EventGrid.PartnerNamespaces
+			client := eventgridClient.From(metadata.Client).PartnerNamespaces
 
 			id, err := partnernamespaces.ParsePartnerNamespaceID(metadata.ResourceData.Id())
 			if err != nil {

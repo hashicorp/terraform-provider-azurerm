@@ -9,16 +9,18 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2024-03-01/webpubsub"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	signalrClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceWebPubsubNetworkACLCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).SignalR.WebPubSubClient.WebPubSub
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	client := signalrClient.From(meta).WebPubSubClient.WebPubSub
+	ctx, cancel := timeouts.ForUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := webpubsub.ParseWebPubSubID(d.Get("web_pubsub_id").(string))
@@ -39,7 +41,7 @@ func resourceWebPubsubNetworkACLCreateUpdate(d *pluginsdk.ResourceData, meta any
 	defer locks.UnlockByName(id.WebPubSubName, "azurerm_web_pubsub")
 
 	if d.IsNewResource() {
-		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 			if !isNewNetworkACL(*existing.Model) {
 				return tf.ImportAsExistsError("azurerm_web_pubsub_network_acl", id.ID())
 			}

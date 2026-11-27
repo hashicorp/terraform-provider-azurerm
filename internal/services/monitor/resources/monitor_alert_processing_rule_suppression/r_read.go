@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2021-08-08/alertprocessingrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	monitorClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/helpers"
 )
 
@@ -18,7 +19,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Monitor.AlertProcessingRulesClient
+			client := monitorClient.From(metadata.Client).AlertProcessingRulesClient
 
 			id, err := alertprocessingrules.ParseActionRuleID(metadata.ResourceData.Id())
 			if err != nil {

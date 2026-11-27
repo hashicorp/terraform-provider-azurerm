@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/tables"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	loganalyticsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/helpers"
 )
 
@@ -18,7 +19,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.LogAnalytics.TablesClient
+			client := loganalyticsClient.From(metadata.Client).TablesClient
 
 			var config WorkspaceTableMicrosoftResourceModel
 			if err := metadata.Decode(&config); err != nil {

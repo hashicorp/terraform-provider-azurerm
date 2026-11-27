@@ -12,8 +12,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/subscription/2021-10-01/subscriptions"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	subscriptionClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -25,9 +27,9 @@ import (
 // Note Cancelling a Subscription leaves it in one of several states, `Disabled` for a Subscription with no Resources or
 // Alias assignments, `Warned` for Cancelled with "something" associated with it.
 func resourceSubscriptionDelete(d *pluginsdk.ResourceData, meta any) error {
-	aliasClient := meta.(*clients.Client).Subscription.AliasClient
-	client := meta.(*clients.Client).Subscription.SubscriptionsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	aliasClient := subscriptionClient.From(meta).AliasClient
+	client := subscriptionClient.From(meta).SubscriptionsClient
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := subscriptions.ParseAliasID(d.Id())
@@ -79,7 +81,7 @@ func resourceSubscriptionDelete(d *pluginsdk.ResourceData, meta any) error {
 	}
 
 	// Cancel the Subscription
-	if !meta.(*clients.Client).Features.Subscription.PreventCancellationOnDestroy {
+	if !features.From(meta).Subscription.PreventCancellationOnDestroy {
 		log.Printf("[DEBUG] Cancelling subscription %s", subscriptionId)
 
 		opts := subscriptions.DefaultSubscriptionCancelOperationOptions()

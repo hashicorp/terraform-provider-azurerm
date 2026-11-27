@@ -11,13 +11,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/graphservices/2023-04-13/graphservicesprods"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	graphservicesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/graphservices/client"
 )
 
 func (r Resource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Graph.V20230413.Graphservicesprods
+			client := graphservicesClient.From(metadata.Client).V20230413.Graphservicesprods
 
 			id, err := graphservicesprods.ParseAccountID(metadata.ResourceData.Id())
 			if err != nil {

@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	cdnClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -29,7 +30,7 @@ func (ListResource) Metadata(_ context.Context, _ resource.MetadataRequest, resp
 }
 
 func (ListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
-	client := metadata.Client.Cdn.EdgeActionsClient
+	client := cdnClient.From(metadata.Client).EdgeActionsClient
 
 	var data sdk.DefaultListModel
 	diags := request.Config.Get(ctx, &data)

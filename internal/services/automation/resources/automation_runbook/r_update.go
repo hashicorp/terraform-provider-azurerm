@@ -12,25 +12,27 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/runbook"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/runbookdraft"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	automationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
-	autoCli := meta.(*clients.Client).Automation
+	autoCli := automationClient.From(meta)
 	client := autoCli.Runbook
 	jsClient := autoCli.JobSchedule
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreateUpdate(account.StopContext(meta), d)
 	defer cancel()
 
-	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
+	subscriptionID := account.From(meta).SubscriptionId
 
 	id := runbook.NewRunbookID(subscriptionID, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 			existing, err := client.Get(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {

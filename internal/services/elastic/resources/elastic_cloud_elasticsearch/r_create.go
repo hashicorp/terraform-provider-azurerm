@@ -13,21 +13,23 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/elastic/2023-06-01/monitorsresource"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/elastic/2023-06-01/rules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	elasticClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceElasticsearchCreate(d *pluginsdk.ResourceData, meta any) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	client := meta.(*clients.Client).Elastic.MonitorClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	subscriptionId := account.From(meta).SubscriptionId
+	client := elasticClient.From(meta).MonitorClient
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	id := monitorsresource.NewMonitorID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.MonitorsGet(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -65,7 +67,7 @@ func resourceElasticsearchCreate(d *pluginsdk.ResourceData, meta any) error {
 	d.SetId(id.ID())
 
 	if v, ok := d.GetOk("logs"); ok {
-		tagRulesClient := meta.(*clients.Client).Elastic.TagRuleClient
+		tagRulesClient := elasticClient.From(meta).TagRuleClient
 		tagRuleId := rules.NewTagRuleID(id.SubscriptionId, id.ResourceGroupName, id.MonitorName, "default")
 		tagRule := rules.MonitoringTagRules{
 			Properties: &rules.MonitoringTagRulesProperties{

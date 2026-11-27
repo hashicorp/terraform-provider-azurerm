@@ -13,7 +13,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databoxedge/2022-03-01/devices"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	databoxedgeClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/databoxedge/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databoxedge/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -143,8 +145,8 @@ func (d DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			subscriptionId := metadata.Client.Account.SubscriptionId
-			client := metadata.Client.DataboxEdge.DeviceClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
+			client := databoxedgeClient.From(metadata.Client).DeviceClient
 
 			var metaModel EdgeDeviceModel
 			if err := metadata.Decode(&metaModel); err != nil {

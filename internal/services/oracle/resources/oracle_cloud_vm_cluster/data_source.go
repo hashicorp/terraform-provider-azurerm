@@ -13,7 +13,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/cloudvmclusters"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	oracleClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -473,8 +475,8 @@ func (d DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Oracle.OracleClient.CloudVMClusters
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := oracleClient.From(metadata.Client).OracleClient.CloudVMClusters
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			var state CloudVmClusterDataModel
 			if err := metadata.Decode(&state); err != nil {

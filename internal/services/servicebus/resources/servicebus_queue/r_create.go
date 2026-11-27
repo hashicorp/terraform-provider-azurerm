@@ -14,15 +14,17 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/namespaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/queues"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	servicebusClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).ServiceBus.QueuesClient
-	namespaceClient := meta.(*clients.Client).ServiceBus.NamespacesClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	client := servicebusClient.From(meta).QueuesClient
+	namespaceClient := servicebusClient.From(meta).NamespacesClient
+	ctx, cancel := timeouts.ForCreateUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	namespaceId, err := namespaces.ParseNamespaceID(d.Get("namespace_id").(string))
@@ -33,7 +35,7 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta any) er
 	id := queues.NewQueueID(namespaceId.SubscriptionId, namespaceId.ResourceGroupName, namespaceId.NamespaceName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 			existing, err := client.Get(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {
@@ -132,7 +134,7 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta any) er
 
 	// We need to retrieve the namespace because Premium namespace works differently from Basic and Standard,
 	// so it needs different rules applied to it.
-	namespacesClient := meta.(*clients.Client).ServiceBus.NamespacesClient
+	namespacesClient := servicebusClient.From(meta).NamespacesClient
 	namespace, err := namespacesClient.Get(ctx, *namespaceId)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *namespaceId, err)

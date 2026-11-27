@@ -8,7 +8,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	computeClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -19,7 +19,7 @@ func ImportVirtualMachine(osType virtualmachines.OperatingSystemTypes, resourceT
 			return []*pluginsdk.ResourceData{}, err
 		}
 
-		client := meta.(*clients.Client).Compute.VirtualMachinesClient
+		client := computeClient.From(meta).VirtualMachinesClient
 		vm, err := client.Get(ctx, *id, virtualmachines.DefaultGetOperationOptions())
 		if err != nil {
 			return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving %s: %+v", id, err)

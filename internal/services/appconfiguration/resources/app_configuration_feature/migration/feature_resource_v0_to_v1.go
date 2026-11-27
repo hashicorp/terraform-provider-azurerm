@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2024-05-01/configurationstores"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -51,7 +51,7 @@ func (FeatureResourceV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 			return rawState, fmt.Errorf("parsing Configuration Store ID %q: %+v", configurationStoreId, err)
 		}
 
-		domainSuffix, ok := meta.(*clients.Client).Account.Environment.AppConfiguration.DomainSuffix()
+		domainSuffix, ok := account.From(meta).Environment.AppConfiguration.DomainSuffix()
 		if !ok {
 			return rawState, errors.New("app configuration is not supported in this Environment")
 		}

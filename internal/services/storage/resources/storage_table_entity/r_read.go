@@ -11,17 +11,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-06-01/tables"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
+	clientsAccount "github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	storageClient2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/table/entities"
 )
 
 func resourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta any) error {
-	storageClient := meta.(*clients.Client).Storage
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	storageClient := storageClient2.From(meta)
+	subscriptionId := clientsAccount.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForRead(clientsAccount.StopContext(meta), d)
 	defer cancel()
 
 	id, err := entities.ParseEntityID(d.Id(), storageClient.StorageDomainSuffix)
@@ -32,7 +32,7 @@ func resourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta any) error {
 	var tableName string
 	var accountName string
 	var storageTableIdFmtd string
-	var account *client.AccountDetails
+	var account *storageClient2.AccountDetails
 
 	tableIdRaw, ok := d.GetOk("storage_table_id")
 	storageTableIdRaw := ""

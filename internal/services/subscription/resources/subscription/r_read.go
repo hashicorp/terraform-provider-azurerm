@@ -16,15 +16,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-12-01/subscriptions"
 	subscriptionAlias "github.com/hashicorp/go-azure-sdk/resource-manager/subscription/2021-10-01/subscriptions"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	subscriptionClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceSubscriptionRead(d *pluginsdk.ResourceData, meta any) error {
-	aliasClient := meta.(*clients.Client).Subscription.AliasClient
-	client := meta.(*clients.Client).Subscription.SubscriptionsClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	aliasClient := subscriptionClient.From(meta).AliasClient
+	client := subscriptionClient.From(meta).SubscriptionsClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := subscriptionAlias.ParseAliasID(d.Id())

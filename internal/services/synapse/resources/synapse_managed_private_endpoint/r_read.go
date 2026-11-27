@@ -10,14 +10,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/data-plane/synapse/2021-06-01-preview/managedprivateendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/workspaces"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	synapseClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceSynapseManagedPrivateEndpointRead(d *pluginsdk.ResourceData, meta any) error {
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := parse.ManagedPrivateEndpointID(d.Id())
@@ -25,13 +26,13 @@ func resourceSynapseManagedPrivateEndpointRead(d *pluginsdk.ResourceData, meta a
 		return err
 	}
 
-	baseURI, err := NewSynapseWorkspaceBaseURI(meta.(*clients.Client).Account.Environment, id.WorkspaceName)
+	baseURI, err := NewSynapseWorkspaceBaseURI(account.From(meta).Environment, id.WorkspaceName)
 	if err != nil {
 		return err
 	}
 
 	dataPlaneID := managedprivateendpoints.NewManagedPrivateEndpointID(baseURI, id.ManagedVirtualNetworkName, id.Name)
-	client := meta.(*clients.Client).Synapse.ManagedPrivateEndpointsClient.Clone(dataPlaneID.BaseURI)
+	client := synapseClient.From(meta).ManagedPrivateEndpointsClient.Clone(dataPlaneID.BaseURI)
 
 	resp, err := client.Get(ctx, dataPlaneID)
 	if err != nil {

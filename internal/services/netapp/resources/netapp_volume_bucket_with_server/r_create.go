@@ -13,7 +13,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/buckets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	netappClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 )
@@ -22,8 +24,8 @@ func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.NetApp.BucketsClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := netappClient.From(metadata.Client).BucketsClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			var model models.NetAppVolumeBucketWithServerModel
 			if err := metadata.Decode(&model); err != nil {

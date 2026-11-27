@@ -16,7 +16,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/deletedsecrets"
 	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/secrets"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	keyvaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -24,9 +25,9 @@ import (
 )
 
 func resourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta any) error {
-	keyVaultsClient := meta.(*clients.Client).KeyVault
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	keyVaultsClient := keyvaultClient.From(meta)
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := keyvault.ParseNestedItemID(d.Id(), keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret)
@@ -59,7 +60,7 @@ func resourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta any) error {
 		return nil
 	}
 
-	client := meta.(*clients.Client).KeyVault.DataPlaneKeyVaultClient.Secrets.Clone(id.KeyVaultBaseURL)
+	client := keyvaultClient.From(meta).DataPlaneKeyVaultClient.Secrets.Clone(id.KeyVaultBaseURL)
 	secretVersionId := secrets.NewSecretversionID(id.KeyVaultBaseURL, id.Name, "")
 
 	// we always want to get the latest version

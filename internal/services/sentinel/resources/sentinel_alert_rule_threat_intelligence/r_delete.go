@@ -10,13 +10,14 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2023-12-01-preview/alertrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	sentinelClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/client"
 )
 
 func (a Resource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Sentinel.AlertRulesClient
+			client := sentinelClient.From(metadata.Client).AlertRulesClient
 
 			id, err := alertrules.ParseAlertRuleID(metadata.ResourceData.Id())
 			if err != nil {

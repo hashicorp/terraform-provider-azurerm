@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/connectedregistries"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	containersClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
 )
 
 func (r Resource) Update() sdk.ResourceFunc {
@@ -27,7 +28,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.Containers.ContainerRegistryClient.ConnectedRegistries
+			client := containersClient.From(metadata.Client).ContainerRegistryClient.ConnectedRegistries
 
 			existing, err := client.Get(ctx, *id)
 			if err != nil {

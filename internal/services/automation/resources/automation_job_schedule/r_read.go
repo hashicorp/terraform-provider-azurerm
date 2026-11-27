@@ -14,14 +14,15 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/jobschedule"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/runbook"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/schedule"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	automationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceAutomationJobScheduleRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Automation.JobSchedule
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := automationClient.From(meta).JobSchedule
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	// the jobSchedule ID may be updated by Runbook, so need to get the real id by list API

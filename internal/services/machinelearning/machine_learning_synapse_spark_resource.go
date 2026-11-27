@@ -17,8 +17,10 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/machinelearningcomputes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	machinelearningClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -90,15 +92,15 @@ func resourceSynapseSpark() *pluginsdk.Resource {
 }
 
 func resourceSynapseSparkCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).MachineLearning.MachineLearningComputes
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	client := machinelearningClient.From(meta).MachineLearningComputes
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	workspaceID, _ := workspaces.ParseWorkspaceID(d.Get("machine_learning_workspace_id").(string))
 	id := machinelearningcomputes.NewComputeID(subscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, d.Get("name").(string))
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.ComputeGet(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -136,9 +138,9 @@ func resourceSynapseSparkCreate(d *pluginsdk.ResourceData, meta any) error {
 }
 
 func resourceSynapseSparkRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).MachineLearning.MachineLearningComputes
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := machinelearningClient.From(meta).MachineLearningComputes
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := machinelearningcomputes.ParseComputeID(d.Id())
@@ -183,8 +185,8 @@ func resourceSynapseSparkRead(d *pluginsdk.ResourceData, meta any) error {
 }
 
 func resourceSynapseSparkDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).MachineLearning.MachineLearningComputes
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := machinelearningClient.From(meta).MachineLearningComputes
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 	id, err := machinelearningcomputes.ParseComputeID(d.Id())
 	if err != nil {

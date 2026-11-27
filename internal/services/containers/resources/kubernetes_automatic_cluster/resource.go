@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-07-01/managedclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	containersClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -43,7 +44,7 @@ func (r Resource) CustomImporter() sdk.ResourceRunFunc {
 			return err
 		}
 
-		client := metadata.Client.Containers.KubernetesClustersClient
+		client := containersClient.From(metadata.Client).KubernetesClustersClient
 		resp, err := client.Get(ctx, *id)
 		if err != nil || resp.Model == nil {
 			return fmt.Errorf("retrieving %s: %+v", *id, err)

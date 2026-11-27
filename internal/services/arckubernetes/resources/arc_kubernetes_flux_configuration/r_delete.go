@@ -10,13 +10,14 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2025-04-01/fluxconfiguration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	arckubernetesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/arckubernetes/client"
 )
 
 func (r Resource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ArcKubernetes.FluxConfigurationClient
+			client := arckubernetesClient.From(metadata.Client).FluxConfigurationClient
 
 			id, err := fluxconfiguration.ParseScopedFluxConfigurationID(metadata.ResourceData.Id())
 			if err != nil {

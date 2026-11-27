@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	computeClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -72,7 +72,7 @@ func RegisterResource() *pluginsdk.Resource {
 			_, err := parse.DataDiskID(id)
 			return err
 		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta any) ([]*pluginsdk.ResourceData, error) {
-			client := meta.(*clients.Client).Compute.VirtualMachinesClient
+			client := computeClient.From(meta).VirtualMachinesClient
 			id, err := parse.DataDiskID(d.Id())
 			if err != nil {
 				return nil, err

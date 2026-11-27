@@ -17,24 +17,27 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-07-01/maintenanceconfigurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-07-01/managedclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	containersClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/helpers"
+	keyvaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta any) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	client := meta.(*clients.Client).Containers.KubernetesClustersClient
-	keyVaultsClient := meta.(*clients.Client).KeyVault
-	env := meta.(*clients.Client).Containers.Environment
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	subscriptionId := account.From(meta).SubscriptionId
+	client := containersClient.From(meta).KubernetesClustersClient
+	keyVaultsClient := keyvaultClient.From(meta)
+	env := containersClient.From(meta).Environment
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	id := commonids.NewKubernetesClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -306,7 +309,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta any) error 
 	d.SetId(id.ID())
 
 	if maintenanceConfigRaw, ok := d.GetOk("maintenance_window"); ok {
-		client := meta.(*clients.Client).Containers.MaintenanceConfigurationsClient
+		client := containersClient.From(meta).MaintenanceConfigurationsClient
 		parameters := maintenanceconfigurations.MaintenanceConfiguration{
 			Properties: expandKubernetesClusterMaintenanceConfigurationDefault(maintenanceConfigRaw.([]any)),
 		}
@@ -317,7 +320,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta any) error 
 	}
 
 	if maintenanceConfigRaw, ok := d.GetOk("maintenance_window_auto_upgrade"); ok {
-		client := meta.(*clients.Client).Containers.MaintenanceConfigurationsClient
+		client := containersClient.From(meta).MaintenanceConfigurationsClient
 		parameters := maintenanceconfigurations.MaintenanceConfiguration{
 			Properties: expandKubernetesClusterMaintenanceConfigurationForCreate(maintenanceConfigRaw.([]any)),
 		}
@@ -328,7 +331,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta any) error 
 	}
 
 	if maintenanceConfigRaw, ok := d.GetOk("maintenance_window_node_os"); ok {
-		client := meta.(*clients.Client).Containers.MaintenanceConfigurationsClient
+		client := containersClient.From(meta).MaintenanceConfigurationsClient
 		parameters := maintenanceconfigurations.MaintenanceConfiguration{
 			Properties: expandKubernetesClusterMaintenanceConfigurationForCreate(maintenanceConfigRaw.([]any)),
 		}

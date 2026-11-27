@@ -9,14 +9,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/syncgroupresource"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	storageClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceStorageSyncGroupCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Storage.SyncGroupsClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	client := storageClient.From(meta).SyncGroupsClient
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	serviceId, err := syncgroupresource.ParseStorageSyncServiceID(d.Get("storage_sync_id").(string))
@@ -26,7 +28,7 @@ func resourceStorageSyncGroupCreate(d *pluginsdk.ResourceData, meta any) error {
 
 	id := syncgroupresource.NewSyncGroupID(serviceId.SubscriptionId, serviceId.ResourceGroupName, serviceId.StorageSyncServiceName, d.Get("name").(string))
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.SyncGroupsGet(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {

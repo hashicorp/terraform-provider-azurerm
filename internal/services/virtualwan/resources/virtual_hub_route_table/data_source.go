@@ -10,7 +10,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualwans"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	virtualwanClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/virtualwan/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/virtualwan/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -92,9 +93,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 }
 
 func dataSourceVirtualHubRouteTableRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).VirtualWan.VirtualWANs
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := virtualwanClient.From(meta).VirtualWANs
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id := virtualwans.NewHubRouteTableID(subscriptionId, d.Get("resource_group_name").(string), d.Get("virtual_hub_name").(string), d.Get("name").(string))

@@ -12,13 +12,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redhatopenshift/2025-07-25/openshiftclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	redhatopenshiftClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/redhatopenshift/client"
 )
 
 func (r Resource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.RedHatOpenShift.OpenShiftClustersClient
+			client := redhatopenshiftClient.From(metadata.Client).OpenShiftClustersClient
 
 			id, err := openshiftclusters.ParseOpenShiftClusterID(metadata.ResourceData.Id())
 			if err != nil {

@@ -10,7 +10,10 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	appserviceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -23,12 +26,12 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.AppService.ServicePlanClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := appserviceClient.From(metadata.Client).ServicePlanClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			id := commonids.NewAppServicePlanID(subscriptionId, servicePlan.ResourceGroup, servicePlan.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("retrieving %s: %v", id, err)

@@ -19,23 +19,25 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/sqlvulnerabilityassessmentssettings"
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	mssqlClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).MSSQL.ServersClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	connectionClient := meta.(*clients.Client).MSSQL.ServerConnectionPoliciesClient
-	vaClient := meta.(*clients.Client).MSSQL.SqlVulnerabilityAssessmentSettingsClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	client := mssqlClient.From(meta).ServersClient
+	subscriptionId := account.From(meta).SubscriptionId
+	connectionClient := mssqlClient.From(meta).ServerConnectionPoliciesClient
+	vaClient := mssqlClient.From(meta).SqlVulnerabilityAssessmentSettingsClient
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	id := commonids.NewSqlServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id, servers.DefaultGetOperationOptions())
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {

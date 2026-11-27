@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networkmanagers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	networkmanagerClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/networkmanager/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -19,7 +20,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.NetworkManager.NetworkManagers
+			client := networkmanagerClient.From(metadata.Client).NetworkManagers
 			id, err := networkmanagers.ParseNetworkManagerID(metadata.ResourceData.Id())
 			if err != nil {
 				return err

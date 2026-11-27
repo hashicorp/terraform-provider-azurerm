@@ -11,13 +11,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/virtualmachinetemplates"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	systemcentervirtualmachinemanagerClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/systemcentervirtualmachinemanager/client"
 )
 
 func (r Resource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.SystemCenterVirtualMachineManager.VirtualMachineTemplates
+			client := systemcentervirtualmachinemanagerClient.From(metadata.Client).VirtualMachineTemplates
 
 			id, err := virtualmachinetemplates.ParseVirtualMachineTemplateID(metadata.ResourceData.Id())
 			if err != nil {

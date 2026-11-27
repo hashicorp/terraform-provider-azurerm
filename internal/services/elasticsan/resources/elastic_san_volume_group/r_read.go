@@ -15,13 +15,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/elasticsan/2023-01-01/volumegroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	elasticsanClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/elasticsan/client"
 )
 
 func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ElasticSan.VolumeGroups
+			client := elasticsanClient.From(metadata.Client).VolumeGroups
 			schema := ElasticSANVolumeGroupResourceModel{}
 
 			id, err := volumegroups.ParseVolumeGroupID(metadata.ResourceData.Id())

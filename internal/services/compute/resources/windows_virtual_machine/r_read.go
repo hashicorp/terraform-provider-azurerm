@@ -10,15 +10,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	computeClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta any) error {
-	metaClient := meta.(*clients.Client)
-	client := metaClient.Compute.VirtualMachinesClient
-	ctx, cancel := timeouts.ForRead(metaClient.StopContext, d)
+	client := computeClient.From(meta).VirtualMachinesClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := virtualmachines.ParseVirtualMachineID(d.Id())
@@ -39,5 +39,5 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta any) erro
 		return fmt.Errorf("retrieving Windows %s: %+v", id, err)
 	}
 
-	return resourceWindowsVirtualMachineFlatten(ctx, metaClient, d, id, resp.Model, true)
+	return resourceWindowsVirtualMachineFlatten(ctx, meta, d, id, resp.Model, true)
 }

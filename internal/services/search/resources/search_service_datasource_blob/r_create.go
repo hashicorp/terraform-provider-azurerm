@@ -12,7 +12,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/data-plane/search/2025-09-01/datasources"
 	"github.com/hashicorp/go-cty/cty"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	searchClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/search/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/search/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -26,10 +28,10 @@ func (r Resource) Create() sdk.ResourceFunc {
 			}
 
 			endpoint := model.SearchServiceEndpoint
-			client := metadata.Client.Search.SearchDataPlaneClient.DataSources.Clone(endpoint)
+			client := searchClient.From(metadata.Client).SearchDataPlaneClient.DataSources.Clone(endpoint)
 			id := datasources.NewDatasourceID(endpoint, model.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id, datasources.DefaultGetOperationOptions())
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)

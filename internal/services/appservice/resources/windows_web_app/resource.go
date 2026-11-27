@@ -11,6 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	appserviceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/resources/windows_web_app/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -33,8 +34,8 @@ func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 
 func (r Resource) CustomImporter() sdk.ResourceRunFunc {
 	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-		client := metadata.Client.AppService.WebAppsClient
-		servicePlanClient := metadata.Client.AppService.ServicePlanClient
+		client := appserviceClient.From(metadata.Client).WebAppsClient
+		servicePlanClient := appserviceClient.From(metadata.Client).ServicePlanClient
 
 		id, err := commonids.ParseWebAppID(metadata.ResourceData.Id())
 		if err != nil {

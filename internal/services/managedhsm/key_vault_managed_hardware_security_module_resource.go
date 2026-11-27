@@ -23,8 +23,11 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/managedhsms"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	keyvaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
+	managedhsmClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -170,14 +173,14 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 }
 
 func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).ManagedHSMs
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	client := managedhsmClient.From(meta)
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	id := managedhsms.NewManagedHSMID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.ManagedHsmClient.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -240,7 +243,7 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *pluginsdk.Resourc
 			return fmt.Errorf("got nil HSMUri for %s: %+v", id, err)
 		}
 
-		keyVaultClient := meta.(*clients.Client).KeyVault.ManagementClient
+		keyVaultClient := keyvaultClient.From(meta).ManagementClient
 		encData, err := securityDomainDownload(ctx, client.DataPlaneSecurityDomainsClient, *keyVaultClient, *resp.Model.Properties.HsmUri, d.Get("security_domain_key_vault_certificate_ids").([]any), d.Get("security_domain_quorum").(int))
 		if err != nil {
 			return fmt.Errorf("downloading security domain for %q: %+v", id, err)
@@ -253,9 +256,9 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *pluginsdk.Resourc
 
 // update to re-activate the security module
 func resourceArmKeyVaultManagedHardwareSecurityModuleUpdate(d *pluginsdk.ResourceData, meta any) error {
-	kvClient := meta.(*clients.Client).ManagedHSMs
+	kvClient := managedhsmClient.From(meta)
 	hsmClient := kvClient.ManagedHsmClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := managedhsms.ParseManagedHSMID(d.Id())
@@ -300,7 +303,7 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleUpdate(d *pluginsdk.Resourc
 			return fmt.Errorf("got nil HSMUri for %s: %+v", id, err)
 		}
 
-		keyVaultClient := meta.(*clients.Client).KeyVault.ManagementClient
+		keyVaultClient := keyvaultClient.From(meta).ManagementClient
 		encData, err := securityDomainDownload(ctx, kvClient.DataPlaneSecurityDomainsClient, *keyVaultClient, *resp.Model.Properties.HsmUri, d.Get("security_domain_key_vault_certificate_ids").([]any), d.Get("security_domain_quorum").(int))
 		if err != nil {
 			return fmt.Errorf("downloading security domain for %q: %+v", id, err)
@@ -312,8 +315,8 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleUpdate(d *pluginsdk.Resourc
 }
 
 func resourceArmKeyVaultManagedHardwareSecurityModuleRead(d *pluginsdk.ResourceData, meta any) error {
-	hsmClient := meta.(*clients.Client).ManagedHSMs.ManagedHsmClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	hsmClient := managedhsmClient.From(meta).ManagedHsmClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := managedhsms.ParseManagedHSMID(d.Id())
@@ -371,8 +374,8 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleRead(d *pluginsdk.ResourceD
 }
 
 func resourceArmKeyVaultManagedHardwareSecurityModuleDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).ManagedHSMs
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := managedhsmClient.From(meta)
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := managedhsms.ParseManagedHSMID(d.Id())
@@ -399,7 +402,7 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleDelete(d *pluginsdk.Resourc
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
-	if meta.(*clients.Client).Features.KeyVault.PurgeSoftDeletedHSMsOnDestroy {
+	if features.From(meta).KeyVault.PurgeSoftDeletedHSMsOnDestroy {
 		if purgeProtectionEnabled {
 			log.Printf("[DEBUG] cannot purge %s because purge protection is enabled", id)
 			return nil

@@ -12,7 +12,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2025-08-01/managedgrafanas"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2025-08-01/managedprivateendpointmodels"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	dashboardClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/dashboard/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -25,15 +28,15 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.Dashboard.ManagedPrivateEndpointsClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := dashboardClient.From(metadata.Client).ManagedPrivateEndpointsClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 			grafanaId, err := managedgrafanas.ParseGrafanaID(model.GrafanaId)
 			if err != nil {
 				return err
 			}
 			id := managedprivateendpointmodels.NewManagedPrivateEndpointID(subscriptionId, grafanaId.ResourceGroupName, grafanaId.GrafanaName, model.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.ManagedPrivateEndpointsGet(ctx, id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)

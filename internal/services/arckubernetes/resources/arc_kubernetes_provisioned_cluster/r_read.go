@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridkubernetes/2024-01-01/connectedclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	arckubernetesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/arckubernetes/client"
 )
 
 //go:generate go run ../../../../tools/generator-tests resourceidentity -resource-name arc_kubernetes_provisioned_cluster
@@ -20,7 +21,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ArcKubernetes.ArcKubernetesClient
+			client := arckubernetesClient.From(metadata.Client).ArcKubernetesClient
 
 			id, err := connectedclusters.ParseConnectedClusterID(metadata.ResourceData.Id())
 			if err != nil {

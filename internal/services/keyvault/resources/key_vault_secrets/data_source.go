@@ -14,7 +14,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/secrets"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	keyvaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -73,8 +74,8 @@ func RegisterDataSource() *pluginsdk.Resource {
 }
 
 func dataSourceKeyVaultSecretsRead(d *pluginsdk.ResourceData, meta any) error {
-	keyVaultsClient := meta.(*clients.Client).KeyVault
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	keyVaultsClient := keyvaultClient.From(meta)
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	keyVaultId, err := commonids.ParseKeyVaultID(d.Get("key_vault_id").(string))
@@ -87,7 +88,7 @@ func dataSourceKeyVaultSecretsRead(d *pluginsdk.ResourceData, meta any) error {
 		return fmt.Errorf("fetching base vault url from id %q: %+v", *keyVaultId, err)
 	}
 
-	client := meta.(*clients.Client).KeyVault.DataPlaneKeyVaultClient.Secrets.Clone(*keyVaultBaseUri)
+	client := keyvaultClient.From(meta).DataPlaneKeyVaultClient.Secrets.Clone(*keyVaultBaseUri)
 	opts := secrets.GetSecretsOperationOptions{
 		Maxresults: pointer.To(int64(25)),
 	}

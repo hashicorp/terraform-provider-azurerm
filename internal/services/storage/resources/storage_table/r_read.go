@@ -8,7 +8,8 @@ import (
 	"log"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	clientsAccount "github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	storageClient2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -16,8 +17,8 @@ import (
 )
 
 func resourceStorageTableRead(d *pluginsdk.ResourceData, meta any) error {
-	storageClient := meta.(*clients.Client).Storage
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	storageClient := storageClient2.From(meta)
+	ctx, cancel := timeouts.ForRead(clientsAccount.StopContext(meta), d)
 	defer cancel()
 
 	rmId, err := parse.StorageTableResourceManagerID(d.Id())

@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/data-plane/search/2025-09-01/datasources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	searchClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/search/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/search/schema"
 )
 
@@ -24,7 +25,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 			}
 
 			endpoint := resourceId.BaseURI
-			client := metadata.Client.Search.SearchDataPlaneClient.DataSources.Clone(endpoint)
+			client := searchClient.From(metadata.Client).SearchDataPlaneClient.DataSources.Clone(endpoint)
 			resp, err := client.Get(ctx, *resourceId, datasources.DefaultGetOperationOptions())
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {

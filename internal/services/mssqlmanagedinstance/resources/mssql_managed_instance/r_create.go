@@ -17,15 +17,18 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/publicmaintenanceconfigurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstanceadministrators"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstances"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	mssqlmanagedinstanceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/client"
 )
 
 func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 24 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MSSQLManagedInstance.ManagedInstancesClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := mssqlmanagedinstanceClient.From(metadata.Client).ManagedInstancesClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			var model MsSqlManagedInstanceModel
 			if err := metadata.Decode(&model); err != nil {
@@ -34,7 +37,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			id := commonids.NewSqlManagedInstanceID(subscriptionId, model.ResourceGroupName, model.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id, managedinstances.GetOperationOptions{})
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)

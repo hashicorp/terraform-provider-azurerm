@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicelinker/2024-04-01/servicelinker"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	serviceconnectorClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/serviceconnector/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/serviceconnector/helpers"
 )
 
@@ -18,7 +19,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ServiceConnector.ServiceLinkerClient
+			client := serviceconnectorClient.From(metadata.Client).ServiceLinkerClient
 			id, err := servicelinker.ParseScopedLinkerID(metadata.ResourceData.Id())
 			if err != nil {
 				return err

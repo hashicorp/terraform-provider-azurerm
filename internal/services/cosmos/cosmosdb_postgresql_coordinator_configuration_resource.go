@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/configurations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	cosmosClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -92,7 +93,7 @@ func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) Create() sdk.Resourc
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.Cosmos.ConfigurationsClient
+			client := cosmosClient.From(metadata.Client).ConfigurationsClient
 			clusterId, err := configurations.ParseServerGroupsv2ID(model.ClusterId)
 			if err != nil {
 				return err
@@ -122,7 +123,7 @@ func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) Update() sdk.Resourc
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Cosmos.ConfigurationsClient
+			client := cosmosClient.From(metadata.Client).ConfigurationsClient
 
 			id, err := configurations.ParseCoordinatorConfigurationID(metadata.ResourceData.Id())
 			if err != nil {
@@ -158,7 +159,7 @@ func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) Read() sdk.ResourceF
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Cosmos.ConfigurationsClient
+			client := cosmosClient.From(metadata.Client).ConfigurationsClient
 
 			id, err := configurations.ParseCoordinatorConfigurationID(metadata.ResourceData.Id())
 			if err != nil {
@@ -198,7 +199,7 @@ func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) Delete() sdk.Resourc
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Cosmos.ConfigurationsClient
+			client := cosmosClient.From(metadata.Client).ConfigurationsClient
 
 			id, err := configurations.ParseCoordinatorConfigurationID(metadata.ResourceData.Id())
 			if err != nil {

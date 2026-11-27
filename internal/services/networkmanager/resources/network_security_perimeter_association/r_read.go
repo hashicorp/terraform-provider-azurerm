@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networksecurityperimeterassociations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	networkmanagerClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/networkmanager/client"
 )
 
 func (Resource) Read() sdk.ResourceFunc {
@@ -19,7 +20,7 @@ func (Resource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.NetworkManager.NetworkSecurityPerimeterAssociationsClient
+			client := networkmanagerClient.From(metadata.Client).NetworkSecurityPerimeterAssociationsClient
 
 			id, err := networksecurityperimeterassociations.ParseResourceAssociationID(metadata.ResourceData.Id())
 			if err != nil {

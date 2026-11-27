@@ -15,16 +15,19 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstanceencryptionprotectors"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	keyvaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
+	managedhsmClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/client"
+	mssqlmanagedinstanceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceMsSqlManagedInstanceTransparentDataEncryptionRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).MSSQLManagedInstance.ManagedInstanceEncryptionProtectorClient
+	client := mssqlmanagedinstanceClient.From(meta).ManagedInstanceEncryptionProtectorClient
 
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := parse.ManagedInstanceEncryptionProtectorID(d.Id())
@@ -116,7 +119,7 @@ func resourceMsSqlManagedInstanceTransparentDataEncryptionVersionedKey(ctx conte
 
 	var keyUrl string
 	if id.IsManagedHSM() {
-		resp, err := meta.(*clients.Client).ManagedHSMs.DataPlaneKeysClient.GetKey(ctx, id.KeyVaultBaseURL, id.Name, "")
+		resp, err := managedhsmClient.From(meta).DataPlaneKeysClient.GetKey(ctx, id.KeyVaultBaseURL, id.Name, "")
 		if err != nil {
 			return nil, err
 		}
@@ -125,7 +128,7 @@ func resourceMsSqlManagedInstanceTransparentDataEncryptionVersionedKey(ctx conte
 			keyUrl = pointer.From(resp.Key.Kid)
 		}
 	} else {
-		resp, err := meta.(*clients.Client).KeyVault.ManagementClient.GetKey(ctx, id.KeyVaultBaseURL, id.Name, "")
+		resp, err := keyvaultClient.From(meta).ManagementClient.GetKey(ctx, id.KeyVaultBaseURL, id.Name, "")
 		if err != nil {
 			return nil, err
 		}

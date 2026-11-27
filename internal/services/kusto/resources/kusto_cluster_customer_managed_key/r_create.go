@@ -10,18 +10,20 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	keyvaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceKustoClusterCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
-	clusterClient := meta.(*clients.Client).Kusto.ClustersClient
-	keyVaultsClient := meta.(*clients.Client).KeyVault
+	clusterClient := client.From(meta).ClustersClient
+	keyVaultsClient := keyvaultClient.From(meta)
 	vaultsClient := keyVaultsClient.VaultsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreateUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	clusterIDRaw := d.Get("cluster_id").(string)

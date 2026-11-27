@@ -14,13 +14,14 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/managedenvironments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/azuresdkhacks"
+	containerappsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/client"
 )
 
 func (r Resource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ContainerApps.ManagedEnvironmentClient
+			client := containerappsClient.From(metadata.Client).ManagedEnvironmentClient
 			workaroundClient := azuresdkhacks.NewManagedEnvironmentWorkaroundClient(client)
 			id, err := managedenvironments.ParseManagedEnvironmentID(metadata.ResourceData.Id())
 			if err != nil {

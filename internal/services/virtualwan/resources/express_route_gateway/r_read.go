@@ -13,14 +13,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressrouteconnections"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressroutegateways"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	virtualwanClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/virtualwan/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceExpressRouteGatewayRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).VirtualWan.ExpressRouteGateways
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := virtualwanClient.From(meta).ExpressRouteGateways
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := expressroutegateways.ParseExpressRouteGatewayID(d.Id())

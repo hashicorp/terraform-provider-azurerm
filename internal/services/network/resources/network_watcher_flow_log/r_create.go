@@ -13,17 +13,18 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/flowlogs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networkwatchers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	networkClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceNetworkWatcherFlowLogCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Network.FlowLogs
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	client := networkClient.From(meta).FlowLogs
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	id := flowlogs.NewFlowLogID(subscriptionId, d.Get("resource_group_name").(string), d.Get("network_watcher_name").(string), d.Get("name").(string))
@@ -47,7 +48,7 @@ func resourceNetworkWatcherFlowLogCreate(d *pluginsdk.ResourceData, meta any) er
 	loc := d.Get("location").(string)
 	if loc == "" {
 		// Get the containing network watcher in order to reuse its location if the "location" is not specified.
-		watcherClient := meta.(*clients.Client).Network.NetworkWatchers
+		watcherClient := networkClient.From(meta).NetworkWatchers
 		watcherId := networkwatchers.NewNetworkWatcherID(id.SubscriptionId, id.ResourceGroupName, id.NetworkWatcherName)
 		resp, err := watcherClient.Get(ctx, watcherId)
 		if err != nil {

@@ -10,17 +10,17 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	paloaltoClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/client"
 )
 
-func ValidateStrataCloudManagerTenantNameExists(ctx context.Context, client *clients.Client, subscriptionId string, tenantName string) error {
+func ValidateStrataCloudManagerTenantNameExists(ctx context.Context, client any, subscriptionId string, tenantName string) error {
 	if strings.TrimSpace(tenantName) == "" {
 		return errors.New("strata cloud manager tenant name cannot be empty")
 	}
 
 	subscriptionIdParsed := commonids.NewSubscriptionID(subscriptionId)
 
-	resp, err := client.PaloAlto.PaloAltoNetworksCloudngfws.PaloAltoNetworksCloudngfwOperationslistCloudManagerTenants(ctx, subscriptionIdParsed)
+	resp, err := paloaltoClient.From(client).PaloAltoNetworksCloudngfws.PaloAltoNetworksCloudngfwOperationslistCloudManagerTenants(ctx, subscriptionIdParsed)
 	if err != nil {
 		return fmt.Errorf("retrieving list of available Strata Cloud Manager tenants: %v", err)
 	}

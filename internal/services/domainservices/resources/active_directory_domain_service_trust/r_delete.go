@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	domainservicesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/domainservices/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/domainservices/parse"
 )
 
@@ -19,7 +20,7 @@ func (r Resource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DomainServices.DomainServicesClient
+			client := domainservicesClient.From(metadata.Client).DomainServicesClient
 
 			id, err := parse.DomainServiceTrustID(metadata.ResourceData.Id())
 			if err != nil {

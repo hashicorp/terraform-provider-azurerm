@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationprotectioncontainermappings"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	recoveryservicesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/client"
 )
 
 func (s Resource) Delete() sdk.ResourceFunc {
@@ -21,7 +22,7 @@ func (s Resource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.RecoveryServices.ContainerMappingClient
+			client := recoveryservicesClient.From(metadata.Client).ContainerMappingClient
 
 			input := replicationprotectioncontainermappings.RemoveProtectionContainerMappingInput{
 				Properties: &replicationprotectioncontainermappings.RemoveProtectionContainerMappingInputProperties{

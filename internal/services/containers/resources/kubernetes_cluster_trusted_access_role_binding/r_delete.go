@@ -10,13 +10,14 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-07-01/trustedaccess"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	containersClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
 )
 
 func (r Resource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Containers.TrustedAccessClient
+			client := containersClient.From(metadata.Client).TrustedAccessClient
 
 			id, err := trustedaccess.ParseTrustedAccessRoleBindingID(metadata.ResourceData.Id())
 			if err != nil {

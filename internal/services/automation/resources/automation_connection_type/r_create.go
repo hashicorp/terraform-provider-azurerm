@@ -12,21 +12,24 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/automationaccount"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/connectiontype"
+	clientsAccount "github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	automationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/client"
 )
 
 func (m Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Automation.ConnectionType
-			connClient := metadata.Client.Automation.AutomationAccount
+			client := automationClient.From(metadata.Client).ConnectionType
+			connClient := automationClient.From(metadata.Client).AutomationAccount
 
 			var model AutomationConnectionTypeModel
 			if err := metadata.Decode(&model); err != nil {
 				return err
 			}
-			subscriptionID := metadata.Client.Account.SubscriptionId
+			subscriptionID := clientsAccount.From(metadata.Client).SubscriptionId
 
 			accountID := automationaccount.NewAutomationAccountID(subscriptionID, model.ResourceGroup, model.AutomationAccountName)
 			account, err := connClient.Get(ctx, accountID)
@@ -39,7 +42,7 @@ func (m Resource) Create() sdk.ResourceFunc {
 
 			id := connectiontype.NewConnectionTypeID(accountID.SubscriptionId, model.ResourceGroup, model.AutomationAccountName, model.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if !response.WasNotFound(existing.HttpResponse) {
 					if err != nil {

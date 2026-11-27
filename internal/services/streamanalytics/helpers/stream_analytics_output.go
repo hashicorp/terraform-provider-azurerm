@@ -9,7 +9,7 @@ import (
 	"reflect"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/outputs"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	streamanalyticsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -20,7 +20,7 @@ func ImportStreamAnalyticsOutput(expectType outputs.OutputDataSource) pluginsdk.
 			return nil, err
 		}
 
-		client := meta.(*clients.Client).StreamAnalytics.OutputsClient
+		client := streamanalyticsClient.From(meta).OutputsClient
 		resp, err := client.Get(ctx, *id)
 		if err != nil {
 			return nil, fmt.Errorf("retrieving %s: %+v", *id, err)

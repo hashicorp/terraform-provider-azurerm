@@ -13,16 +13,18 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressroutecircuitconnections"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressroutecircuits"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	expressrouteClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/expressroute/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceExpressRouteCircuitConnectionCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).ExpressRoute.ExpressRouteCircuitConnections
-	circuitClient := meta.(*clients.Client).ExpressRoute.ExpressRouteCircuits
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	client := expressrouteClient.From(meta).ExpressRouteCircuitConnections
+	circuitClient := expressrouteClient.From(meta).ExpressRouteCircuits
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	circuitPeeringId, err := commonids.ParseExpressRouteCircuitPeeringID(d.Get("peering_id").(string))
@@ -32,7 +34,7 @@ func resourceExpressRouteCircuitConnectionCreate(d *pluginsdk.ResourceData, meta
 
 	id := expressroutecircuitconnections.NewPeeringConnectionID(circuitPeeringId.SubscriptionId, circuitPeeringId.ResourceGroupName, circuitPeeringId.CircuitName, circuitPeeringId.PeeringName, d.Get("name").(string))
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {

@@ -14,7 +14,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/dataconnections"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	kustoClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/client"
 )
 
 func (r Resource) Create() sdk.ResourceFunc {
@@ -28,7 +30,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %s: %+v", r.ResourceType(), err)
 			}
 
-			client := metadata.Client.Kusto.DataConnectionsClient
+			client := kustoClient.From(metadata.Client).DataConnectionsClient
 
 			cosmosDbContainerId, err := cosmosdb.ParseContainerID(model.CosmosDbContainerId)
 			if err != nil {
@@ -45,7 +47,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			id := dataconnections.NewDataConnectionID(kustoDatabaseId.SubscriptionId, kustoDatabaseId.ResourceGroupName, kustoDatabaseId.KustoClusterName, kustoDatabaseId.KustoDatabaseName, model.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)

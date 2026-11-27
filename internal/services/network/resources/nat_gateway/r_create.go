@@ -14,17 +14,19 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/natgateways"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	networkClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceNatGatewayCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Network.NatGateways
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	client := networkClient.From(meta).NatGateways
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	id := natgateways.NewNatGatewayID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
@@ -32,7 +34,7 @@ func resourceNatGatewayCreate(d *pluginsdk.ResourceData, meta any) error {
 	locks.ByName(id.NatGatewayName, natGatewayResourceName)
 	defer locks.UnlockByName(id.NatGatewayName, natGatewayResourceName)
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		resp, err := client.Get(ctx, id, natgateways.DefaultGetOperationOptions())
 		if err != nil {
 			if !response.WasNotFound(resp.HttpResponse) {

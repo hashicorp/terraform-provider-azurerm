@@ -15,7 +15,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/configurations"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -136,10 +137,10 @@ func RegisterDataSource() *pluginsdk.Resource {
 }
 
 func dataSourceHDInsightClusterRead(d *pluginsdk.ResourceData, meta any) error {
-	clustersClient := meta.(*clients.Client).HDInsight.Clusters
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	configurationsClient := meta.(*clients.Client).HDInsight.Configurations
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	clustersClient := client.From(meta).Clusters
+	subscriptionId := account.From(meta).SubscriptionId
+	configurationsClient := client.From(meta).Configurations
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id := commonids.NewHDInsightClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))

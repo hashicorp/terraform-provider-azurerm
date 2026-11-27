@@ -11,13 +11,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2025-01-01/securitypoliciesinterface"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	servicenetworkingClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicenetworking/client"
 )
 
 func (t Resource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ServiceNetworking.SecurityPoliciesInterface
+			client := servicenetworkingClient.From(metadata.Client).SecurityPoliciesInterface
 
 			id, err := securitypoliciesinterface.ParseSecurityPolicyID(metadata.ResourceData.Id())
 			if err != nil {

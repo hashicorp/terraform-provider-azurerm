@@ -11,8 +11,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	iothubClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -20,9 +22,9 @@ import (
 )
 
 func resourceIotHubEndpointEventHubCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).IoTHub.ResourceClient
-	subscriptionId := meta.(*clients.Client).IoTHub.ResourceClient.SubscriptionID
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	client := iothubClient.From(meta).ResourceClient
+	subscriptionId := iothubClient.From(meta).ResourceClient.SubscriptionID
+	ctx, cancel := timeouts.ForCreateUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	endpointRG := d.Get("resource_group_name").(string)
@@ -60,7 +62,7 @@ func resourceIotHubEndpointEventHubCreateUpdate(d *pluginsdk.ResourceData, meta 
 	// From the business perspective, the raw config handling is only meant for the case that the user has an CosmosDB Account whose Endpoint's subscription is not the provider's one. Then the user wants to reset it to the provider's one by unset the subscription_id
 	// From the TF code perspective, given `Computed: true` is enabled, TF would always get the value from the last apply when this property isn't set in the tf config. So `d.GetRawConfig()` is required to determine if it's set in the tf config
 	if v := d.GetRawConfig().AsValueMap()["subscription_id"]; v.IsNull() {
-		eventhubEndpoint.SubscriptionID = pointer.To(meta.(*clients.Client).Account.SubscriptionId)
+		eventhubEndpoint.SubscriptionID = pointer.To(account.From(meta).SubscriptionId)
 	} else {
 		eventhubEndpoint.SubscriptionID = pointer.To(d.Get("subscription_id").(string))
 	}
@@ -107,7 +109,7 @@ func resourceIotHubEndpointEventHubCreateUpdate(d *pluginsdk.ResourceData, meta 
 		if existingEndpointName := existingEndpoint.Name; existingEndpointName != nil {
 			if strings.EqualFold(*existingEndpointName, id.EndpointName) {
 				if d.IsNewResource() {
-					if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+					if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 						return tf.ImportAsExistsError("azurerm_iothub_endpoint_eventhub", id.ID())
 					}
 				}

@@ -10,7 +10,8 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" //nolint:staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -18,10 +19,10 @@ import (
 )
 
 func resourceSynapseSqlPoolUpdate(d *pluginsdk.ResourceData, meta any) error {
-	sqlClient := meta.(*clients.Client).Synapse.SqlPoolClient
-	geoBackUpClient := meta.(*clients.Client).Synapse.SqlPoolGeoBackupPoliciesClient
-	sqlPTDEClient := meta.(*clients.Client).Synapse.SqlPoolTransparentDataEncryptionClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	sqlClient := client.From(meta).SqlPoolClient
+	geoBackUpClient := client.From(meta).SqlPoolGeoBackupPoliciesClient
+	sqlPTDEClient := client.From(meta).SqlPoolTransparentDataEncryptionClient
+	ctx, cancel := timeouts.ForUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := parse.SqlPoolID(d.Id())

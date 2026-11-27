@@ -10,16 +10,18 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	appplatform_rm "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	springcloudClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/jackofallops/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
 )
 
 func resourceSpringCloudGatewayCustomDomainCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	client := meta.(*clients.Client).AppPlatform.GatewayCustomDomainClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	subscriptionId := account.From(meta).SubscriptionId
+	client := springcloudClient.From(meta).GatewayCustomDomainClient
+	ctx, cancel := timeouts.ForCreateUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
@@ -31,7 +33,7 @@ func resourceSpringCloudGatewayCustomDomainCreateUpdate(d *pluginsdk.ResourceDat
 	id := appplatform_rm.NewGatewayDomainID(subscriptionId, gatewayId.ResourceGroupName, gatewayId.SpringName, gatewayId.GatewayName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 			existing, err := client.Get(ctx, id.ResourceGroupName, id.SpringName, id.GatewayName, id.DomainName)
 			if err != nil {
 				if !response.WasNotFound(existing.Response.Response) {

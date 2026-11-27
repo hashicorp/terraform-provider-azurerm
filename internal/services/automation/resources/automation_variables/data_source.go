@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/variable"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	automationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -133,7 +134,7 @@ func (v DataSource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.Automation.Variable
+			client := automationClient.From(metadata.Client).Variable
 
 			variableList, err := client.ListByAutomationAccountComplete(ctx, pointer.From(automationAccountId))
 			if err != nil {

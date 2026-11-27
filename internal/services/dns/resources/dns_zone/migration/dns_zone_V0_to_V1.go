@@ -9,7 +9,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -130,7 +130,7 @@ func (DnsZoneV0ToV1) Schema() map[string]*pluginsdk.Schema {
 
 func (DnsZoneV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
-		groupsClient := meta.(*clients.Client).Resource.GroupsClient
+		groupsClient := client.From(meta).GroupsClient
 		oldId := rawState["id"].(string)
 		id, err := zones.ParseDnsZoneID(oldId)
 		if err != nil {

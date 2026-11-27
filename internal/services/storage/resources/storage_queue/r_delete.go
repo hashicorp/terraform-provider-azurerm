@@ -8,14 +8,15 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/storagequeues"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceStorageQueueDelete(d *pluginsdk.ResourceData, meta any) error {
-	queueClient := meta.(*clients.Client).Storage.ResourceManager.StorageQueues
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	queueClient := client.From(meta).ResourceManager.StorageQueues
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := storagequeues.ParseQueueID(d.Id())

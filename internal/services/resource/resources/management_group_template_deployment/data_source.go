@@ -9,9 +9,10 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	mgParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
 	mgValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
+	resourceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/validate"
@@ -52,8 +53,8 @@ func RegisterDataSource() *pluginsdk.Resource {
 }
 
 func dataSourceManagementGroupTemplateDeploymentRead(d *schema.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Resource.LegacyDeploymentsClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := resourceClient.From(meta).LegacyDeploymentsClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	managementGroupId := d.Get("management_group_id").(string)

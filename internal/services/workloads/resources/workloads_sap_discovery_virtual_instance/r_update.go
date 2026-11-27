@@ -12,13 +12,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapvirtualinstances"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	workloadsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/workloads/client"
 )
 
 func (r Resource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Workloads.SAPVirtualInstances
+			client := workloadsClient.From(metadata.Client).SAPVirtualInstances
 
 			id, err := sapvirtualinstances.ParseSapVirtualInstanceID(metadata.ResourceData.Id())
 			if err != nil {

@@ -12,13 +12,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/elasticsan/2023-01-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	elasticsanClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/elasticsan/client"
 )
 
 func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ElasticSan.Volumes
+			client := elasticsanClient.From(metadata.Client).Volumes
 			schema := ElasticSANVolumeResourceModel{}
 
 			id, err := volumes.ParseVolumeID(metadata.ResourceData.Id())

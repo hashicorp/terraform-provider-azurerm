@@ -11,24 +11,26 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	webClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/web/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceAppServiceCustomHostnameBindingCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Web.WebAppsClient
+	client := webClient.From(meta).WebAppsClient
 
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
-	id := webapps.NewHostNameBindingID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("app_service_name").(string), d.Get("hostname").(string))
+	id := webapps.NewHostNameBindingID(account.From(meta).SubscriptionId, d.Get("resource_group_name").(string), d.Get("app_service_name").(string), d.Get("hostname").(string))
 
 	locks.ByName(id.SiteName, appServiceCustomHostnameBindingResourceName)
 	defer locks.UnlockByName(id.SiteName, appServiceCustomHostnameBindingResourceName)
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.GetHostNameBinding(ctx, id)
 		if !response.WasNotFound(existing.HttpResponse) {
 			if err != nil {

@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	datafactoryClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory"
@@ -19,7 +20,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DataFactory.DatasetClient
+			client := datafactoryClient.From(metadata.Client).DatasetClient
 			id, err := parse.DataSetID(metadata.ResourceData.Id())
 			if err != nil {
 				return err

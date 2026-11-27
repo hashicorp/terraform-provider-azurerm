@@ -16,7 +16,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/profiles"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/securitypolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2024-02-01/webapplicationfirewallpolicies"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	cdnClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -154,8 +156,8 @@ func (DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Cdn.FrontDoorSecurityPoliciesClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := cdnClient.From(metadata.Client).FrontDoorSecurityPoliciesClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			var state CdnFrontDoorSecurityPolicyDataSourceModel
 			if err := metadata.Decode(&state); err != nil {

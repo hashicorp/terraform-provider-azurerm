@@ -13,7 +13,10 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/loadbalancers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2023-10-01/availabilitygrouplisteners"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2023-10-01/sqlvirtualmachines"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	mssqlClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -26,8 +29,8 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.MSSQL.VirtualMachinesAvailabilityGroupListenersClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := mssqlClient.From(metadata.Client).VirtualMachinesAvailabilityGroupListenersClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			sqlVirtualMachineGroupId, err := availabilitygrouplisteners.ParseSqlVirtualMachineGroupID(model.SqlVirtualMachineGroupId)
 			if err != nil {
@@ -36,7 +39,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			id := availabilitygrouplisteners.NewAvailabilityGroupListenerID(subscriptionId, sqlVirtualMachineGroupId.ResourceGroupName, sqlVirtualMachineGroupId.SqlVirtualMachineGroupName, model.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id, availabilitygrouplisteners.GetOperationOptions{Expand: pointer.To("AvailabilityGroupConfiguration")})
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {

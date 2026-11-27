@@ -12,7 +12,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/virtualnetworklinks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	privatednsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -59,11 +60,11 @@ func RegisterDataSource() *pluginsdk.Resource {
 }
 
 func dataSourcePrivateDnsZoneVirtualNetworkLinkRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).PrivateDns.VirtualNetworkLinksClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := privatednsClient.From(meta).VirtualNetworkLinksClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	subscriptionId := account.From(meta).SubscriptionId
 	id := virtualnetworklinks.NewVirtualNetworkLinkID(subscriptionId, d.Get("resource_group_name").(string), d.Get("private_dns_zone_name").(string), d.Get("name").(string))
 
 	resp, err := client.Get(ctx, id)

@@ -11,13 +11,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxcertificate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	nginxClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/nginx/client"
 )
 
 func (m Resource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			client := meta.Client.Nginx.NginxCertificate
+			client := nginxClient.From(meta.Client).NginxCertificate
 			id, err := nginxcertificate.ParseCertificateID(meta.ResourceData.Id())
 			if err != nil {
 				return err

@@ -14,7 +14,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2025-10-10/applicationgroup"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2025-10-10/hostpool"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	desktopvirtualizationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -102,8 +104,8 @@ func (r DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DesktopVirtualization.ApplicationGroupsClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := desktopvirtualizationClient.From(metadata.Client).ApplicationGroupsClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			var state DesktopVirtualizationApplicationGroupModel
 			if err := metadata.Decode(&state); err != nil {

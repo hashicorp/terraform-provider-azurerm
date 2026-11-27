@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2025-08-01/managedgrafanas"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	dashboardClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/dashboard/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -20,7 +21,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Dashboard.GrafanaResourceClient
+			client := dashboardClient.From(metadata.Client).GrafanaResourceClient
 
 			id, err := managedgrafanas.ParseGrafanaID(metadata.ResourceData.Id())
 			if err != nil {

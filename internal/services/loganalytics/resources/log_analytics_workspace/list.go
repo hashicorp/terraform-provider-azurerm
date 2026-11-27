@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	loganalyticsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -31,8 +32,8 @@ func (ListResource) ResourceFunc() *pluginsdk.Resource {
 }
 
 func (ListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
-	client := metadata.Client.LogAnalytics.WorkspaceClient
-	sharedKeyClient := metadata.Client.LogAnalytics.SharedKeyWorkspacesClient
+	client := loganalyticsClient.From(metadata.Client).WorkspaceClient
+	sharedKeyClient := loganalyticsClient.From(metadata.Client).SharedKeyWorkspacesClient
 
 	var data sdk.DefaultListModel
 	diags := request.Config.Get(ctx, &data)

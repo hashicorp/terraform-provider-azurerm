@@ -15,7 +15,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2025-02-01/devcenters"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	devcenterClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/devcenter/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -78,8 +80,8 @@ func (DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DevCenter.V20250201.DevCenters
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := devcenterClient.From(metadata.Client).V20250201.DevCenters
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			var state DevCenterDataSourceModel
 			if err := metadata.Decode(&state); err != nil {

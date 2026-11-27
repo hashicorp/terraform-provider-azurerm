@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/python3package"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	automationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/client"
 )
 
 func (m Resource) Read() sdk.ResourceFunc {
@@ -23,7 +24,7 @@ func (m Resource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			client := meta.Client.Automation.Python3Package
+			client := automationClient.From(meta.Client).Python3Package
 			result, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(result.HttpResponse) {

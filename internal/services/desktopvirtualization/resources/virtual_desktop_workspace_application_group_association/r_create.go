@@ -10,16 +10,18 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2025-10-10/applicationgroup"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2025-10-10/workspace"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	desktopvirtualizationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceVirtualDesktopWorkspaceApplicationGroupAssociationCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).DesktopVirtualization.WorkspacesClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	client := desktopvirtualizationClient.From(meta).WorkspacesClient
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	workspaceId, err := workspace.ParseWorkspaceID(d.Get("workspace_id").(string))
@@ -58,7 +60,7 @@ func resourceVirtualDesktopWorkspaceApplicationGroupAssociationCreate(d *plugins
 
 	applicationGroupIdStr := applicationGroupId.ID()
 	if associationExists(model.Properties, applicationGroupIdStr) {
-		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 			return tf.ImportAsExistsError("azurerm_virtual_desktop_workspace_application_group_association", associationId)
 		}
 	}

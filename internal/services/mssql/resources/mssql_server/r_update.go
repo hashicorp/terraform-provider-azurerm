@@ -20,19 +20,20 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/sqlvulnerabilityassessmentssettings"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/go-cty/cty"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	mssqlClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).MSSQL.ServersClient
-	connectionClient := meta.(*clients.Client).MSSQL.ServerConnectionPoliciesClient
-	adminClient := meta.(*clients.Client).MSSQL.ServerAzureADAdministratorsClient
-	aadOnlyAuthenticationsClient := meta.(*clients.Client).MSSQL.ServerAzureADOnlyAuthenticationsClient
-	vaClient := meta.(*clients.Client).MSSQL.SqlVulnerabilityAssessmentSettingsClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	client := mssqlClient.From(meta).ServersClient
+	connectionClient := mssqlClient.From(meta).ServerConnectionPoliciesClient
+	adminClient := mssqlClient.From(meta).ServerAzureADAdministratorsClient
+	aadOnlyAuthenticationsClient := mssqlClient.From(meta).ServerAzureADOnlyAuthenticationsClient
+	vaClient := mssqlClient.From(meta).SqlVulnerabilityAssessmentSettingsClient
+	ctx, cancel := timeouts.ForUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := commonids.ParseSqlServerID(d.Id())

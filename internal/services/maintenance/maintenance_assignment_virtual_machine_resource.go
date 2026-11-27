@@ -17,7 +17,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/configurationassignments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/maintenanceconfigurations"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	maintenanceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -74,8 +76,8 @@ func resourceArmMaintenanceAssignmentVirtualMachine() *pluginsdk.Resource {
 }
 
 func resourceArmMaintenanceAssignmentVirtualMachineCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Maintenance.ConfigurationAssignmentsClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	client := maintenanceClient.From(meta).ConfigurationAssignmentsClient
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	virtualMachineId, err := virtualmachines.ParseVirtualMachineID(d.Get("virtual_machine_id").(string))
@@ -90,7 +92,7 @@ func resourceArmMaintenanceAssignmentVirtualMachineCreate(d *pluginsdk.ResourceD
 
 	id := configurationassignments.NewScopedConfigurationAssignmentID(virtualMachineId.ID(), configurationId.MaintenanceConfigurationName)
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		resp, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(resp.HttpResponse) {
@@ -132,8 +134,8 @@ func resourceArmMaintenanceAssignmentVirtualMachineCreate(d *pluginsdk.ResourceD
 }
 
 func resourceArmMaintenanceAssignmentVirtualMachineRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Maintenance.ConfigurationAssignmentsClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := maintenanceClient.From(meta).ConfigurationAssignmentsClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := configurationassignments.ParseScopedConfigurationAssignmentID(d.Id())
@@ -181,8 +183,8 @@ func resourceArmMaintenanceAssignmentVirtualMachineRead(d *pluginsdk.ResourceDat
 }
 
 func resourceArmMaintenanceAssignmentVirtualMachineDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Maintenance.ConfigurationAssignmentsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := maintenanceClient.From(meta).ConfigurationAssignmentsClient
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := configurationassignments.ParseScopedConfigurationAssignmentID(d.Id())

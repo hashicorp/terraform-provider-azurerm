@@ -11,15 +11,17 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/cloudendpointresource"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/syncgroupresource"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	storageClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceStorageSyncCloudEndpointCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Storage.SyncCloudEndpointsClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	client := storageClient.From(meta).SyncCloudEndpointsClient
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	groupId, err := syncgroupresource.ParseSyncGroupID(d.Get("storage_sync_group_id").(string))
@@ -29,7 +31,7 @@ func resourceStorageSyncCloudEndpointCreate(d *pluginsdk.ResourceData, meta any)
 
 	id := cloudendpointresource.NewCloudEndpointID(groupId.SubscriptionId, groupId.ResourceGroupName, groupId.StorageSyncServiceName, groupId.SyncGroupName, d.Get("name").(string))
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.CloudEndpointsGet(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -48,7 +50,7 @@ func resourceStorageSyncCloudEndpointCreate(d *pluginsdk.ResourceData, meta any)
 		},
 	}
 
-	tenantId := meta.(*clients.Client).Account.TenantId
+	tenantId := account.From(meta).TenantId
 	if v, ok := d.GetOk("storage_account_tenant_id"); ok {
 		tenantId = v.(string)
 	}

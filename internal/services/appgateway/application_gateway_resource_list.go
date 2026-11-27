@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	appgatewayClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/appgateway/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -30,7 +31,7 @@ func (r ApplicationGatewayListResource) Metadata(_ context.Context, _ resource.M
 }
 
 func (r ApplicationGatewayListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
-	client := metadata.Client.AppGateway.ApplicationGateways
+	client := appgatewayClient.From(metadata.Client).ApplicationGateways
 	var data sdk.DefaultListModel
 	diags := request.Config.Get(ctx, &data)
 	if diags.HasError() {

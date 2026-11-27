@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/connectedregistries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	containersClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 )
 
@@ -20,7 +21,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Containers.ContainerRegistryClient.ConnectedRegistries
+			client := containersClient.From(metadata.Client).ContainerRegistryClient.ConnectedRegistries
 			id, err := connectedregistries.ParseConnectedRegistryID(metadata.ResourceData.Id())
 			if err != nil {
 				return err

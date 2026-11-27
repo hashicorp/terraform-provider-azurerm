@@ -22,6 +22,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationprotectioncontainers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/azuresdkhacks"
+	recoveryservicesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -35,8 +36,8 @@ func (r Resource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.RecoveryServices.ReplicationProtectedItemsClient
-			runAsAccountId := metadata.Client.RecoveryServices.VMWareRunAsAccountsClient
+			client := recoveryservicesClient.From(metadata.Client).ReplicationProtectedItemsClient
+			runAsAccountId := recoveryservicesClient.From(metadata.Client).VMWareRunAsAccountsClient
 
 			resp, err := client.Get(ctx, *id)
 			if err != nil {

@@ -12,8 +12,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	appserviceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 )
 
@@ -21,11 +23,11 @@ func (r Resource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AppService.WebAppsClient
+			client := appserviceClient.From(metadata.Client).WebAppsClient
 
-			storageDomainSuffix, ok := metadata.Client.Account.Environment.Storage.DomainSuffix()
+			storageDomainSuffix, ok := account.From(metadata.Client).Environment.Storage.DomainSuffix()
 			if !ok {
-				return fmt.Errorf("could not determine Storage domain suffix for environment %q", metadata.Client.Account.Environment.Name)
+				return fmt.Errorf("could not determine Storage domain suffix for environment %q", account.From(metadata.Client).Environment.Name)
 			}
 
 			id, err := webapps.ParseSlotID(metadata.ResourceData.Id())

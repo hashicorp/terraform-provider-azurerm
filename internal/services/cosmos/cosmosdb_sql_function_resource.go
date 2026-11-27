@@ -11,8 +11,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	cosmosClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -65,9 +67,9 @@ func resourceCosmosDbSQLFunction() *pluginsdk.Resource {
 }
 
 func resourceCosmosDbSQLFunctionCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := cosmosClient.From(meta).CosmosDBClient
 
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	containerId, err := cosmosdb.ParseContainerID(d.Get("container_id").(string))
@@ -75,9 +77,9 @@ func resourceCosmosDbSQLFunctionCreate(d *pluginsdk.ResourceData, meta any) erro
 		return err
 	}
 
-	id := cosmosdb.NewUserDefinedFunctionID(meta.(*clients.Client).Account.SubscriptionId, containerId.ResourceGroupName, containerId.DatabaseAccountName, containerId.SqlDatabaseName, containerId.ContainerName, d.Get("name").(string))
+	id := cosmosdb.NewUserDefinedFunctionID(account.From(meta).SubscriptionId, containerId.ResourceGroupName, containerId.DatabaseAccountName, containerId.SqlDatabaseName, containerId.ContainerName, d.Get("name").(string))
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.SqlResourcesGetSqlUserDefinedFunction(ctx, id)
 		if !response.WasNotFound(existing.HttpResponse) {
 			if err != nil {
@@ -106,9 +108,9 @@ func resourceCosmosDbSQLFunctionCreate(d *pluginsdk.ResourceData, meta any) erro
 }
 
 func resourceCosmosDbSQLFunctionUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := cosmosClient.From(meta).CosmosDBClient
 
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := cosmosdb.ParseUserDefinedFunctionID(d.Id())
@@ -138,9 +140,9 @@ func resourceCosmosDbSQLFunctionUpdate(d *pluginsdk.ResourceData, meta any) erro
 }
 
 func resourceCosmosDbSQLFunctionRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := cosmosClient.From(meta).CosmosDBClient
 
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := cosmosdb.ParseUserDefinedFunctionID(d.Id())
@@ -170,9 +172,9 @@ func resourceCosmosDbSQLFunctionRead(d *pluginsdk.ResourceData, meta any) error 
 }
 
 func resourceCosmosDbSQLFunctionDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := cosmosClient.From(meta).CosmosDBClient
 
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := cosmosdb.ParseUserDefinedFunctionID(d.Id())

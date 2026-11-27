@@ -12,15 +12,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/certificates"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/managedenvironments"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	containerappsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/client"
 )
 
 func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ContainerApps.CertificatesClient
-			environmentsClient := metadata.Client.ContainerApps.ManagedEnvironmentClient
+			client := containerappsClient.From(metadata.Client).CertificatesClient
+			environmentsClient := containerappsClient.From(metadata.Client).ManagedEnvironmentClient
 
 			var cert ContainerAppCertificateModel
 
@@ -33,7 +35,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			id := certificates.NewCertificateID(metadata.Client.Account.SubscriptionId, envId.ResourceGroupName, envId.ManagedEnvironmentName, cert.Name)
+			id := certificates.NewCertificateID(account.From(metadata.Client).SubscriptionId, envId.ResourceGroupName, envId.ManagedEnvironmentName, cert.Name)
 			env, err := environmentsClient.Get(ctx, *envId)
 			if err != nil {
 				return fmt.Errorf("reading %s for %s: %+v", *envId, id, err)

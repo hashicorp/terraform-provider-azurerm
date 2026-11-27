@@ -11,13 +11,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/loadtestservice/2025-09-01/playwrightworkspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	loadtestserviceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadtestservice/client"
 )
 
 func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.LoadTestService.PlaywrightWorkspacesClient
+			client := loadtestserviceClient.From(metadata.Client).PlaywrightWorkspacesClient
 			id, err := playwrightworkspaces.ParsePlaywrightWorkspaceID(metadata.ResourceData.Id())
 			if err != nil {
 				return err

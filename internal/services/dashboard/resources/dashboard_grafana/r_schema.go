@@ -13,6 +13,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2025-08-01/managedgrafanas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/preflight"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -213,7 +215,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			rd := metadata.ResourceDiff
 
-			if metadata.Client.Features.EnhancedValidation.PreflightEnabled {
+			if features.From(metadata.Client).EnhancedValidation.PreflightEnabled {
 				// Only perform preflight validation if there are changes. This avoids validation failures and
 				// additional API calls for resources that are unchanged between plan invocations
 				if len(rd.GetChangedKeysPrefix("")) > 0 || rd.Id() == "" {
@@ -224,7 +226,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 
 					req := expandCreateForDashboardGrafana(model)
 
-					id := managedgrafanas.NewGrafanaID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
+					id := managedgrafanas.NewGrafanaID(account.From(metadata.Client).SubscriptionId, model.ResourceGroupName, model.Name)
 
 					preflightValidate, err := preflight.NewValidationRequest(pointer.To(model.Location), pointer.To(id), "2025-08-01", req.Properties)
 					if err != nil {

@@ -13,7 +13,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleeligibilityschedulerequests"
 	"github.com/hashicorp/go-uuid"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -22,8 +24,8 @@ func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			schedulesClient := metadata.Client.Authorization.RoleEligibilitySchedulesClient
-			requestsClient := metadata.Client.Authorization.RoleEligibilityScheduleRequestClient
+			schedulesClient := client.From(metadata.Client).RoleEligibilitySchedulesClient
+			requestsClient := client.From(metadata.Client).RoleEligibilityScheduleRequestClient
 
 			var config PimEligibleRoleAssignmentModel
 			if err := metadata.Decode(&config); err != nil {
@@ -32,7 +34,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			id := parse.NewPimRoleAssignmentID(config.Scope, config.RoleDefinitionId, config.PrincipalId)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				schedule, err := findRoleEligibilitySchedule(ctx, schedulesClient, id)
 				if err != nil {
 					return err

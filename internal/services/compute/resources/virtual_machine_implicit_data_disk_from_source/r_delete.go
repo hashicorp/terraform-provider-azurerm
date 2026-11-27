@@ -11,8 +11,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	computeClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 )
@@ -21,7 +23,7 @@ func (r Resource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Compute.VirtualMachinesClient
+			client := computeClient.From(metadata.Client).VirtualMachinesClient
 
 			id, err := parse.DataDiskID(metadata.ResourceData.Id())
 			if err != nil {
@@ -67,9 +69,9 @@ func (r Resource) Delete() sdk.ResourceFunc {
 						}
 
 						// delete the data disk which was created by Azure Service when creating this resource
-						detachDataDisk := metadata.Client.Features.VirtualMachine.DetachImplicitDataDiskOnDeletion
+						detachDataDisk := features.From(metadata.Client).VirtualMachine.DetachImplicitDataDiskOnDeletion
 						if !detachDataDisk && toBeDeletedDisk != nil && toBeDeletedDisk.ManagedDisk != nil && toBeDeletedDisk.ManagedDisk.Id != nil {
-							diskClient := metadata.Client.Compute.DisksClient
+							diskClient := computeClient.From(metadata.Client).DisksClient
 							diskId, err := commonids.ParseManagedDiskID(*toBeDeletedDisk.ManagedDisk.Id)
 							if err != nil {
 								return err

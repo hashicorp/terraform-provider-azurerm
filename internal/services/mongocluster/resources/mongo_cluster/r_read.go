@@ -15,13 +15,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mongocluster/2026-06-01/mongoclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	mongoclusterClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/mongocluster/client"
 )
 
 func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MongoCluster.MongoClustersClient
+			client := mongoclusterClient.From(metadata.Client).MongoClustersClient
 
 			id, err := mongoclusters.ParseMongoClusterID(metadata.ResourceData.Id())
 			if err != nil {

@@ -24,26 +24,28 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	apimanagementClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).ApiManagement.ServiceClient
-	apiClient := meta.(*clients.Client).ApiManagement.ApiClient
-	deletedServicesClient := meta.(*clients.Client).ApiManagement.DeletedServicesClient
-	productsClient := meta.(*clients.Client).ApiManagement.ProductsClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	client := apimanagementClient.From(meta).ServiceClient
+	apiClient := apimanagementClient.From(meta).ApiClient
+	deletedServicesClient := apimanagementClient.From(meta).DeletedServicesClient
+	productsClient := apimanagementClient.From(meta).ProductsClient
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForCreateUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	sku := expandAzureRmApiManagementSkuName(d.Get("sku_name").(string))
 
 	id := apimanagementservice.NewServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -85,7 +87,7 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta any) err
 
 	// if so, does the user want us to recover it?
 	if !response.WasNotFound(softDeleted.HttpResponse) && !response.WasForbidden(softDeleted.HttpResponse) {
-		if !meta.(*clients.Client).Features.ApiManagement.RecoverSoftDeleted {
+		if !features.From(meta).ApiManagement.RecoverSoftDeleted {
 			// this exists but the users opted out, so they must import this it out-of-band
 			return errors.New(optedOutOfRecoveringSoftDeletedApiManagementErrorFmt(id.ServiceName, location))
 		}
@@ -265,7 +267,7 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta any) err
 	if sku.Name != apimanagementservice.SkuTypeConsumption && !strings.Contains(string(sku.Name), "V2") {
 		signInSettingServiceId := signinsettings.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName)
 		signInSettings := expandApiManagementSignInSettings(signInSettingsRaw)
-		signInClient := meta.(*clients.Client).ApiManagement.SignInClient
+		signInClient := apimanagementClient.From(meta).SignInClient
 		if _, err := signInClient.CreateOrUpdate(ctx, signInSettingServiceId, signInSettings, signinsettings.CreateOrUpdateOperationOptions{}); err != nil {
 			return fmt.Errorf(" setting Sign In settings for %s: %+v", id, err)
 		}
@@ -278,7 +280,7 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta any) err
 	if sku.Name != apimanagementservice.SkuTypeConsumption && !strings.Contains(string(sku.Name), "V2") {
 		signUpSettingServiceId := signupsettings.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName)
 		signUpSettings := expandApiManagementSignUpSettings(signUpSettingsRaw)
-		signUpClient := meta.(*clients.Client).ApiManagement.SignUpClient
+		signUpClient := apimanagementClient.From(meta).SignUpClient
 		if _, err := signUpClient.CreateOrUpdate(ctx, signUpSettingServiceId, signUpSettings, signupsettings.CreateOrUpdateOperationOptions{}); err != nil {
 			return fmt.Errorf(" setting Sign Up settings for %s: %+v", id, err)
 		}
@@ -291,7 +293,7 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta any) err
 	if sku.Name != apimanagementservice.SkuTypeConsumption && !strings.Contains(string(sku.Name), "V2") && len(delegationSettingsRaw) > 0 {
 		delegationSettingServiceId := delegationsettings.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName)
 		delegationSettings := expandApiManagementDelegationSettings(delegationSettingsRaw)
-		delegationClient := meta.(*clients.Client).ApiManagement.DelegationSettingsClient
+		delegationClient := apimanagementClient.From(meta).DelegationSettingsClient
 		if _, err := delegationClient.CreateOrUpdate(ctx, delegationSettingServiceId, delegationSettings, delegationsettings.CreateOrUpdateOperationOptions{}); err != nil {
 			return fmt.Errorf(" setting Delegation settings for %s: %+v", id, err)
 		}
@@ -305,7 +307,7 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta any) err
 		tenantAccessServiceId := tenantaccess.NewAccessID(subscriptionId, id.ResourceGroupName, id.ServiceName, "access")
 		tenantAccessInformationParametersRaw := d.Get("tenant_access").([]any)
 		tenantAccessInformationParameters := expandApiManagementTenantAccessSettings(tenantAccessInformationParametersRaw)
-		tenantAccessClient := meta.(*clients.Client).ApiManagement.TenantAccessClient
+		tenantAccessClient := apimanagementClient.From(meta).TenantAccessClient
 		if _, err := tenantAccessClient.Update(ctx, tenantAccessServiceId, tenantAccessInformationParameters, tenantaccess.UpdateOperationOptions{}); err != nil {
 			return fmt.Errorf(" updating tenant access settings for %s: %+v", id, err)
 		}

@@ -8,15 +8,16 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2015-10-31/webhook"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	automationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceAutomationWebhookUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Automation.WebhookClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	client := automationClient.From(meta).WebhookClient
+	ctx, cancel := timeouts.ForUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := webhook.ParseWebHookID(d.Id())

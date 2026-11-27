@@ -12,13 +12,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	springcloudClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/client"
 )
 
 func (s Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AppPlatform.ApplicationAcceleratorClient
+			client := springcloudClient.From(metadata.Client).ApplicationAcceleratorClient
 
 			// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
 			// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed

@@ -14,7 +14,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resourceconnector/2022-10-27/appliances"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	arcresourcebridgeClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/arcresourcebridge/client"
 )
 
 func (r Resource) Create() sdk.ResourceFunc {
@@ -26,12 +29,12 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.ArcResourceBridge.AppliancesClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := arcresourcebridgeClient.From(metadata.Client).AppliancesClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			id := appliances.NewApplianceID(subscriptionId, model.ResourceGroupName, model.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)

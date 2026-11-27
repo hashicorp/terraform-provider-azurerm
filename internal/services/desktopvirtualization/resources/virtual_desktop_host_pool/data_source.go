@@ -12,7 +12,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2025-10-10/hostpool"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	desktopvirtualizationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -151,10 +152,10 @@ func RegisterDataSource() *pluginsdk.Resource {
 }
 
 func dataSourceVirtualDesktopHostPoolRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).DesktopVirtualization.HostPoolsClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	client := desktopvirtualizationClient.From(meta).HostPoolsClient
+	subscriptionId := account.From(meta).SubscriptionId
 
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id := hostpool.NewHostPoolID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))

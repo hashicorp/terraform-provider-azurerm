@@ -19,7 +19,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/chaosstudio/2023-11-01/experiments"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	chaosstudioClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/chaosstudio/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -193,18 +196,18 @@ func (r ChaosStudioExperimentResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ChaosStudio.V20231101.Experiments
+			client := chaosstudioClient.From(metadata.Client).V20231101.Experiments
 
 			var config ChaosStudioExperimentResourceSchema
 			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			id := experiments.NewExperimentID(subscriptionId, config.ResourceGroupName, config.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {
@@ -256,7 +259,7 @@ func (r ChaosStudioExperimentResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ChaosStudio.V20231101.Experiments
+			client := chaosstudioClient.From(metadata.Client).V20231101.Experiments
 			schema := ChaosStudioExperimentResourceSchema{}
 
 			id, err := experiments.ParseExperimentID(metadata.ResourceData.Id())
@@ -308,7 +311,7 @@ func (r ChaosStudioExperimentResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ChaosStudio.V20231101.Experiments
+			client := chaosstudioClient.From(metadata.Client).V20231101.Experiments
 
 			id, err := experiments.ParseExperimentID(metadata.ResourceData.Id())
 			if err != nil {
@@ -328,7 +331,7 @@ func (r ChaosStudioExperimentResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ChaosStudio.V20231101.Experiments
+			client := chaosstudioClient.From(metadata.Client).V20231101.Experiments
 
 			id, err := experiments.ParseExperimentID(metadata.ResourceData.Id())
 			if err != nil {

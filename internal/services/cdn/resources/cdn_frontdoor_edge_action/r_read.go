@@ -11,13 +11,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/edgeactions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	cdnClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/client"
 )
 
 func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Cdn.EdgeActionsClient
+			client := cdnClient.From(metadata.Client).EdgeActionsClient
 
 			id, err := edgeactions.ParseEdgeActionID(metadata.ResourceData.Id())
 			if err != nil {

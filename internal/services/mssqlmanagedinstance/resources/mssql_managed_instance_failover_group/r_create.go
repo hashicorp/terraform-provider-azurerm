@@ -12,14 +12,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/instancefailovergroups"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	mssqlmanagedinstanceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/client"
 )
 
 func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MSSQLManagedInstance.ManagedInstanceFailoverGroupsClient
+			client := mssqlmanagedinstanceClient.From(metadata.Client).ManagedInstanceFailoverGroupsClient
 
 			var model MsSqlManagedInstanceFailoverGroupModel
 			if err := metadata.Decode(&model); err != nil {
@@ -41,13 +43,13 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			instancesClient := metadata.Client.MSSQLManagedInstance.ManagedInstancesClientForSubscription(partnerId.SubscriptionId)
+			instancesClient := mssqlmanagedinstanceClient.From(metadata.Client).ManagedInstancesClientForSubscription(partnerId.SubscriptionId)
 			partner, err := instancesClient.Get(ctx, partnerId.ResourceGroupName, partnerId.ManagedInstanceName, "")
 			if err != nil || partner.Location == nil || *partner.Location == "" {
 				return fmt.Errorf("checking for existence and region of Partner of %q: %+v", id, err)
 			}
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)

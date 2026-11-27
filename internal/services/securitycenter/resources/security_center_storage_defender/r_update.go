@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2025-06-01/defenderforstorage"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	securitycenterClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/client"
 )
 
 func (s Resource) Update() sdk.ResourceFunc {
@@ -23,7 +24,7 @@ func (s Resource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.SecurityCenter.DefenderForStorageClient
+			client := securitycenterClient.From(metadata.Client).DefenderForStorageClient
 
 			id, err := commonids.ParseScopeID(metadata.ResourceData.Id())
 			if err != nil {

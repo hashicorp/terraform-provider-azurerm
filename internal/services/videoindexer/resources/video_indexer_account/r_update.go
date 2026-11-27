@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/videoindexer/2025-04-01/accounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	videoindexerClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/videoindexer/client"
 )
 
 func (r Resource) Update() sdk.ResourceFunc {
@@ -23,7 +24,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.VideoIndexer.AccountClient
+			client := videoindexerClient.From(metadata.Client).AccountClient
 
 			var account AccountModel
 			if err := metadata.Decode(&account); err != nil {

@@ -11,15 +11,17 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2025-10-10/application"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2025-10-10/applicationgroup"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	desktopvirtualizationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceVirtualDesktopApplicationCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).DesktopVirtualization.ApplicationsClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	client := desktopvirtualizationClient.From(meta).ApplicationsClient
+	subscriptionId := account.From(meta).SubscriptionId
 
 	applicationGroup, _ := applicationgroup.ParseApplicationGroupID(d.Get("application_group_id").(string))
 	id := application.NewApplicationID(subscriptionId, applicationGroup.ResourceGroupName, applicationGroup.ApplicationGroupName, d.Get("name").(string))
@@ -27,11 +29,11 @@ func resourceVirtualDesktopApplicationCreateUpdate(d *pluginsdk.ResourceData, me
 	locks.ByName(id.ApplicationName, applicationType)
 	defer locks.UnlockByName(id.ApplicationName, applicationType)
 
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreateUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	if d.IsNewResource() {
-		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 			existing, err := client.Get(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {

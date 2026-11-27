@@ -11,13 +11,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/rules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	cdnClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/client"
 )
 
 func (c Resource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 4 * time.Hour,
 		Func: func(ctx context.Context, rmd sdk.ResourceMetaData) error {
-			client := rmd.Client.Cdn.FrontDoorRulesClient
+			client := cdnClient.From(rmd.Client).FrontDoorRulesClient
 
 			state := CdnFrontDoorRuleResourceModel{}
 			if err := rmd.Decode(&state); err != nil {

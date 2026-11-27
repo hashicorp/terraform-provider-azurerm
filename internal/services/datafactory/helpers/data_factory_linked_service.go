@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	datafactoryClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory"
@@ -21,7 +21,7 @@ func ImportDataFactoryLinkedService(expectType datafactory.TypeBasicLinkedServic
 			return nil, err
 		}
 
-		client := meta.(*clients.Client).DataFactory.LinkedServiceClient
+		client := datafactoryClient.From(meta).LinkedServiceClient
 		resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 		if err != nil {
 			return nil, fmt.Errorf("retrieving Data Factory %s: %+v", *id, err)

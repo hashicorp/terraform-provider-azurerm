@@ -10,7 +10,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/virtualmachines"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	devtestlabsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -18,8 +19,8 @@ import (
 )
 
 func resourceArmDevTestWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).DevTestLabs.VirtualMachinesClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := devtestlabsClient.From(meta).VirtualMachinesClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := virtualmachines.ParseVirtualMachineID(d.Id())

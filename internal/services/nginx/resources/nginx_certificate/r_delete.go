@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxcertificate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	nginxClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/nginx/client"
 )
 
 func (m Resource) Delete() sdk.ResourceFunc {
@@ -21,7 +22,7 @@ func (m Resource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			client := meta.Client.Nginx.NginxCertificate
+			client := nginxClient.From(meta.Client).NginxCertificate
 
 			if err := client.CertificatesDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %v", id, err)

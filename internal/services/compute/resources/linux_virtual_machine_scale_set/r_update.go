@@ -13,15 +13,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	computeClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Compute.VirtualMachineScaleSetsClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	client := computeClient.From(meta).VirtualMachineScaleSetsClient
+	ctx, cancel := timeouts.ForUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := virtualmachinescalesets.ParseVirtualMachineScaleSetID(d.Id())
@@ -375,10 +377,10 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta a
 
 	metaData := helpers.VirtualMachineScaleSetUpdateMetaData{
 		AutomaticOSUpgradeIsEnabled:  automaticOSUpgradeIsEnabled,
-		CanReimageOnManualUpgrade:    meta.(*clients.Client).Features.VirtualMachineScaleSet.ReimageOnManualUpgrade,
-		CanRollInstancesWhenRequired: meta.(*clients.Client).Features.VirtualMachineScaleSet.RollInstancesWhenRequired,
+		CanReimageOnManualUpgrade:    features.From(meta).VirtualMachineScaleSet.ReimageOnManualUpgrade,
+		CanRollInstancesWhenRequired: features.From(meta).VirtualMachineScaleSet.RollInstancesWhenRequired,
 		UpdateInstances:              updateInstances,
-		Client:                       meta.(*clients.Client).Compute,
+		Client:                       computeClient.From(meta),
 		Existing:                     *existing.Model,
 		ID:                           id,
 		OSType:                       virtualmachinescalesets.OperatingSystemTypesLinux,

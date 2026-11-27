@@ -8,14 +8,15 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	privatednsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourcePrivateDnsZoneRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).PrivateDns.PrivateZonesClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := privatednsClient.From(meta).PrivateZonesClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := privatezones.ParsePrivateDnsZoneID(d.Id())

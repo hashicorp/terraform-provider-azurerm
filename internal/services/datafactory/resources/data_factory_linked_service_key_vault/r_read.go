@@ -10,18 +10,20 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	datafactoryClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
+	keyvaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory"
 )
 
 func resourceDataFactoryLinkedServiceKeyVaultRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
-	keyVaultsClient := meta.(*clients.Client).KeyVault
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := datafactoryClient.From(meta).LinkedServiceClient
+	keyVaultsClient := keyvaultClient.From(meta)
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := parse.LinkedServiceID(d.Id())

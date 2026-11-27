@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/snapshotpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	netappClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/client"
 )
 
 func (Resource) Update() sdk.ResourceFunc {
@@ -23,7 +24,7 @@ func (Resource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.NetApp.SnapshotPoliciesClient
+			client := netappClient.From(metadata.Client).SnapshotPoliciesClient
 
 			id, err := snapshotpolicies.ParseSnapshotPolicyID(metadata.ResourceData.Id())
 			if err != nil {

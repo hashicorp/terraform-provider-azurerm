@@ -13,9 +13,11 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/rbacs"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	cosmosClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -110,9 +112,9 @@ func resourceCosmosDbSQLRoleDefinition() *pluginsdk.Resource {
 }
 
 func resourceCosmosDbSQLRoleDefinitionCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cosmos.RbacsClient
+	client := cosmosClient.From(meta).RbacsClient
 
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	roleDefinitionId := d.Get("role_definition_id").(string)
@@ -125,12 +127,12 @@ func resourceCosmosDbSQLRoleDefinitionCreate(d *pluginsdk.ResourceData, meta any
 		roleDefinitionId = uuid
 	}
 
-	id := rbacs.NewSqlRoleDefinitionID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), roleDefinitionId)
+	id := rbacs.NewSqlRoleDefinitionID(account.From(meta).SubscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), roleDefinitionId)
 
 	locks.ByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
 	defer locks.UnlockByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.SqlResourcesGetSqlRoleDefinition(ctx, id)
 		if !response.WasNotFound(existing.HttpResponse) {
 			if err != nil {
@@ -159,9 +161,9 @@ func resourceCosmosDbSQLRoleDefinitionCreate(d *pluginsdk.ResourceData, meta any
 }
 
 func resourceCosmosDbSQLRoleDefinitionRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cosmos.RbacsClient
+	client := cosmosClient.From(meta).RbacsClient
 
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := rbacs.ParseSqlRoleDefinitionID(d.Id())
@@ -198,9 +200,9 @@ func resourceCosmosDbSQLRoleDefinitionRead(d *pluginsdk.ResourceData, meta any) 
 }
 
 func resourceCosmosDbSQLRoleDefinitionUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cosmos.RbacsClient
+	client := cosmosClient.From(meta).RbacsClient
 
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := rbacs.ParseSqlRoleDefinitionID(d.Id())
@@ -248,9 +250,9 @@ func resourceCosmosDbSQLRoleDefinitionUpdate(d *pluginsdk.ResourceData, meta any
 }
 
 func resourceCosmosDbSQLRoleDefinitionDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cosmos.RbacsClient
+	client := cosmosClient.From(meta).RbacsClient
 
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := rbacs.ParseSqlRoleDefinitionID(d.Id())

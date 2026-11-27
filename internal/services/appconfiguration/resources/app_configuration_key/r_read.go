@@ -15,7 +15,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2024-05-01/configurationstores"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	appconfigurationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/resources/app_configuration_key/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -31,13 +33,13 @@ func (k Resource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
 			}
 
-			domainSuffix, ok := metadata.Client.Account.Environment.AppConfiguration.DomainSuffix()
+			domainSuffix, ok := account.From(metadata.Client).Environment.AppConfiguration.DomainSuffix()
 			if !ok {
-				return fmt.Errorf("could not determine AppConfiguration domain suffix for environment %q", metadata.Client.Account.Environment.Name)
+				return fmt.Errorf("could not determine AppConfiguration domain suffix for environment %q", account.From(metadata.Client).Environment.Name)
 			}
 
-			subscriptionId := commonids.NewSubscriptionID(metadata.Client.Account.SubscriptionId)
-			configurationStoreIdRaw, err := metadata.Client.AppConfiguration.ConfigurationStoreIDFromEndpoint(ctx, subscriptionId, nestedItemId.ConfigurationStoreEndpoint, *domainSuffix)
+			subscriptionId := commonids.NewSubscriptionID(account.From(metadata.Client).SubscriptionId)
+			configurationStoreIdRaw, err := appconfigurationClient.From(metadata.Client).ConfigurationStoreIDFromEndpoint(ctx, subscriptionId, nestedItemId.ConfigurationStoreEndpoint, *domainSuffix)
 			if err != nil {
 				return fmt.Errorf("while retrieving the Resource ID of Configuration Store at Endpoint: %q: %s", nestedItemId.ConfigurationStoreEndpoint, err)
 			}
@@ -52,7 +54,7 @@ func (k Resource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			exists, err := metadata.Client.AppConfiguration.Exists(ctx, *configurationStoreId)
+			exists, err := appconfigurationClient.From(metadata.Client).Exists(ctx, *configurationStoreId)
 			if err != nil {
 				return fmt.Errorf("while checking Configuration Store %q for feature %q existence: %v", *configurationStoreId, *nestedItemId, err)
 			}
@@ -61,7 +63,7 @@ func (k Resource) Read() sdk.ResourceFunc {
 				return metadata.MarkAsGone(nestedItemId)
 			}
 
-			client, err := metadata.Client.AppConfiguration.DataPlaneClientWithEndpoint(nestedItemId.ConfigurationStoreEndpoint)
+			client, err := appconfigurationClient.From(metadata.Client).DataPlaneClientWithEndpoint(nestedItemId.ConfigurationStoreEndpoint)
 			if err != nil {
 				return err
 			}

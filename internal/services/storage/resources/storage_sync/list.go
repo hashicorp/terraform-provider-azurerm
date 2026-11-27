@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	storageClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -30,7 +31,7 @@ func (r ListResource) Metadata(_ context.Context, _ resource.MetadataRequest, re
 }
 
 func (r ListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
-	client := metadata.Client.Storage.SyncServiceClient
+	client := storageClient.From(metadata.Client).SyncServiceClient
 
 	var data sdk.DefaultListModel
 	if diags := request.Config.Get(ctx, &data); diags.HasError() {
@@ -82,7 +83,7 @@ func (r ListResource) List(ctx context.Context, request list.ListRequest, stream
 			rd := RegisterResource().Data(&terraform.InstanceState{})
 			rd.SetId(id.ID())
 
-			if err := resourceStorageSyncFlatten(ctx, rd, id, &item, metadata.Client.Storage.SyncRegisteredServerClient, request.IncludeResource); err != nil {
+			if err := resourceStorageSyncFlatten(ctx, rd, id, &item, storageClient.From(metadata.Client).SyncRegisteredServerClient, request.IncludeResource); err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", storageSyncResourceName), err)
 				return
 			}

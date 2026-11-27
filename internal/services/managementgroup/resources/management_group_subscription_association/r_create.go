@@ -12,15 +12,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/management/2020-05-01/managementgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	managementgroupClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceManagementGroupSubscriptionAssociationCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).ManagementGroups.GroupsClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	client := managementgroupClient.From(meta).GroupsClient
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	managementGroupId, err := parse.ManagementGroupID(d.Get("management_group_id").(string))
@@ -55,7 +57,7 @@ func resourceManagementGroupSubscriptionAssociationCreate(d *pluginsdk.ResourceD
 		if props.Children != nil {
 			for _, v := range *props.Children {
 				if v.Type != nil && *v.Type == managementgroups.ManagementGroupChildTypeSubscriptions && v.Name != nil && strings.EqualFold(*v.Name, id.SubscriptionId) {
-					if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+					if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 						return tf.ImportAsExistsError("azurerm_management_group_subscription_association", id.ID())
 					}
 				}

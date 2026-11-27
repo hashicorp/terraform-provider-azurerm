@@ -11,7 +11,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/authorizationruleseventhubs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/eventhubs"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -83,10 +84,10 @@ func RegisterDataSource() *pluginsdk.Resource {
 }
 
 func EventHubAuthorizationRuleDataSourceRead(d *pluginsdk.ResourceData, meta any) error {
-	eventHubsClient := meta.(*clients.Client).Eventhub.EventHubsClient
-	rulesClient := meta.(*clients.Client).Eventhub.EventHubAuthorizationRulesClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	eventHubsClient := client.From(meta).EventHubsClient
+	rulesClient := client.From(meta).EventHubAuthorizationRulesClient
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	name := d.Get("name").(string)

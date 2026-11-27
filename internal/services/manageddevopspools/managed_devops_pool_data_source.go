@@ -16,7 +16,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2025-02-01/projects"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devopsinfrastructure/2025-09-20/pools"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	manageddevopspoolsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/manageddevopspools/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -324,9 +326,9 @@ func (ManagedDevOpsPoolDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ManagedDevOpsPools.PoolsClient
+			client := manageddevopspoolsClient.From(metadata.Client).PoolsClient
 
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			var state ManagedDevOpsPoolDataSourceModel
 			if err := metadata.Decode(&state); err != nil {

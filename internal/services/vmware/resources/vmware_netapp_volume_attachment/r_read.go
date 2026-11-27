@@ -11,12 +11,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2022-05-01/datastores"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	vmwareClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/client"
 )
 
 func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Vmware.DataStoreClient
+			client := vmwareClient.From(metadata.Client).DataStoreClient
 			id, err := datastores.ParseDataStoreID(metadata.ResourceData.Id())
 			if err != nil {
 				return err

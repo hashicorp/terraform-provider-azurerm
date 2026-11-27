@@ -12,16 +12,17 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/workspaces"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	synapseClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceSynapseWorkspaceKeyRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Synapse.KeysClient
+	client := synapseClient.From(meta).KeysClient
 
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := parse.WorkspaceKeysID(d.Id())
@@ -61,7 +62,7 @@ func synapseKeysWaitForStateChange(ctx context.Context, meta any, timeout time.D
 
 func synapseKeysRefresh(ctx context.Context, meta any, resourceGroup string, workspaceName string, keyName string) pluginsdk.StateRefreshFunc {
 	return func() (any, string, error) {
-		client := meta.(*clients.Client).Synapse.KeysClient
+		client := synapseClient.From(meta).KeysClient
 
 		log.Printf("[INFO] checking on state of encryption key '%q' (Workspace %q)", workspaceName, keyName)
 

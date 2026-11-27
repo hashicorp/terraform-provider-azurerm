@@ -15,15 +15,18 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/chaosstudio/2023-11-01/targets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/chaosstudio/2023-11-01/targettypes"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	chaosstudioClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/chaosstudio/client"
 )
 
 func (r ChaosStudioTargetResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ChaosStudio.V20231101.Targets
-			targetTypesClient := metadata.Client.ChaosStudio.V20231101.TargetTypes
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := chaosstudioClient.From(metadata.Client).V20231101.Targets
+			targetTypesClient := chaosstudioClient.From(metadata.Client).V20231101.TargetTypes
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			var config ChaosStudioTargetResourceSchema
 
@@ -56,7 +59,7 @@ func (r ChaosStudioTargetResource) Create() sdk.ResourceFunc {
 
 			id := commonids.NewChaosStudioTargetID(config.TargetResourceId, config.TargetType)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {

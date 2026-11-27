@@ -15,7 +15,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2024-05-01/configurationstores"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	appconfigurationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -36,12 +38,12 @@ func (k Resource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			configurationStoreEndpoint, err := metadata.Client.AppConfiguration.EndpointForConfigurationStore(ctx, *configurationStoreId)
+			configurationStoreEndpoint, err := appconfigurationClient.From(metadata.Client).EndpointForConfigurationStore(ctx, *configurationStoreId)
 			if err != nil {
 				return fmt.Errorf("retrieving Endpoint for feature %q in %q: %s", model.Name, *configurationStoreId, err)
 			}
 
-			client, err := metadata.Client.AppConfiguration.DataPlaneClientWithEndpoint(*configurationStoreEndpoint)
+			client, err := appconfigurationClient.From(metadata.Client).DataPlaneClientWithEndpoint(*configurationStoreEndpoint)
 			if err != nil {
 				return err
 			}
@@ -78,7 +80,7 @@ func (k Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("waiting for App Configuration Feature %q read permission to be propagated: %+v", featureKey, err)
 			}
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				kv, err := client.GetKeyValue(ctx, featureKey, model.Label, "", "", "", []appconfiguration.KeyValueFields{})
 				if err != nil {
 					if v, ok := err.(autorest.DetailedError); ok {

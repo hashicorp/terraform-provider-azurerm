@@ -8,7 +8,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/dataconnections"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	kustoClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -19,7 +19,7 @@ func ImportDataConnection(kind string) pluginsdk.ImporterFunc {
 			return []*pluginsdk.ResourceData{}, err
 		}
 
-		client := meta.(*clients.Client).Kusto.DataConnectionsClient
+		client := kustoClient.From(meta).DataConnectionsClient
 		dataConnection, err := client.Get(ctx, *id)
 		if err != nil {
 			return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving Kusto Data Connection %q (Resource Group %q): %+v", id.DataConnectionName, id.ResourceGroupName, err)

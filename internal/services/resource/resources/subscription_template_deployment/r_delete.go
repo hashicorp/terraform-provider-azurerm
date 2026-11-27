@@ -8,14 +8,15 @@ import (
 	"log"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/deployments"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	resourceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func subscriptionTemplateDeploymentResourceDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Resource.LegacyDeploymentsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := resourceClient.From(meta).LegacyDeploymentsClient
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := deployments.ParseProviderDeploymentID(d.Id())

@@ -9,7 +9,9 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	keyvaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -17,10 +19,10 @@ import (
 )
 
 func resourceKustoClusterCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta any) error {
-	clusterClient := meta.(*clients.Client).Kusto.ClustersClient
-	keyVaultsClient := meta.(*clients.Client).KeyVault
-	env := meta.(*clients.Client).Account.Environment
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	clusterClient := client.From(meta).ClustersClient
+	keyVaultsClient := keyvaultClient.From(meta)
+	env := account.From(meta).Environment
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := commonids.ParseKustoClusterID(d.Id())

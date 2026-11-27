@@ -13,7 +13,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	dnsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -94,8 +96,8 @@ func (DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Dns.Zones
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := dnsClient.From(metadata.Client).Zones
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			var state DnsZoneDataResourceModel
 			if err := metadata.Decode(&state); err != nil {

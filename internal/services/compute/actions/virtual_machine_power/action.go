@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	computeClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/client"
 )
 
 type Action struct {
@@ -76,7 +77,7 @@ func (v *Action) Metadata(_ context.Context, _ action.MetadataRequest, response 
 }
 
 func (v *Action) Invoke(ctx context.Context, request action.InvokeRequest, response *action.InvokeResponse) {
-	client := v.Client.Compute.VirtualMachinesClient
+	client := computeClient.From(v.Client).VirtualMachinesClient
 
 	model := VirtualMachinePowerActionModel{}
 

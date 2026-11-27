@@ -14,15 +14,16 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/manageddatabases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstancelongtermretentionpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	mssqlmanagedinstanceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/client"
 )
 
 func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MSSQLManagedInstance.ManagedDatabasesClient
-			longTermRetentionClient := metadata.Client.MSSQLManagedInstance.ManagedInstancesLongTermRetentionPoliciesClient
-			shortTermRetentionClient := metadata.Client.MSSQLManagedInstance.ManagedInstancesShortTermRetentionPoliciesClient
+			client := mssqlmanagedinstanceClient.From(metadata.Client).ManagedDatabasesClient
+			longTermRetentionClient := mssqlmanagedinstanceClient.From(metadata.Client).ManagedInstancesLongTermRetentionPoliciesClient
+			shortTermRetentionClient := mssqlmanagedinstanceClient.From(metadata.Client).ManagedInstancesShortTermRetentionPoliciesClient
 
 			id, err := commonids.ParseManagedInstanceDatabaseID(metadata.ResourceData.Id())
 			if err != nil {

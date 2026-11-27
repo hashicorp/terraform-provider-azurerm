@@ -14,15 +14,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/structure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	policyClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceResourceGroupPolicyExemptionCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Policy.ExemptionsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	client := policyClient.From(meta).ExemptionsClient
+	ctx, cancel := timeouts.ForCreateUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	// todo 6.0 - move to the case-sensitive parser when validation.AsGeneratedID is removed: this parses a config
@@ -35,7 +37,7 @@ func resourceResourceGroupPolicyExemptionCreateUpdate(d *pluginsdk.ResourceData,
 	id := parse.NewResourceGroupPolicyExemptionID(resourceGroupId.SubscriptionId, resourceGroupId.ResourceGroupName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 			existing, err := client.Get(ctx, resourceGroupId.ID(), id.PolicyExemptionName)
 			if err != nil {
 				if !response.WasNotFound(existing.Response.Response) {

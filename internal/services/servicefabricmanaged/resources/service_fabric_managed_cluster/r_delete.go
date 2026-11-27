@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicefabricmanagedcluster/2024-04-01/managedcluster"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabricmanaged/client"
 )
 
 func (k Resource) Delete() sdk.ResourceFunc {
@@ -19,7 +20,7 @@ func (k Resource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return fmt.Errorf("while parsing resourceID: %+v", err)
 			}
-			clusterClient := metadata.Client.ServiceFabricManaged.ManagedClusterClient
+			clusterClient := client.From(metadata.Client).ManagedClusterClient
 
 			if err = clusterClient.DeleteThenPoll(ctx, *resourceId); err != nil {
 				return fmt.Errorf("while deleting cluster %q: %+v", resourceId.String(), err)

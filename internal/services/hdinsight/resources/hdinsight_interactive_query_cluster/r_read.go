@@ -12,17 +12,18 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceHDInsightInteractiveQueryClusterRead(d *pluginsdk.ResourceData, meta any) error {
-	clustersClient := meta.(*clients.Client).HDInsight.Clusters
-	configurationsClient := meta.(*clients.Client).HDInsight.Configurations
-	extensionsClient := meta.(*clients.Client).HDInsight.Extensions
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	clustersClient := client.From(meta).Clusters
+	configurationsClient := client.From(meta).Configurations
+	extensionsClient := client.From(meta).Extensions
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := commonids.ParseHDInsightClusterID(d.Id())

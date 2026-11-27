@@ -12,7 +12,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2025-03-01/viewoperationgroup"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	costmanagementClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/costmanagement/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/costmanagement/helpers"
 )
 
@@ -20,7 +22,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.CostManagement.ViewOperationGroupClient
+			client := costmanagementClient.From(metadata.Client).ViewOperationGroupClient
 
 			var config SubscriptionCostManagementViewModel
 			if err := metadata.Decode(&config); err != nil {
@@ -29,7 +31,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			id := viewoperationgroup.NewScopedViewID(config.SubId, config.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.ViewsGetByScope(ctx, id)
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {

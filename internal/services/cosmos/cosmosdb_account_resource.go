@@ -28,7 +28,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	clientsAccount "github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	cosmosClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
@@ -803,14 +805,14 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 }
 
 func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := cosmosClient.From(meta).CosmosDBClient
 
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(clientsAccount.StopContext(meta), d)
 	defer cancel()
 
-	id := cosmosdb.NewDatabaseAccountID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := cosmosdb.NewDatabaseAccountID(clientsAccount.From(meta).SubscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.DatabaseAccountsGet(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -953,9 +955,9 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta any) error {
 }
 
 func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := cosmosClient.From(meta).CosmosDBClient
 
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForUpdate(clientsAccount.StopContext(meta), d)
 	defer cancel()
 
 	id, err := cosmosdb.ParseDatabaseAccountID(d.Id())
@@ -1266,9 +1268,9 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta any) error {
 }
 
 func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := cosmosClient.From(meta).CosmosDBClient
 
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForRead(clientsAccount.StopContext(meta), d)
 	defer cancel()
 
 	id, err := cosmosdb.ParseDatabaseAccountID(d.Id())
@@ -1455,9 +1457,9 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta any) error {
 }
 
 func resourceCosmosDbAccountDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := cosmosClient.From(meta).CosmosDBClient
 
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForDelete(clientsAccount.StopContext(meta), d)
 	defer cancel()
 
 	id, err := cosmosdb.ParseDatabaseAccountID(d.Id())

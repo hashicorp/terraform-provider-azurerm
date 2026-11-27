@@ -16,13 +16,14 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/networkinterfaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/extendedlocation/2021-08-15/customlocations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	azurestackhciClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/azurestackhci/client"
 )
 
 func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AzureStackHCI.NetworkInterfaces
+			client := azurestackhciClient.From(metadata.Client).NetworkInterfaces
 
 			id, err := networkinterfaces.ParseNetworkInterfaceID(metadata.ResourceData.Id())
 			if err != nil {

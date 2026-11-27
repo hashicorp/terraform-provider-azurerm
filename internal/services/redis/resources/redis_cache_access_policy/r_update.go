@@ -11,13 +11,14 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-11-01/rediscacheaccesspolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	redisClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/client"
 )
 
 func (r Resource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Redis.CacheAccessPoliciesClient
+			client := redisClient.From(metadata.Client).CacheAccessPoliciesClient
 
 			var state RedisCacheAccessPolicyResourceModel
 			if err := metadata.Decode(&state); err != nil {

@@ -8,7 +8,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/digitaltwins/2023-01-31/endpoints"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	digitaltwinsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/digitaltwins/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -20,7 +20,7 @@ func ValidateEndpointType(validate func(input endpoints.DigitalTwinsEndpointReso
 			return nil, err
 		}
 
-		client := meta.(*clients.Client).DigitalTwins.EndpointClient
+		client := digitaltwinsClient.From(meta).EndpointClient
 		ctx, cancel := timeouts.ForRead(ctxIn, d)
 		defer cancel()
 

@@ -13,15 +13,17 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2025-10-10/applicationgroup"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2025-10-10/desktop"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	desktopvirtualizationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceVirtualDesktopApplicationGroupCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).DesktopVirtualization.ApplicationGroupsClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	client := desktopvirtualizationClient.From(meta).ApplicationGroupsClient
+	subscriptionId := account.From(meta).SubscriptionId
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -29,12 +31,12 @@ func resourceVirtualDesktopApplicationGroupCreateUpdate(d *pluginsdk.ResourceDat
 	locks.ByName(name, applicationGroupType)
 	defer locks.UnlockByName(name, applicationGroupType)
 
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreateUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	id := applicationgroup.NewApplicationGroupID(subscriptionId, resourceGroup, name)
 	if d.IsNewResource() {
-		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 			existing, err := client.Get(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {
@@ -69,7 +71,7 @@ func resourceVirtualDesktopApplicationGroupCreateUpdate(d *pluginsdk.ResourceDat
 
 	if applicationgroup.ApplicationGroupType(d.Get("type").(string)) == applicationgroup.ApplicationGroupTypeDesktop {
 		if desktopFriendlyName := pointer.To(d.Get("default_desktop_display_name").(string)); desktopFriendlyName != nil {
-			desktopClient := meta.(*clients.Client).DesktopVirtualization.DesktopsClient
+			desktopClient := desktopvirtualizationClient.From(meta).DesktopsClient
 			// default desktop name created for Application Group is 'sessionDesktop'
 			desktopId := desktop.NewDesktopID(id.SubscriptionId, id.ResourceGroupName, id.ApplicationGroupName, "sessionDesktop")
 			model, err := desktopClient.Get(ctx, desktopId)

@@ -10,13 +10,14 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2023-03-01/agents"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	storagemoverClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/storagemover/client"
 )
 
 func (r Resource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.StorageMover.AgentsClient
+			client := storagemoverClient.From(metadata.Client).AgentsClient
 
 			id, err := agents.ParseAgentID(metadata.ResourceData.Id())
 			if err != nil {

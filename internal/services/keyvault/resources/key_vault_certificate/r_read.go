@@ -19,7 +19,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	keyvaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -30,10 +31,10 @@ import (
 )
 
 func resourceKeyVaultCertificateRead(d *pluginsdk.ResourceData, meta any) error {
-	keyVaultsClient := meta.(*clients.Client).KeyVault
-	client := meta.(*clients.Client).KeyVault.ManagementClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	keyVaultsClient := keyvaultClient.From(meta)
+	client := keyvaultClient.From(meta).ManagementClient
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := keyvault.ParseNestedItemID(d.Id(), keyvault.VersionTypeVersioned, keyvault.NestedItemTypeCertificate)
@@ -281,7 +282,7 @@ func flattenKeyVaultCertificateAttribute(input *kv.CertificateAttributes) []any 
 }
 
 func recoverDeletedCertificate(ctx context.Context, d *pluginsdk.ResourceData, meta any, keyVaultBaseUrl string, name string) error {
-	client := meta.(*clients.Client).KeyVault.ManagementClient
+	client := keyvaultClient.From(meta).ManagementClient
 	recoveredCertificate, err := client.RecoverDeletedCertificate(ctx, keyVaultBaseUrl, name)
 	if err != nil {
 		return err

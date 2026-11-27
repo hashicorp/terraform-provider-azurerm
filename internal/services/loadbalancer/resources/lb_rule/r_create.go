@@ -12,18 +12,20 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	loadbalancerClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceArmLoadBalancerRuleCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	client := loadbalancerClient.From(meta).LoadBalancersClient
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForCreateUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	loadBalancerId, err := loadbalancers.ParseLoadBalancerID(d.Get("loadbalancer_id").(string))
@@ -66,7 +68,7 @@ func resourceArmLoadBalancerRuleCreateUpdate(d *pluginsdk.ResourceData, meta any
 	if exists {
 		if id.LoadBalancingRuleName == *existingRule.Name {
 			if d.IsNewResource() {
-				if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 					return tf.ImportAsExistsError("azurerm_lb_rule", *existingRule.Id)
 				}
 			}

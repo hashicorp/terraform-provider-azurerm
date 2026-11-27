@@ -14,17 +14,19 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/managedprivateendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/privatelinkservices"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	datafactoryClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceDataFactoryManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).DataFactory.ManagedPrivateEndpoints
-	managedVirtualNetworksClient := meta.(*clients.Client).DataFactory.ManagedVirtualNetworks
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	client := datafactoryClient.From(meta).ManagedPrivateEndpoints
+	managedVirtualNetworksClient := datafactoryClient.From(meta).ManagedVirtualNetworks
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	dataFactoryId, err := factories.ParseFactoryID(d.Get("data_factory_id").(string))
@@ -42,7 +44,7 @@ func resourceDataFactoryManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, 
 
 	id := managedprivateendpoints.NewManagedPrivateEndpointID(subscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, *managedVirtualNetworkName, d.Get("name").(string))
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := getManagedPrivateEndpoint(ctx, client, id.SubscriptionId, id.ResourceGroupName, id.FactoryName, id.ManagedVirtualNetworkName, id.ManagedPrivateEndpointName)
 		if err != nil {
 			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)

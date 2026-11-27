@@ -13,13 +13,14 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2026-10-01/virtualendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	postgresClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/client"
 )
 
 func (r Resource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Postgres.VirtualEndpointClient
+			client := postgresClient.From(metadata.Client).VirtualEndpointClient
 
 			id, err := commonids.ParseCompositeResourceID(metadata.ResourceData.Id(), &virtualendpoints.VirtualEndpointId{}, &virtualendpoints.VirtualEndpointId{})
 			if err != nil {

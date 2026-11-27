@@ -8,15 +8,16 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/routes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/routetables"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	networkClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceRouteDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Network.Routes
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := networkClient.From(meta).Routes
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := routes.ParseRouteID(d.Id())

@@ -16,7 +16,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resourceconnector/2022-10-27/appliances"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	arcresourcebridgeClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/arcresourcebridge/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -96,8 +98,8 @@ func (r DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ArcResourceBridge.AppliancesClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := arcresourcebridgeClient.From(metadata.Client).AppliancesClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			var state ApplianceDataSourceModel
 			if err := metadata.Decode(&state); err != nil {

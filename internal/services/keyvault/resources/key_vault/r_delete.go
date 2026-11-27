@@ -11,17 +11,19 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/deletedvaults"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	keyvaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceKeyVaultDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).KeyVault.VaultsClient
-	deletedVaultsClient := meta.(*clients.Client).KeyVault.DeletedVaultsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := keyvaultClient.From(meta).VaultsClient
+	deletedVaultsClient := keyvaultClient.From(meta).DeletedVaultsClient
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := commonids.ParseKeyVaultID(d.Id())
@@ -83,7 +85,7 @@ func resourceKeyVaultDelete(d *pluginsdk.ResourceData, meta any) error {
 	}
 
 	// Purge the soft deleted key vault permanently if the feature flag is enabled
-	if meta.(*clients.Client).Features.KeyVault.PurgeSoftDeleteOnDestroy && softDeleteEnabled {
+	if features.From(meta).KeyVault.PurgeSoftDeleteOnDestroy && softDeleteEnabled {
 		deletedVaultId := deletedvaults.NewDeletedVaultID(id.SubscriptionId, location, id.VaultName)
 
 		// KeyVaults with Purge Protection Enabled cannot be deleted unless done by Azure
@@ -109,7 +111,7 @@ func resourceKeyVaultDelete(d *pluginsdk.ResourceData, meta any) error {
 		log.Printf("[DEBUG] Purged KeyVault %q.", id.VaultName)
 	}
 
-	meta.(*clients.Client).KeyVault.Purge(*id)
+	keyvaultClient.From(meta).Purge(*id)
 
 	return nil
 }

@@ -13,13 +13,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apigateway"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	apimanagementClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/client"
 )
 
 func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ApiManagement.ApiGatewayClient
+			client := apimanagementClient.From(metadata.Client).ApiGatewayClient
 
 			id, err := apigateway.ParseGatewayID(metadata.ResourceData.Id())
 			if err != nil {

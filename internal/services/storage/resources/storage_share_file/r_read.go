@@ -7,7 +7,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	clientsAccount "github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	storageClient2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -16,9 +17,9 @@ import (
 )
 
 func resourceStorageShareFileRead(d *pluginsdk.ResourceData, meta any) error {
-	storageClient := meta.(*clients.Client).Storage
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	storageClient := storageClient2.From(meta)
+	subscriptionId := clientsAccount.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForRead(clientsAccount.StopContext(meta), d)
 	defer cancel()
 
 	id, err := files.ParseFileID(d.Id(), storageClient.StorageDomainSuffix)

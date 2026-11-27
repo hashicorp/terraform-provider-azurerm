@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	appserviceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/client"
 )
 
 func (r Resource) Delete() sdk.ResourceFunc {
@@ -21,7 +22,7 @@ func (r Resource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.AppService.ServicePlanClient
+			client := appserviceClient.From(metadata.Client).ServicePlanClient
 
 			if _, err := client.Delete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %v", id, err)

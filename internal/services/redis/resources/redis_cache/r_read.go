@@ -10,14 +10,15 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-11-01/redisresources"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	redisClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceRedisCacheRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Redis.RedisResourcesClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := redisClient.From(meta).RedisResourcesClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := redisresources.ParseRediID(d.Id())
@@ -34,7 +35,7 @@ func resourceRedisCacheRead(d *pluginsdk.ResourceData, meta any) error {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return resourceRedisCacheFlatten(ctx, meta.(*clients.Client), d, id, resp.Model, true)
+	return resourceRedisCacheFlatten(ctx, meta, d, id, resp.Model, true)
 }
 
 var skuWeight = map[string]int8{

@@ -13,13 +13,14 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/namedvalue"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/workspace"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	apimanagementClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/client"
 )
 
 func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ApiManagement.NamedValueClient_v2024_05_01
+			client := apimanagementClient.From(metadata.Client).NamedValueClient_v2024_05_01
 
 			id, err := namedvalue.ParseWorkspaceNamedValueID(metadata.ResourceData.Id())
 			if err != nil {

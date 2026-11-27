@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationprotectioncontainers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationvaultsetting"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	recoveryservicesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/helpers"
 )
 
@@ -28,7 +29,7 @@ func (s Resource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("parsing %s: %+v", metadata.ResourceData.Id(), err)
 			}
 
-			client := metadata.Client.RecoveryServices.ContainerMappingClient
+			client := recoveryservicesClient.From(metadata.Client).ContainerMappingClient
 
 			resp, err := client.Get(ctx, *id)
 			if err != nil {

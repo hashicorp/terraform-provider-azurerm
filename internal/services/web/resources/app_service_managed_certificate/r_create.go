@@ -17,18 +17,20 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	webClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/web/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceAppServiceManagedCertificateCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Web.CertificatesClient
-	appServiceClient := meta.(*clients.Client).Web.WebAppsClient
-	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
+	client := webClient.From(meta).CertificatesClient
+	appServiceClient := webClient.From(meta).WebAppsClient
+	subscriptionID := account.From(meta).SubscriptionId
 
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	chbID, err := webapps.ParseHostNameBindingID(d.Get("custom_hostname_binding_id").(string))
@@ -53,7 +55,7 @@ func resourceAppServiceManagedCertificateCreate(d *pluginsdk.ResourceData, meta 
 
 	id := certificates.NewCertificateID(subscriptionID, appServicePlanID.ResourceGroupName, chbID.HostNameBindingName)
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {

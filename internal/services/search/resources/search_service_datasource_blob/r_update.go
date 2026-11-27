@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/data-plane/search/2025-09-01/datasources"
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	searchClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/search/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/search/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -26,7 +27,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 
 			endpoint := resourceId.BaseURI
 
-			client := metadata.Client.Search.SearchDataPlaneClient.DataSources.Clone(endpoint)
+			client := searchClient.From(metadata.Client).SearchDataPlaneClient.DataSources.Clone(endpoint)
 
 			var state SearchServiceDatasourceBlobModel
 			if err := metadata.Decode(&state); err != nil {

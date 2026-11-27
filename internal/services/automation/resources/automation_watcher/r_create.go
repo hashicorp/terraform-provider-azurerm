@@ -11,7 +11,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2020-01-13-preview/watcher"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	automationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/helpers"
 )
 
@@ -19,18 +22,18 @@ func (m Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Automation.WatcherClient
+			client := automationClient.From(metadata.Client).WatcherClient
 
 			var model WatcherModel
 			if err := metadata.Decode(&model); err != nil {
 				return err
 			}
 
-			subscriptionID := metadata.Client.Account.SubscriptionId
+			subscriptionID := account.From(metadata.Client).SubscriptionId
 			accountID, _ := watcher.ParseAutomationAccountID(model.AutomationAccountID)
 			id := watcher.NewWatcherID(subscriptionID, accountID.ResourceGroupName, accountID.AutomationAccountName, model.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if !response.WasNotFound(existing.HttpResponse) {
 					if err != nil {

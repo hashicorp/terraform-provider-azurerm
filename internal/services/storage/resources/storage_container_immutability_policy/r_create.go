@@ -12,7 +12,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/immutabilitypolicies"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	storageClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 )
 
@@ -20,7 +22,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Storage.ResourceManager.ImmutabilityPolicies
+			client := storageClient.From(metadata.Client).ResourceManager.ImmutabilityPolicies
 
 			var model ContainerImmutabilityPolicyModel
 			if err := metadata.Decode(&model); err != nil {
@@ -34,7 +36,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			id := parse.NewStorageContainerImmutabilityPolicyID(containerId.SubscriptionId, containerId.ResourceGroupName, containerId.StorageAccountName, "default", containerId.ContainerName, "default")
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.BlobContainersGetImmutabilityPolicy(ctx, *containerId, immutabilitypolicies.DefaultBlobContainersGetImmutabilityPolicyOperationOptions())
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {

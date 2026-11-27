@@ -16,7 +16,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/horizondb/2026-10-01-preview/firewallrules"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	horizondbClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/horizondb/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -126,8 +128,8 @@ func (r HorizondbFirewallRuleResource) Create() sdk.ResourceFunc {
 			}
 
 			id := firewallrules.NewFirewallRuleID(poolId.SubscriptionId, poolId.ResourceGroupName, poolId.ClusterName, poolId.PoolName, state.Name)
-			client := metadata.Client.HorizonDB.FirewallRulesClient
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			client := horizondbClient.From(metadata.Client).FirewallRulesClient
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -157,7 +159,7 @@ func (r HorizondbFirewallRuleResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			resp, err := metadata.Client.HorizonDB.FirewallRulesClient.Get(ctx, *id)
+			resp, err := horizondbClient.From(metadata.Client).FirewallRulesClient.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(*id)
@@ -184,7 +186,7 @@ func (HorizondbFirewallRuleResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.HorizonDB.FirewallRulesClient
+			client := horizondbClient.From(metadata.Client).FirewallRulesClient
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
@@ -226,7 +228,7 @@ func (HorizondbFirewallRuleResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			if err := metadata.Client.HorizonDB.FirewallRulesClient.DeleteThenPoll(ctx, *id); err != nil {
+			if err := horizondbClient.From(metadata.Client).FirewallRulesClient.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 

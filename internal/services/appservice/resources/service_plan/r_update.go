@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	appserviceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/client"
 )
 
 func (r Resource) Update() sdk.ResourceFunc {
@@ -22,7 +23,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.AppService.ServicePlanClient
+			client := appserviceClient.From(metadata.Client).ServicePlanClient
 
 			var state ServicePlanModel
 			if err := metadata.Decode(&state); err != nil {

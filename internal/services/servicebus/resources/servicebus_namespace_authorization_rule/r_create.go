@@ -11,15 +11,17 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/namespaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/namespacesauthorizationrule"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	servicebusClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceServiceBusNamespaceAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).ServiceBus.NamespacesAuthClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	client := servicebusClient.From(meta).NamespacesAuthClient
+	ctx, cancel := timeouts.ForCreateUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	namespaceAuthId, err := namespacesauthorizationrule.ParseNamespaceID(d.Get("namespace_id").(string))
@@ -30,7 +32,7 @@ func resourceServiceBusNamespaceAuthorizationRuleCreateUpdate(d *pluginsdk.Resou
 	id := namespacesauthorizationrule.NewAuthorizationRuleID(namespaceAuthId.SubscriptionId, namespaceAuthId.ResourceGroupName, namespaceAuthId.NamespaceName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 			existing, err := client.NamespacesGetAuthorizationRule(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {

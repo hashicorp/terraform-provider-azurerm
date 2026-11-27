@@ -12,15 +12,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressroutecircuitpeerings"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	expressrouteClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/expressroute/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceExpressRouteCircuitPeeringUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).ExpressRoute.ExpressRouteCircuitPeerings
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	client := expressrouteClient.From(meta).ExpressRouteCircuitPeerings
+	ctx, cancel := timeouts.ForUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := commonids.ParseExpressRouteCircuitPeeringID(d.Id())
@@ -45,7 +46,7 @@ func resourceExpressRouteCircuitPeeringUpdate(d *pluginsdk.ResourceData, meta an
 
 	payload := existing.Model
 
-	circuitConnClient := meta.(*clients.Client).ExpressRoute.ExpressRouteCircuitConnections
+	circuitConnClient := expressrouteClient.From(meta).ExpressRouteCircuitConnections
 	circuitConnectionId := commonids.NewExpressRouteCircuitPeeringID(id.SubscriptionId, id.ResourceGroupName, id.CircuitName, id.PeeringName)
 	connResp, err := circuitConnClient.List(ctx, circuitConnectionId)
 	if err != nil && !response.WasNotFound(connResp.HttpResponse) {

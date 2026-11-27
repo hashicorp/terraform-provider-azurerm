@@ -16,7 +16,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/deletedkeys"
 	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/keys"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	keyvaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -24,8 +26,8 @@ import (
 )
 
 func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta any) error {
-	keyVaultsClient := meta.(*clients.Client).KeyVault
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	keyVaultsClient := keyvaultClient.From(meta)
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	name := d.Get("name").(string)
@@ -38,11 +40,11 @@ func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta any) error {
 	if err != nil {
 		return fmt.Errorf("looking up Key %q vault url from id %q: %+v", name, *keyVaultId, err)
 	}
-	client := meta.(*clients.Client).KeyVault.DataPlaneKeyVaultClient.Keys.Clone(*keyVaultBaseUri)
+	client := keyvaultClient.From(meta).DataPlaneKeyVaultClient.Keys.Clone(*keyVaultBaseUri)
 	keyId := keys.NewKeyID(*keyVaultBaseUri, name)
 	keyVersionId := keys.NewKeyversionID(keyId.BaseURI, keyId.KeyName, "")
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.GetKey(ctx, keyVersionId)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -96,8 +98,8 @@ func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta any) error {
 	}
 
 	if resp, err := client.CreateKey(ctx, keyId, parameters); err != nil {
-		if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedKeys && response.WasConflict(resp.HttpResponse) {
-			deletedKeysClient := meta.(*clients.Client).KeyVault.DataPlaneKeyVaultClient.DeletedKeys.Clone(*keyVaultBaseUri)
+		if features.From(meta).KeyVault.RecoverSoftDeletedKeys && response.WasConflict(resp.HttpResponse) {
+			deletedKeysClient := keyvaultClient.From(meta).DataPlaneKeyVaultClient.DeletedKeys.Clone(*keyVaultBaseUri)
 			deletedKeyId := deletedkeys.NewDeletedkeyID(*keyVaultBaseUri, name)
 			recoveredKey, err := deletedKeysClient.RecoverDeletedKey(ctx, deletedKeyId)
 			if err != nil {

@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/localuseroperationgroup"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	storageClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 )
 
 func (r Resource) Update() sdk.ResourceFunc {
@@ -26,7 +27,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.Storage.ResourceManager.LocalUserOperationGroup
+			client := storageClient.From(metadata.Client).ResourceManager.LocalUserOperationGroup
 
 			params, err := client.LocalUsersGet(ctx, *id)
 			if err != nil {

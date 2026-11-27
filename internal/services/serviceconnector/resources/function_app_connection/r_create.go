@@ -12,7 +12,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicelinker/2024-04-01/servicelinker"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	serviceconnectorClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/serviceconnector/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/serviceconnector/helpers"
 )
 
@@ -25,11 +27,11 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.ServiceConnector.ServiceLinkerClient
+			client := serviceconnectorClient.From(metadata.Client).ServiceLinkerClient
 
 			id := servicelinker.NewScopedLinkerID(model.FunctionAppId, model.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.LinkerGet(ctx, id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)

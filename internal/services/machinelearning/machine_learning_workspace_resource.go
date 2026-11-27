@@ -20,8 +20,10 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	machinelearningClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -284,14 +286,14 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 }
 
 func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).MachineLearning.Workspaces
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	client := machinelearningClient.From(meta).Workspaces
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	id := workspaces.NewWorkspaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -396,8 +398,8 @@ func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta any)
 }
 
 func resourceMachineLearningWorkspaceUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).MachineLearning.Workspaces
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	client := machinelearningClient.From(meta).Workspaces
+	ctx, cancel := timeouts.ForUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := workspaces.ParseWorkspaceID(d.Id())
@@ -523,8 +525,8 @@ func resourceMachineLearningWorkspaceUpdate(d *pluginsdk.ResourceData, meta any)
 }
 
 func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).MachineLearning.Workspaces
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := machinelearningClient.From(meta).Workspaces
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := workspaces.ParseWorkspaceID(d.Id())
@@ -612,8 +614,8 @@ func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta any) e
 }
 
 func resourceMachineLearningWorkspaceDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).MachineLearning.Workspaces
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := machinelearningClient.From(meta).Workspaces
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := workspaces.ParseWorkspaceID(d.Id())
@@ -622,7 +624,7 @@ func resourceMachineLearningWorkspaceDelete(d *pluginsdk.ResourceData, meta any)
 	}
 
 	options := workspaces.DefaultDeleteOperationOptions()
-	if meta.(*clients.Client).Features.MachineLearning.PurgeSoftDeletedWorkspaceOnDestroy {
+	if features.From(meta).MachineLearning.PurgeSoftDeletedWorkspaceOnDestroy {
 		options = workspaces.DeleteOperationOptions{
 			ForceToPurge: pointer.To(true),
 		}

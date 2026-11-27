@@ -15,16 +15,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	computeClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Compute.VirtualMachinesClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	client := computeClient.From(meta).VirtualMachinesClient
+	ctx, cancel := timeouts.ForUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := virtualmachines.ParseVirtualMachineID(d.Id())
@@ -557,8 +558,8 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta any) erro
 		newSize := d.Get("os_disk.0.disk_size_gb").(int)
 		log.Printf("[DEBUG] Resizing OS Disk %q for Linux %s to %dGB..", diskName, id, newSize)
 
-		disksClient := meta.(*clients.Client).Compute.DisksClient
-		subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+		disksClient := computeClient.From(meta).DisksClient
+		subscriptionId := account.From(meta).SubscriptionId
 		id := commonids.NewManagedDiskID(subscriptionId, id.ResourceGroupName, diskName)
 
 		update := disks.DiskUpdate{
@@ -578,13 +579,13 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta any) erro
 		if diskEncryptionSetId := d.Get("os_disk.0.disk_encryption_set_id").(string); diskEncryptionSetId != "" {
 			diskName := d.Get("os_disk.0.name").(string)
 
-			encryptionType, err := helpers.RetrieveDiskEncryptionSetEncryptionType(ctx, meta.(*clients.Client).Compute.DiskEncryptionSetsClient, diskEncryptionSetId)
+			encryptionType, err := helpers.RetrieveDiskEncryptionSetEncryptionType(ctx, computeClient.From(meta).DiskEncryptionSetsClient, diskEncryptionSetId)
 			if err != nil {
 				return err
 			}
 
-			disksClient := meta.(*clients.Client).Compute.DisksClient
-			subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+			disksClient := computeClient.From(meta).DisksClient
+			subscriptionId := account.From(meta).SubscriptionId
 			id := commonids.NewManagedDiskID(subscriptionId, id.ResourceGroupName, diskName)
 
 			update := disks.DiskUpdate{

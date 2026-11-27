@@ -7,7 +7,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -87,7 +87,7 @@ func (BlobV0ToV1) Schema() map[string]*pluginsdk.Schema {
 
 func (BlobV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
-		environment := meta.(*clients.Client).Account.Environment
+		environment := account.From(meta).Environment
 		storageDomainSuffix, ok := environment.Storage.DomainSuffix()
 		if !ok {
 			return nil, fmt.Errorf("could not determine storage endpoint suffix for environment %q", environment.Name)

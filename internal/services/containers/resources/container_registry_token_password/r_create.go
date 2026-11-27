@@ -11,8 +11,10 @@ import (
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/tokens"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	containersClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 )
 
@@ -20,7 +22,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Containers.ContainerRegistryClient
+			client := containersClient.From(metadata.Client).ContainerRegistryClient
 			var plan ContainerRegistryTokenPasswordModel
 			if err := metadata.Decode(&plan); err != nil {
 				return fmt.Errorf("decoding %+v", err)
@@ -33,7 +35,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			id := parse.NewContainerRegistryTokenPasswordID(tokenId.SubscriptionId, tokenId.ResourceGroupName, tokenId.RegistryName, tokenId.TokenName, "password")
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				pwds, _, err := r.readPassword(ctx, client, *tokenId)
 				if err != nil {
 					return err
@@ -53,7 +55,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 			defer locks.UnlockByID(tokenId.ID())
 
 			// TODO: implement `CallbackThenPoll`, requires migrating to an ID that implements `resourceids.ResourceId`
-			genPasswords, err := r.generatePassword(ctx, *metadata.Client.Containers, *tokenId, *passwords)
+			genPasswords, err := r.generatePassword(ctx, *containersClient.From(metadata.Client), *tokenId, *passwords)
 			if err != nil {
 				return err
 			}

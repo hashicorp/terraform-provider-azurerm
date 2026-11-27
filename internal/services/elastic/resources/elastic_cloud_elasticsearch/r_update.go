@@ -9,13 +9,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/elastic/2023-06-01/monitorsresource"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/elastic/2023-06-01/rules"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	elasticClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceElasticsearchUpdate(d *pluginsdk.ResourceData, meta any) error {
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := monitorsresource.ParseMonitorID(d.Id())
@@ -24,7 +25,7 @@ func resourceElasticsearchUpdate(d *pluginsdk.ResourceData, meta any) error {
 	}
 
 	if d.HasChange("logs") {
-		client := meta.(*clients.Client).Elastic.TagRuleClient
+		client := elasticClient.From(meta).TagRuleClient
 		tagRuleId := rules.NewTagRuleID(id.SubscriptionId, id.ResourceGroupName, id.MonitorName, "default")
 		tagRule := expandTagRule(d.Get("logs").([]any))
 		body := rules.MonitoringTagRules{
@@ -38,7 +39,7 @@ func resourceElasticsearchUpdate(d *pluginsdk.ResourceData, meta any) error {
 	}
 
 	if d.HasChange("tags") {
-		client := meta.(*clients.Client).Elastic.MonitorClient
+		client := elasticClient.From(meta).MonitorClient
 		body := monitorsresource.ElasticMonitorResourceUpdateParameters{
 			Tags: tags.Expand(d.Get("tags").(map[string]any)),
 		}

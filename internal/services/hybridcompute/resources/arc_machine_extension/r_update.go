@@ -11,13 +11,14 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/machineextensions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	hybridcomputeClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/hybridcompute/client"
 )
 
 func (r Resource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.HybridCompute.MachineExtensionsClient
+			client := hybridcomputeClient.From(metadata.Client).MachineExtensionsClient
 
 			id, err := machineextensions.ParseExtensionID(metadata.ResourceData.Id())
 			if err != nil {

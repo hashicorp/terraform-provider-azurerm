@@ -14,15 +14,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/databases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/replicationlinks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	mssqlClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/client"
+	resourceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).MSSQL.DatabasesClient
+	client := mssqlClient.From(meta).DatabasesClient
 
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := commonids.ParseSqlDatabaseID(d.Id())
@@ -42,13 +44,13 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta any) error {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return resourceMssqlDatabaseSetFlatten(d, id, resp.Model, meta.(*clients.Client))
+	return resourceMssqlDatabaseSetFlatten(d, id, resp.Model, meta)
 }
 
 func resourceMsSqlDatabaseImporter(ctx context.Context, d *pluginsdk.ResourceData, meta any) ([]*pluginsdk.ResourceData, error) {
-	replicationLinksClient := meta.(*clients.Client).MSSQL.ReplicationLinksClient
-	client := meta.(*clients.Client).MSSQL.DatabasesClient
-	resourcesClient := meta.(*clients.Client).Resource.ResourcesClient
+	replicationLinksClient := mssqlClient.From(meta).ReplicationLinksClient
+	client := mssqlClient.From(meta).DatabasesClient
+	resourcesClient := resourceClient.From(meta).ResourcesClient
 
 	id, err := commonids.ParseSqlDatabaseID(d.Id())
 	if err != nil {

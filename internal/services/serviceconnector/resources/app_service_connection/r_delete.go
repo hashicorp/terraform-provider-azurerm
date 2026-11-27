@@ -10,13 +10,14 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicelinker/2022-05-01/links"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	serviceconnectorClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/serviceconnector/client"
 )
 
 func (r Resource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ServiceConnector.LinksClient
+			client := serviceconnectorClient.From(metadata.Client).LinksClient
 			id, err := links.ParseScopedLinkerID(metadata.ResourceData.Id())
 			if err != nil {
 				return err

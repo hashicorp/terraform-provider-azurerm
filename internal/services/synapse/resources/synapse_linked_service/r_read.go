@@ -13,7 +13,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/workspaces"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	synapseClient2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -21,10 +22,10 @@ import (
 )
 
 func resourceSynapseLinkedServiceRead(d *pluginsdk.ResourceData, meta any) error {
-	synapseClient := meta.(*clients.Client).Synapse
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	synapseClient := synapseClient2.From(meta)
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
-	environment := meta.(*clients.Client).Account.Environment
+	environment := account.From(meta).Environment
 	synapseDomainSuffix, ok := environment.Synapse.DomainSuffix()
 	if !ok {
 		return fmt.Errorf("could not determine Synapse domain suffix for environment %q", environment.Name)

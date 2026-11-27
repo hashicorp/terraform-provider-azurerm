@@ -11,15 +11,18 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2025-02-01/attachednetworkconnections"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2025-02-01/devcenters"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	devcenterClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/devcenter/client"
 )
 
 func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DevCenter.V20250201.AttachedNetworkConnections
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := devcenterClient.From(metadata.Client).V20250201.AttachedNetworkConnections
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			var model DevCenterAttachedNetworkResourceModel
 			if err := metadata.Decode(&model); err != nil {
@@ -33,7 +36,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			id := attachednetworkconnections.NewDevCenterAttachedNetworkID(subscriptionId, devCenterId.ResourceGroupName, devCenterId.DevCenterName, model.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.AttachedNetworksGetByDevCenter(ctx, id)
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {

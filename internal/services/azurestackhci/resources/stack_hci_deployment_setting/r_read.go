@@ -12,13 +12,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/deploymentsettings"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	azurestackhciClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/azurestackhci/client"
 )
 
 func (Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AzureStackHCI.DeploymentSettings
+			client := azurestackhciClient.From(metadata.Client).DeploymentSettings
 
 			id, err := deploymentsettings.ParseDeploymentSettingID(metadata.ResourceData.Id())
 			if err != nil {

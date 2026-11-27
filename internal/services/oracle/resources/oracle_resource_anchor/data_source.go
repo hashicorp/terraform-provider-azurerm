@@ -13,7 +13,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/resourceanchors"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	oracleClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -65,8 +67,8 @@ func (DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Oracle.OracleClient.ResourceAnchors
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := oracleClient.From(metadata.Client).OracleClient.ResourceAnchors
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			var model ResourceAnchorDataSourceModel
 			if err := metadata.Decode(&model); err != nil {

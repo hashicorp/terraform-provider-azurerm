@@ -12,13 +12,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/hybridconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	relayClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/client"
 )
 
 func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Relay.HybridConnectionsClient
+			client := relayClient.From(metadata.Client).HybridConnectionsClient
 
 			id, err := hybridconnections.ParseHybridConnectionID(metadata.ResourceData.Id())
 			if err != nil {

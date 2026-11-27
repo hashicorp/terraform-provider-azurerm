@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networksecurityperimeters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	networkmanagerClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/networkmanager/client"
 )
 
 func (r Resource) Update() sdk.ResourceFunc {
@@ -18,7 +19,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.NetworkManager.NetworkSecurityPerimetersClient
+			client := networkmanagerClient.From(metadata.Client).NetworkSecurityPerimetersClient
 
 			id, err := networksecurityperimeters.ParseNetworkSecurityPerimeterID(metadata.ResourceData.Id())
 			if err != nil {

@@ -11,17 +11,19 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/certificates"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	webClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/web/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceAppServiceCertificateBindingCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Web.WebAppsClient
-	certClient := meta.(*clients.Client).Web.CertificatesClient
+	client := webClient.From(meta).WebAppsClient
+	certClient := webClient.From(meta).CertificatesClient
 
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	hostnameBindingID, err := webapps.ParseHostNameBindingID(d.Get("hostname_binding_id").(string))
@@ -68,7 +70,7 @@ func resourceAppServiceCertificateBindingCreate(d *pluginsdk.ResourceData, meta 
 	}
 
 	props := binding.Model.Properties
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		if props.Thumbprint != nil && *props.Thumbprint == *thumbprint {
 			return tf.ImportAsExistsError("azurerm_app_service_certificate_binding", id.ID())
 		}

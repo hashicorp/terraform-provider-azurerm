@@ -7,15 +7,16 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-06-01/tables"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	clientsAccount "github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceStorageTableUpdate(d *pluginsdk.ResourceData, meta any) error {
-	storageClient := meta.(*clients.Client).Storage
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	storageClient := client.From(meta)
+	subscriptionId := clientsAccount.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForUpdate(clientsAccount.StopContext(meta), d)
 	defer cancel()
 
 	rmId, err := tables.ParseTableID(d.Id())

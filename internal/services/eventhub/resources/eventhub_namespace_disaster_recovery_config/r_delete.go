@@ -13,16 +13,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/checknameavailabilitydisasterrecoveryconfigs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/disasterrecoveryconfigs"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	eventhubClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceEventHubNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Eventhub.DisasterRecoveryConfigsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := eventhubClient.From(meta).DisasterRecoveryConfigsClient
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := disasterrecoveryconfigs.ParseDisasterRecoveryConfigID(d.Id())
@@ -80,7 +81,7 @@ func resourceEventHubNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.Resource
 		return errors.New("context has no deadline")
 	}
 	parentNamespaceId := checknameavailabilitydisasterrecoveryconfigs.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
-	availabilityClient := meta.(*clients.Client).Eventhub.DisasterRecoveryNameAvailabilityClient
+	availabilityClient := eventhubClient.From(meta).DisasterRecoveryNameAvailabilityClient
 	nameFreeWait := &pluginsdk.StateChangeConf{
 		Pending:    []string{"NameInUse"},
 		Target:     []string{"None"},

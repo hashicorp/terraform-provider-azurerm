@@ -12,8 +12,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/vaults"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	keyvaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -21,8 +23,8 @@ import (
 )
 
 func resourceKeyVaultAccessPolicyCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).KeyVault.VaultsClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	client := keyvaultClient.From(meta).VaultsClient
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	tenantId := d.Get("tenant_id").(string)
@@ -54,7 +56,7 @@ func resourceKeyVaultAccessPolicyCreate(d *pluginsdk.ResourceData, meta any) err
 
 				applicationIdMatches := pointer.From(policy.ApplicationId) == applicationId
 				if tenantIdMatches && objectIdMatches && applicationIdMatches {
-					if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+					if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 						return tf.ImportAsExistsError("azurerm_key_vault_access_policy", id.ID())
 					}
 				}

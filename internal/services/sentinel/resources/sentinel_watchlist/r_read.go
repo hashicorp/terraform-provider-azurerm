@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-11-01/watchlists"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	sentinelClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/client"
 )
 
 func (r Resource) Read() sdk.ResourceFunc {
@@ -20,7 +21,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Sentinel.WatchlistsClient
+			client := sentinelClient.From(metadata.Client).WatchlistsClient
 			id, err := watchlists.ParseWatchlistID(metadata.ResourceData.Id())
 			if err != nil {
 				return err

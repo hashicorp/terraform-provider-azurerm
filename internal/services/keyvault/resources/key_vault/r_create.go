@@ -19,9 +19,11 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/deletedvaults"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/vaults"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	keyvaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -29,10 +31,10 @@ import (
 )
 
 func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta any) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	client := meta.(*clients.Client).KeyVault.VaultsClient
-	deletedVaultsClient := meta.(*clients.Client).KeyVault.DeletedVaultsClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	subscriptionId := account.From(meta).SubscriptionId
+	client := keyvaultClient.From(meta).VaultsClient
+	deletedVaultsClient := keyvaultClient.From(meta).DeletedVaultsClient
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	id := commonids.NewKeyVaultID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
@@ -46,7 +48,7 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta any) error {
 	isPublic := d.Get("public_network_access_enabled").(bool)
 
 	// check for the presence of an existing, live one which should be imported into the state
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -72,7 +74,7 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta any) error {
 	// if so, does the user want us to recover it?
 	recoverSoftDeletedKeyVault := false
 	if !response.WasNotFound(softDeletedKeyVault.HttpResponse) && !response.WasStatusCode(softDeletedKeyVault.HttpResponse, http.StatusForbidden) {
-		if !meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedKeyVaults {
+		if !features.From(meta).KeyVault.RecoverSoftDeletedKeyVaults {
 			// this exists but the users opted out so they must import this it out-of-band
 			return errors.New(optedOutOfRecoveringSoftDeletedKeyVaultErrorFmt(id.VaultName, location))
 		}
@@ -177,7 +179,7 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta any) error {
 		return fmt.Errorf("retrieving %s: `properties.VaultUri` was nil", id)
 	}
 
-	meta.(*clients.Client).KeyVault.AddToCache(id, vaultUri)
+	keyvaultClient.From(meta).AddToCache(id, vaultUri)
 
 	// When Public Network Access is Enabled (i.e. it's Public) we can hit the Data Plane API until
 	// we get a valid response repeatedly - ensuring that the API is fully online before proceeding.

@@ -10,13 +10,14 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/autonomousdatabasebackups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	oracleClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/client"
 )
 
 func (r Resource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Oracle.OracleClient.AutonomousDatabaseBackups
+			client := oracleClient.From(metadata.Client).OracleClient.AutonomousDatabaseBackups
 
 			id, err := autonomousdatabasebackups.ParseAutonomousDatabaseBackupID(metadata.ResourceData.Id())
 			if err != nil {

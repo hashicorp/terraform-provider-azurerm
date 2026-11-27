@@ -10,15 +10,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationnetworkmappings"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	recoveryservicesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceSiteRecoveryNetworkMappingCreate(d *pluginsdk.ResourceData, meta any) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	subscriptionId := account.From(meta).SubscriptionId
 	resGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("recovery_vault_name").(string)
 	fabricName := d.Get("source_recovery_fabric_name").(string)
@@ -27,8 +29,8 @@ func resourceSiteRecoveryNetworkMappingCreate(d *pluginsdk.ResourceData, meta an
 	targetNetworkId := d.Get("target_network_id").(string)
 	name := d.Get("name").(string)
 
-	client := meta.(*clients.Client).RecoveryServices.NetworkMappingClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	client := recoveryservicesClient.From(meta).NetworkMappingClient
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	// get network name from id
@@ -39,7 +41,7 @@ func resourceSiteRecoveryNetworkMappingCreate(d *pluginsdk.ResourceData, meta an
 
 	id := replicationnetworkmappings.NewReplicationNetworkMappingID(subscriptionId, resGroup, vaultName, fabricName, parsedSourceNetworkId.VirtualNetworkName, name)
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) && !helpers.WasBadRequestWithNotExist(existing.HttpResponse, err) {

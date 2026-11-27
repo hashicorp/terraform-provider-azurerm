@@ -18,14 +18,15 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/adminkeys"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/querykeys"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/services"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	searchClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/search/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Search.ServicesClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := searchClient.From(meta).ServicesClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := services.ParseSearchServiceID(d.Id())
@@ -143,7 +144,7 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta any) error {
 		}
 	}
 
-	adminKeysClient := meta.(*clients.Client).Search.AdminKeysClient
+	adminKeysClient := searchClient.From(meta).AdminKeysClient
 	adminKeysId, err := adminkeys.ParseSearchServiceID(d.Id())
 	if err != nil {
 		return err
@@ -158,7 +159,7 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta any) error {
 		d.Set("secondary_key", model.SecondaryKey)
 	}
 
-	queryKeysClient := meta.(*clients.Client).Search.QueryKeysClient
+	queryKeysClient := searchClient.From(meta).QueryKeysClient
 	queryKeysId, err := querykeys.ParseSearchServiceID(d.Id())
 	if err != nil {
 		return err

@@ -13,7 +13,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	keyvaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -22,9 +24,9 @@ import (
 )
 
 func resourceKeyVaultManagedStorageAccountCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
-	keyVaultsClient := meta.(*clients.Client).KeyVault
-	client := meta.(*clients.Client).KeyVault.ManagementClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	keyVaultsClient := keyvaultClient.From(meta)
+	client := keyvaultClient.From(meta).ManagementClient
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	name := d.Get("name").(string)
@@ -39,7 +41,7 @@ func resourceKeyVaultManagedStorageAccountCreateUpdate(d *pluginsdk.ResourceData
 	}
 
 	if d.IsNewResource() {
-		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 			existing, err := client.GetStorageAccount(ctx, *keyVaultBaseUrl, name)
 			if err != nil {
 				if !response.WasNotFound(existing.Response.Response) {
@@ -66,7 +68,7 @@ func resourceKeyVaultManagedStorageAccountCreateUpdate(d *pluginsdk.ResourceData
 	if resp, err := client.SetStorageAccount(ctx, *keyVaultBaseUrl, name, parameters); err != nil {
 		// In the case that the Storage Account already exists in a Soft Deleted / Recoverable state we check if `recover_soft_deleted_key_vaults` is set
 		// and attempt recovery where appropriate
-		if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedKeyVaults && response.WasConflict(resp.Response.Response) {
+		if features.From(meta).KeyVault.RecoverSoftDeletedKeyVaults && response.WasConflict(resp.Response.Response) {
 			recoveredStorageAccount, err := client.RecoverDeletedStorageAccount(ctx, *keyVaultBaseUrl, name)
 			if err != nil {
 				return fmt.Errorf("recovery of Managed Storage Account %q (Key Vault %q): %s", name, *keyVaultBaseUrl, err)

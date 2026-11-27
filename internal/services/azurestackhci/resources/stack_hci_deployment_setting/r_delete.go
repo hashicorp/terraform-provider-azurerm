@@ -18,13 +18,16 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/extendedlocation/2021-08-15/customlocations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resourceconnector/2022-10-27/appliances"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	arcresourcebridgeClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/arcresourcebridge/client"
+	azurestackhciClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/azurestackhci/client"
+	extendedlocationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/extendedlocation/client"
 )
 
 func (Resource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 1 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AzureStackHCI.DeploymentSettings
+			client := azurestackhciClient.From(metadata.Client).DeploymentSettings
 
 			id, err := deploymentsettings.ParseDeploymentSettingID(metadata.ResourceData.Id())
 			if err != nil {
@@ -47,7 +50,7 @@ func (Resource) Delete() sdk.ResourceFunc {
 			applianceName := fmt.Sprintf("%s-arcbridge", id.ClusterName)
 			applianceId := appliances.NewApplianceID(id.SubscriptionId, id.ResourceGroupName, applianceName)
 
-			applianceClient := metadata.Client.ArcResourceBridge.AppliancesClient
+			applianceClient := arcresourcebridgeClient.From(metadata.Client).AppliancesClient
 			if err := applianceClient.DeleteThenPoll(ctx, applianceId); err != nil {
 				return fmt.Errorf("deleting Arc Resource Bridge Appliance generated during deployment: deleting %s: %+v", applianceId, err)
 			}
@@ -64,7 +67,7 @@ func (Resource) Delete() sdk.ResourceFunc {
 
 				// we need to delete the Storage Paths before the Custom Location, otherwise the Custom Location cannot be deleted if there is any Resource in it
 
-				storageContainerClient := metadata.Client.AzureStackHCI.StorageContainers
+				storageContainerClient := azurestackhciClient.From(metadata.Client).StorageContainers
 				resourceGroupId := commonids.NewResourceGroupID(id.SubscriptionId, id.ResourceGroupName)
 				storageContainers, err := storageContainerClient.ListComplete(ctx, resourceGroupId)
 				if err != nil {
@@ -86,7 +89,7 @@ func (Resource) Delete() sdk.ResourceFunc {
 					}
 				}
 
-				customLocationsClient := metadata.Client.ExtendedLocation.CustomLocationsClient
+				customLocationsClient := extendedlocationClient.From(metadata.Client).CustomLocationsClient
 				if err := customLocationsClient.DeleteThenPoll(ctx, customLocationId); err != nil {
 					return fmt.Errorf("deleting the Custom Location generated during deployment: deleting %s: %+v", customLocationId, err)
 				}

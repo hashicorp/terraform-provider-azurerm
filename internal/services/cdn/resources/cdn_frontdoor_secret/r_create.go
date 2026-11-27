@@ -14,17 +14,20 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/profiles"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/secrets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	cdnClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/client"
+	keyvaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceCdnFrontDoorSecretCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cdn.FrontDoorSecretsClient
+	client := cdnClient.From(meta).FrontDoorSecretsClient
 
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	profile, err := profiles.ParseProfileID(d.Get("cdn_frontdoor_profile_id").(string))
@@ -34,7 +37,7 @@ func resourceCdnFrontDoorSecretCreate(d *pluginsdk.ResourceData, meta any) error
 
 	id := secrets.NewSecretID(profile.SubscriptionId, profile.ResourceGroupName, profile.ProfileName, d.Get("name").(string))
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -47,7 +50,7 @@ func resourceCdnFrontDoorSecretCreate(d *pluginsdk.ResourceData, meta any) error
 		}
 	}
 
-	secretParams, err := expandCdnFrontDoorSecretParameters(ctx, d.Get("secret").([]any), meta.(*clients.Client))
+	secretParams, err := expandCdnFrontDoorSecretParameters(ctx, d.Get("secret").([]any), meta)
 	if err != nil {
 		return fmt.Errorf("expanding `secret`: %+v", err)
 	}
@@ -66,7 +69,7 @@ func resourceCdnFrontDoorSecretCreate(d *pluginsdk.ResourceData, meta any) error
 	return resourceCdnFrontDoorSecretRead(d, meta)
 }
 
-func expandCdnFrontDoorSecretParameters(ctx context.Context, input []any, clients *clients.Client) (secrets.SecretParameters, error) {
+func expandCdnFrontDoorSecretParameters(ctx context.Context, input []any, clients any) (secrets.SecretParameters, error) {
 	v := input[0].(map[string]any)
 
 	cc := v["customer_certificate"].([]any)
@@ -77,7 +80,7 @@ func expandCdnFrontDoorSecretParameters(ctx context.Context, input []any, client
 		return nil, err
 	}
 
-	keyVaultBaseId, err := clients.KeyVault.KeyVaultIDFromBaseUrl(ctx, commonids.NewSubscriptionID(clients.Account.SubscriptionId), certificateId.KeyVaultBaseURL)
+	keyVaultBaseId, err := keyvaultClient.From(clients).KeyVaultIDFromBaseUrl(ctx, commonids.NewSubscriptionID(account.From(clients).SubscriptionId), certificateId.KeyVaultBaseURL)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving the Key Vault Resource ID from the Key Vault Base URL (`%s`): %w", certificateId.KeyVaultBaseURL, err)
 	}

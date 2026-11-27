@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/rulesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	cdnClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -27,7 +28,7 @@ type Resource struct{}
 
 func (r Resource) CustomImporter() sdk.ResourceRunFunc {
 	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-		client := metadata.Client.Cdn.FrontDoorRuleSetsClient
+		client := cdnClient.From(metadata.Client).FrontDoorRuleSetsClient
 
 		id, err := rulesets.ParseRuleSetID(metadata.ResourceData.Id())
 		if err != nil {

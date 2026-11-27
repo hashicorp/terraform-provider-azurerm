@@ -12,14 +12,15 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/serverfailover"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/servers"
 	"github.com/hashicorp/go-cty/cty"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	mysqlClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).MySQL.FlexibleServers.Servers
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	client := mysqlClient.From(meta).FlexibleServers.Servers
+	ctx, cancel := timeouts.ForUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := servers.ParseFlexibleServerID(d.Id())
@@ -90,7 +91,7 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta any) erro
 	}
 
 	if requireFailover {
-		failoverClient := meta.(*clients.Client).MySQL.FlexibleServers.ServerFailover
+		failoverClient := mysqlClient.From(meta).FlexibleServers.ServerFailover
 		failoverID := serverfailover.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName)
 
 		if err := failoverClient.ServersFailoverThenPoll(ctx, failoverID); err != nil {

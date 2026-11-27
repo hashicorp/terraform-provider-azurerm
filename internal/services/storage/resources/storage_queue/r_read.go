@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/storagequeues"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	clientsAccount "github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -20,8 +20,8 @@ import (
 )
 
 func resourceStorageQueueRead(d *pluginsdk.ResourceData, meta any) error {
-	queueClient := meta.(*clients.Client).Storage.ResourceManager.StorageQueues
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	queueClient := client.From(meta).ResourceManager.StorageQueues
+	ctx, cancel := timeouts.ForRead(clientsAccount.StopContext(meta), d)
 	defer cancel()
 
 	id, err := storagequeues.ParseQueueID(d.Id())
@@ -52,7 +52,7 @@ func resourceStorageQueueRead(d *pluginsdk.ResourceData, meta any) error {
 		}
 	}
 
-	account, err := meta.(*clients.Client).Storage.GetAccount(ctx, commonids.NewStorageAccountID(id.SubscriptionId, id.ResourceGroupName, id.StorageAccountName))
+	account, err := client.From(meta).GetAccount(ctx, commonids.NewStorageAccountID(id.SubscriptionId, id.ResourceGroupName, id.StorageAccountName))
 	if err != nil {
 		return fmt.Errorf("retrieving Account for Queue %q: %v", id, err)
 	}
@@ -62,7 +62,7 @@ func resourceStorageQueueRead(d *pluginsdk.ResourceData, meta any) error {
 		return fmt.Errorf("determining Queue endpoint: %v", err)
 	}
 	// Parse the queue endpoint as a data plane account ID
-	accountDpId, err := accounts.ParseAccountID(*endpoint, meta.(*clients.Client).Storage.StorageDomainSuffix)
+	accountDpId, err := accounts.ParseAccountID(*endpoint, client.From(meta).StorageDomainSuffix)
 	if err != nil {
 		return fmt.Errorf("parsing Account ID: %v", err)
 	}

@@ -10,15 +10,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2025-06-11/datadogsinglesignonresources"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	datadogClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/datadog/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceDatadogSingleSignOnConfigurationsCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Datadog.DatadogSingleSignOnResources
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	client := datadogClient.From(meta).DatadogSingleSignOnResources
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	monitorId, err := datadogsinglesignonresources.ParseMonitorID(d.Get("datadog_monitor_id").(string))
@@ -28,7 +30,7 @@ func resourceDatadogSingleSignOnConfigurationsCreate(d *pluginsdk.ResourceData, 
 
 	id := datadogsinglesignonresources.NewSingleSignOnConfigurationID(monitorId.SubscriptionId, monitorId.ResourceGroupName, monitorId.MonitorName, d.Get("name").(string))
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.SingleSignOnConfigurationsGet(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {

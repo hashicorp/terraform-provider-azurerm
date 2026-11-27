@@ -12,7 +12,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/tables"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2025-07-01/workspaces"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	loganalyticsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -79,7 +81,7 @@ func (DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.LogAnalytics.TablesClient
+			client := loganalyticsClient.From(metadata.Client).TablesClient
 
 			var state LogAnalyticsWorkspaceTableDataSourceModel
 			if err := metadata.Decode(&state); err != nil {
@@ -91,7 +93,7 @@ func (DataSource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			id := tables.NewTableID(metadata.Client.Account.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, state.Name)
+			id := tables.NewTableID(account.From(metadata.Client).SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, state.Name)
 
 			resp, err := client.Get(ctx, id)
 			if err != nil {

@@ -8,7 +8,8 @@ import (
 	"log"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	policyClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -16,8 +17,8 @@ import (
 )
 
 func resourceResourcePolicyExemptionRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Policy.ExemptionsClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := policyClient.From(meta).ExemptionsClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := parse.ResourcePolicyExemptionID(d.Id())

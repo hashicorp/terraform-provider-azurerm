@@ -14,7 +14,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/graphservices/2023-04-13/graphservicesprods"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	graphservicesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/graphservices/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -77,8 +79,8 @@ func (r DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Graph.V20230413.Graphservicesprods
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := graphservicesClient.From(metadata.Client).V20230413.Graphservicesprods
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			var state AccountDataSourceModel
 			if err := metadata.Decode(&state); err != nil {

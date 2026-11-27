@@ -12,7 +12,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roledefinitions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/managedhsms"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	managedhsmClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -134,10 +136,10 @@ func (k KeyvaultMHSMRoleDefinitionDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ManagedHSMs.DataPlaneRoleDefinitionsClient
-			domainSuffix, ok := metadata.Client.Account.Environment.ManagedHSM.DomainSuffix()
+			client := managedhsmClient.From(metadata.Client).DataPlaneRoleDefinitionsClient
+			domainSuffix, ok := account.From(metadata.Client).Environment.ManagedHSM.DomainSuffix()
 			if !ok {
-				return fmt.Errorf("could not determine Managed HSM domain suffix for environment %q", metadata.Client.Account.Environment.Name)
+				return fmt.Errorf("could not determine Managed HSM domain suffix for environment %q", account.From(metadata.Client).Environment.Name)
 			}
 
 			var config KeyVaultMHSMRoleDefinitionDataSourceModel
@@ -153,7 +155,7 @@ func (k KeyvaultMHSMRoleDefinitionDataSource) Read() sdk.ResourceFunc {
 				if err != nil {
 					return err
 				}
-				baseUri, err := metadata.Client.ManagedHSMs.BaseUriForManagedHSM(ctx, *managedHsmId)
+				baseUri, err := managedhsmClient.From(metadata.Client).BaseUriForManagedHSM(ctx, *managedHsmId)
 				if err != nil {
 					return fmt.Errorf("determining the Data Plane Endpoint for %s: %+v", *managedHsmId, err)
 				}

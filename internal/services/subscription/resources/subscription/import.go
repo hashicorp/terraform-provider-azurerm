@@ -11,14 +11,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-12-01/subscriptions"
 	subscriptionAliasPandora "github.com/hashicorp/go-azure-sdk/resource-manager/subscription/2021-10-01/subscriptions"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	subscriptionClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 func importSubscriptionByAlias() pluginsdk.ImporterFunc {
 	return func(ctx context.Context, d *pluginsdk.ResourceData, meta any) (data []*pluginsdk.ResourceData, err error) {
-		aliasClient := meta.(*clients.Client).Subscription.AliasClient
-		client := meta.(*clients.Client).Subscription.SubscriptionsClient
+		aliasClient := subscriptionClient.From(meta).AliasClient
+		client := subscriptionClient.From(meta).SubscriptionsClient
 		aliasId, err := subscriptionAliasPandora.ParseAliasID(d.Id())
 		if err != nil {
 			return []*pluginsdk.ResourceData{}, errors.New("failed parsing Subscription Alias ID for import")

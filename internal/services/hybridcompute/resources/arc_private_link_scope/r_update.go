@@ -10,13 +10,14 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/privatelinkscopes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	hybridcomputeClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/hybridcompute/client"
 )
 
 func (a Resource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.HybridCompute.PrivateLinkScopesClient
+			client := hybridcomputeClient.From(metadata.Client).PrivateLinkScopesClient
 
 			id, err := privatelinkscopes.ParseProviderPrivateLinkScopeID(metadata.ResourceData.Id())
 			if err != nil {

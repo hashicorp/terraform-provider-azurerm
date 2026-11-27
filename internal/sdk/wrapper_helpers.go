@@ -7,7 +7,6 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 )
 
 // combineSchema combines the arguments (user-configurable) and attributes (read-only) schema fields
@@ -48,7 +47,7 @@ func combineSchema(arguments map[string]*schema.Schema, attributes map[string]*s
 }
 
 func runArgs(d *schema.ResourceData, meta any, logger Logger) ResourceMetaData {
-	client := meta.(*clients.Client)
+	client := meta.(ClientProvider)
 	return ResourceMetaData{
 		Client:                   client,
 		Logger:                   logger,

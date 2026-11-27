@@ -17,19 +17,21 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/clusters"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	hdinsightClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceHDInsightSparkClusterCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).HDInsight.Clusters
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	extensionsClient := meta.(*clients.Client).HDInsight.Extensions
+	client := hdinsightClient.From(meta).Clusters
+	subscriptionId := account.From(meta).SubscriptionId
+	extensionsClient := hdinsightClient.From(meta).Extensions
 
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	id := commonids.NewHDInsightClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
@@ -75,7 +77,7 @@ func resourceHDInsightSparkClusterCreate(d *pluginsdk.ResourceData, meta any) er
 
 	computeIsolationProperties := helpers.ExpandHDInsightComputeIsolationProperties(d.Get("compute_isolation").([]any))
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {

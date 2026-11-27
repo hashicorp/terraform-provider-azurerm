@@ -19,7 +19,10 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	appserviceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 )
 
@@ -27,13 +30,13 @@ func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AppService.WebAppsClient
-			resourcesClient := metadata.Client.AppService.ResourceProvidersClient
-			servicePlanClient := metadata.Client.AppService.ServicePlanClient
-			aseClient := metadata.Client.AppService.AppServiceEnvironmentClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := appserviceClient.From(metadata.Client).WebAppsClient
+			resourcesClient := appserviceClient.From(metadata.Client).ResourceProvidersClient
+			servicePlanClient := appserviceClient.From(metadata.Client).ServicePlanClient
+			aseClient := appserviceClient.From(metadata.Client).AppServiceEnvironmentClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
-			env := metadata.Client.Account.Environment
+			env := account.From(metadata.Client).Environment
 			storageAccountDomainSuffix, ok := env.Storage.DomainSuffix()
 			if !ok {
 				return fmt.Errorf("could not determine the domain suffix for storage accounts in environment %q: %+v", env.Name, env.Storage)
@@ -47,7 +50,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			id := commonids.NewAppServiceID(subscriptionId, data.ResourceGroupName, data.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {
@@ -430,7 +433,7 @@ func mergeAppSettings(existing []webapps.NameValuePair, old, new map[string]any,
 	} else if metadata.ResourceData.HasChanges("storage_account_name", "storage_account_access_key") {
 		accountName := metadata.ResourceData.Get("storage_account_name").(string)
 		accountAccessKey := metadata.ResourceData.Get("storage_account_access_key").(string)
-		suffix, _ := metadata.Client.Account.Environment.Storage.DomainSuffix()
+		suffix, _ := account.From(metadata.Client).Environment.Storage.DomainSuffix()
 
 		conn := fmt.Sprintf(helpers.StorageStringFmt, accountName, accountAccessKey, *suffix)
 		eMap[storageAppSettingName] = conn

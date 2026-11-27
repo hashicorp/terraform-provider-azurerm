@@ -11,8 +11,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	cosmosClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -81,9 +83,9 @@ func resourceCosmosDbSQLTrigger() *pluginsdk.Resource {
 }
 
 func resourceCosmosDbSQLTriggerCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := cosmosClient.From(meta).CosmosDBClient
 
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreateUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	containerId, err := cosmosdb.ParseContainerID(d.Get("container_id").(string))
@@ -91,10 +93,10 @@ func resourceCosmosDbSQLTriggerCreateUpdate(d *pluginsdk.ResourceData, meta any)
 		return err
 	}
 
-	id := cosmosdb.NewTriggerID(meta.(*clients.Client).Account.SubscriptionId, containerId.ResourceGroupName, containerId.DatabaseAccountName, containerId.SqlDatabaseName, containerId.ContainerName, d.Get("name").(string))
+	id := cosmosdb.NewTriggerID(account.From(meta).SubscriptionId, containerId.ResourceGroupName, containerId.DatabaseAccountName, containerId.SqlDatabaseName, containerId.ContainerName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 			existing, err := client.SqlResourcesGetSqlTrigger(ctx, id)
 			if !response.WasNotFound(existing.HttpResponse) {
 				if err != nil {
@@ -132,9 +134,9 @@ func resourceCosmosDbSQLTriggerCreateUpdate(d *pluginsdk.ResourceData, meta any)
 }
 
 func resourceCosmosDbSQLTriggerRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := cosmosClient.From(meta).CosmosDBClient
 
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := cosmosdb.ParseTriggerID(d.Id())
@@ -168,9 +170,9 @@ func resourceCosmosDbSQLTriggerRead(d *pluginsdk.ResourceData, meta any) error {
 }
 
 func resourceCosmosDbSQLTriggerDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := cosmosClient.From(meta).CosmosDBClient
 
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := cosmosdb.ParseTriggerID(d.Id())

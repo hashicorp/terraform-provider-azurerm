@@ -10,15 +10,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/azurefirewalls"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/parse"
+	networkClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceFirewallNatRuleCollectionRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Network.AzureFirewalls
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := networkClient.From(meta).AzureFirewalls
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := parse.FirewallNatRuleCollectionID(d.Id())

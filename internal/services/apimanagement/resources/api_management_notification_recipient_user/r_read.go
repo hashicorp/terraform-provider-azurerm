@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/notificationrecipientuser"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	apimanagementClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/client"
 )
 
 func (r Resource) Read() sdk.ResourceFunc {
@@ -19,7 +20,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ApiManagement.NotificationRecipientUserClient
+			client := apimanagementClient.From(metadata.Client).NotificationRecipientUserClient
 			id, err := notificationrecipientuser.ParseRecipientUserID(metadata.ResourceData.Id())
 			if err != nil {
 				return err

@@ -11,16 +11,19 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/loadbalancers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
 )
 
 func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			lbClient := metadata.Client.LoadBalancers.LoadBalancersClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			lbClient := client.From(metadata.Client).LoadBalancersClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			var model BackendAddressPoolAddressModel
 			if err := metadata.Decode(&model); err != nil {
@@ -37,7 +40,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			// Backend Addresses can not be created for Basic sku, so we have to check
 			plbId := loadbalancers.ProviderLoadBalancerId{SubscriptionId: subscriptionId, ResourceGroupName: poolId.ResourceGroupName, LoadBalancerName: poolId.LoadBalancerName}
-			lb, err := metadata.Client.LoadBalancers.LoadBalancersClient.Get(ctx, plbId, loadbalancers.GetOperationOptions{})
+			lb, err := client.From(metadata.Client).LoadBalancersClient.Get(ctx, plbId, loadbalancers.GetOperationOptions{})
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", plbId, err)
 			}
@@ -81,7 +84,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 					addresses = *pool.Model.Properties.LoadBalancerBackendAddresses
 				}
 
-				if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 					for _, address := range addresses {
 						if address.Name == nil {
 							continue

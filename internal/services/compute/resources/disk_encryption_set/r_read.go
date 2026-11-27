@@ -17,14 +17,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/diskencryptionsets"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	computeClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/client"
+	keyvaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
+	managedhsmClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceDiskEncryptionSetRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Compute.DiskEncryptionSetsClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := computeClient.From(meta).DiskEncryptionSetsClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := commonids.ParseDiskEncryptionSetID(d.Id())
@@ -92,8 +95,8 @@ func resourceDiskEncryptionSetRead(d *pluginsdk.ResourceData, meta any) error {
 }
 
 func getKeyURL(ctx context.Context, id *keyvault.NestedItemID, rotationToLatestKeyVersionEnabled bool, meta any) (string, error) {
-	keyVaultClient := meta.(*clients.Client).KeyVault.ManagementClient
-	managedHSMClient := meta.(*clients.Client).ManagedHSMs.DataPlaneKeysClient
+	keyVaultClient := keyvaultClient.From(meta).ManagementClient
+	managedHSMClient := managedhsmClient.From(meta).DataPlaneKeysClient
 
 	keyURL := ""
 

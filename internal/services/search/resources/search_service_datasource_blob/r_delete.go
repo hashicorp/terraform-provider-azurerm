@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/data-plane/search/2025-09-01/datasources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	searchClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/search/client"
 )
 
 func (r Resource) Delete() sdk.ResourceFunc {
@@ -20,7 +21,7 @@ func (r Resource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.Search.SearchDataPlaneClient.DataSources.Clone(resourceId.BaseURI)
+			client := searchClient.From(metadata.Client).SearchDataPlaneClient.DataSources.Clone(resourceId.BaseURI)
 
 			if _, err := client.Delete(ctx, *resourceId, datasources.DefaultDeleteOperationOptions()); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *resourceId, err)

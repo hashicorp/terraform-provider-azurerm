@@ -11,7 +11,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/daprcomponents"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	containerappsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/helpers"
 )
 
@@ -19,8 +22,8 @@ func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ContainerApps.DaprComponentsClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := containerappsClient.From(metadata.Client).DaprComponentsClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			var daprComponent ContainerAppEnvironmentDaprComponentModel
 
@@ -35,7 +38,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			id := daprcomponents.NewDaprComponentID(subscriptionId, managedEnvironmentId.ResourceGroupName, managedEnvironmentId.ManagedEnvironmentName, daprComponent.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {

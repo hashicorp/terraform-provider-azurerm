@@ -11,14 +11,16 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/rules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/subscriptions"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	servicebusClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceServiceBusSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).ServiceBus.SubscriptionsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	client := servicebusClient.From(meta).SubscriptionsClient
+	ctx, cancel := timeouts.ForCreateUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	var id subscriptions.Subscriptions2Id
@@ -46,7 +48,7 @@ func resourceServiceBusSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	if d.IsNewResource() {
-		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 			existing, err := client.Get(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {
@@ -109,8 +111,8 @@ func resourceServiceBusSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta 
 		d.SetId(id.ID())
 	}
 
-	if d.IsNewResource() && meta.(*clients.Client).Features.ServiceBus.AutoDeleteSubscriptionDefaultRule {
-		rulesClient := meta.(*clients.Client).ServiceBus.SubscriptionRulesClient
+	if d.IsNewResource() && features.From(meta).ServiceBus.AutoDeleteSubscriptionDefaultRule {
+		rulesClient := servicebusClient.From(meta).SubscriptionRulesClient
 		defaultRuleId := rules.NewRuleID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, id.TopicName, id.SubscriptionName, "$Default")
 
 		if resp, err := rulesClient.Delete(ctx, defaultRuleId); err != nil {

@@ -10,7 +10,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/fileshares"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -86,8 +87,8 @@ func RegisterDataSource() *pluginsdk.Resource {
 }
 
 func dataSourceStorageShareRead(d *pluginsdk.ResourceData, meta any) error {
-	sharesClient := meta.(*clients.Client).Storage.ResourceManager.FileShares
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	sharesClient := client.From(meta).ResourceManager.FileShares
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	shareName := d.Get("name").(string)

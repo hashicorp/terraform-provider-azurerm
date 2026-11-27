@@ -12,15 +12,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/objectreplicationpolicyoperationgroup"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	storageClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceStorageObjectReplicationCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Storage.ResourceManager.ObjectReplicationPolicyOperationGroup
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	client := storageClient.From(meta).ResourceManager.ObjectReplicationPolicyOperationGroup
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	srcAccount, err := commonids.ParseStorageAccountID(d.Get("source_storage_account_id").(string))
@@ -35,7 +37,7 @@ func resourceStorageObjectReplicationCreate(d *pluginsdk.ResourceData, meta any)
 	srcId := objectreplicationpolicyoperationgroup.NewObjectReplicationPolicyID(srcAccount.SubscriptionId, srcAccount.ResourceGroupName, srcAccount.StorageAccountName, "default")
 	dstId := objectreplicationpolicyoperationgroup.NewObjectReplicationPolicyID(dstAccount.SubscriptionId, dstAccount.ResourceGroupName, dstAccount.StorageAccountName, "default")
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		resp, err := client.ObjectReplicationPoliciesList(ctx, *dstAccount)
 		if err != nil {
 			if response.WasNotFound(resp.HttpResponse) {

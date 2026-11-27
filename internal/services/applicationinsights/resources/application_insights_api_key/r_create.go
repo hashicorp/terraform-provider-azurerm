@@ -10,14 +10,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/componentapikeysapis"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	applicationinsightsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceApplicationInsightsAPIKeyCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).AppInsights.APIKeysClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	client := applicationinsightsClient.From(meta).APIKeysClient
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	appInsightsId, err := componentapikeysapis.ParseComponentID(d.Get("application_insights_id").(string))
@@ -27,7 +29,7 @@ func resourceApplicationInsightsAPIKeyCreate(d *pluginsdk.ResourceData, meta any
 
 	name := d.Get("name").(string)
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		var existingAPIKeyList componentapikeysapis.APIKeysListOperationResponse
 		var existingAPIKeyId *componentapikeysapis.ApiKeyId
 		existingAPIKeyList, err = client.APIKeysList(ctx, *appInsightsId)

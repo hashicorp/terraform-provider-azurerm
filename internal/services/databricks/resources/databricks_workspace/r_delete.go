@@ -8,14 +8,16 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/workspaces"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	databricksClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceDatabricksWorkspaceDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).DataBricks.WorkspacesClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := databricksClient.From(meta).WorkspacesClient
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := workspaces.ParseWorkspaceID(d.Id())
@@ -24,7 +26,7 @@ func resourceDatabricksWorkspaceDelete(d *pluginsdk.ResourceData, meta any) erro
 	}
 
 	deleteOperationOptions := workspaces.DefaultDeleteOperationOptions()
-	if meta.(*clients.Client).Features.DatabricksWorkspace.ForceDelete {
+	if features.From(meta).DatabricksWorkspace.ForceDelete {
 		deleteOperationOptions.ForceDeletion = pointer.To(true)
 	}
 

@@ -13,15 +13,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/staticsites"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	appserviceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/client"
 )
 
 func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AppService.StaticSitesClient
-			appClient := metadata.Client.AppService.WebAppsClient
+			client := appserviceClient.From(metadata.Client).StaticSitesClient
+			appClient := appserviceClient.From(metadata.Client).WebAppsClient
 
 			model := StaticWebAppFunctionAppRegistrationModel{}
 
@@ -51,7 +53,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			id := staticsites.NewUserProvidedFunctionAppID(staticAppId.SubscriptionId, staticAppId.ResourceGroupName, staticAppId.StaticSiteName, functionAppId.SiteName)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.GetUserProvidedFunctionAppForStaticSite(ctx, id)
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {

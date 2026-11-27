@@ -12,14 +12,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2024-03-01/webpubsub"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	keyvaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
+	signalrClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/client"
 )
 
 func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.SignalR.WebPubSubClient.WebPubSub
-			keyVaultClient := metadata.Client.KeyVault
+			client := signalrClient.From(metadata.Client).WebPubSubClient.WebPubSub
+			keyVaultClient := keyvaultClient.From(metadata.Client)
 			id, err := webpubsub.ParseCustomCertificateID(metadata.ResourceData.Id())
 			if err != nil {
 				return err

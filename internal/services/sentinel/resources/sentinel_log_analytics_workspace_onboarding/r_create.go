@@ -14,7 +14,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2023-09-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-11-01/sentinelonboardingstates"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	sentinelClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/client"
 )
 
 func (r Resource) Create() sdk.ResourceFunc {
@@ -26,7 +28,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.Sentinel.OnboardingStatesClient
+			client := sentinelClient.From(metadata.Client).OnboardingStatesClient
 			// the service only support `default` state
 			var id sentinelonboardingstates.OnboardingStateId
 			parsedWorkspaceId, err := workspaces.ParseWorkspaceID(model.WorkspaceId)
@@ -35,7 +37,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 			}
 			id = sentinelonboardingstates.NewOnboardingStateID(parsedWorkspaceId.SubscriptionId, parsedWorkspaceId.ResourceGroupName, parsedWorkspaceId.WorkspaceName, "default")
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for existing %s: %+v", id, err)

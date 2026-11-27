@@ -9,7 +9,8 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/data-plane/synapse/2021-06-01-preview/managedprivateendpoints"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	synapseClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -17,7 +18,7 @@ import (
 )
 
 func resourceSynapseManagedPrivateEndpointDelete(d *pluginsdk.ResourceData, meta any) error {
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := parse.ManagedPrivateEndpointID(d.Id())
@@ -25,13 +26,13 @@ func resourceSynapseManagedPrivateEndpointDelete(d *pluginsdk.ResourceData, meta
 		return err
 	}
 
-	baseURI, err := NewSynapseWorkspaceBaseURI(meta.(*clients.Client).Account.Environment, id.WorkspaceName)
+	baseURI, err := NewSynapseWorkspaceBaseURI(account.From(meta).Environment, id.WorkspaceName)
 	if err != nil {
 		return err
 	}
 
 	dataPlaneID := managedprivateendpoints.NewManagedPrivateEndpointID(baseURI, id.ManagedVirtualNetworkName, id.Name)
-	client := meta.(*clients.Client).Synapse.ManagedPrivateEndpointsClient.Clone(dataPlaneID.BaseURI)
+	client := synapseClient.From(meta).ManagedPrivateEndpointsClient.Clone(dataPlaneID.BaseURI)
 
 	if _, err := client.Delete(ctx, dataPlaneID); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)

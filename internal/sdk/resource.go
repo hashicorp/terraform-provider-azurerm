@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -195,8 +194,9 @@ type ResourceFunc struct {
 }
 
 type ResourceMetaData struct {
-	// Client is a reference to the Azure Providers Client - providing a typed reference to this object
-	Client *clients.Client
+	// Client holds the provider ClientProvider (implemented by *clients.Client) without coupling
+	// internal/sdk's export data to all 135 service client packages.
+	Client ClientProvider
 
 	// Logger provides a logger for debug purposes
 	Logger Logger
@@ -228,7 +228,7 @@ func (rmd ResourceMetaData) ResourceRequiresImport(resourceName string, idFormat
 }
 
 // NewResourceMetaData returns the metadata for a Typed Resource as if it came from a plugin sdk v2 resource
-func NewResourceMetaData(clients *clients.Client, resource Resource) ResourceMetaData {
+func NewResourceMetaData(clients ClientProvider, resource Resource) ResourceMetaData {
 	return ResourceMetaData{
 		Client:                   clients,
 		ResourceData:             WrappedResource(resource).Data(&terraform.InstanceState{}),

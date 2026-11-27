@@ -10,13 +10,14 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/networkfunction/2022-11-01/azuretrafficcollectors"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	networkfunctionClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/networkfunction/client"
 )
 
 func (r Resource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.NetworkFunction.AzureTrafficCollectorsClient
+			client := networkfunctionClient.From(metadata.Client).AzureTrafficCollectorsClient
 
 			id, err := azuretrafficcollectors.ParseAzureTrafficCollectorID(metadata.ResourceData.Id())
 			if err != nil {

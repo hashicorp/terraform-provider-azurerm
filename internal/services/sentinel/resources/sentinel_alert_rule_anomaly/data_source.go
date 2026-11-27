@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/securitymlanalyticssettings"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	sentinelClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -170,7 +171,7 @@ func (a DataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.Sentinel.AnalyticsSettingsClient
+			client := sentinelClient.From(metadata.Client).AnalyticsSettingsClient
 
 			workspaceId, err := workspaces.ParseWorkspaceID(config.WorkspaceId)
 			if err != nil {

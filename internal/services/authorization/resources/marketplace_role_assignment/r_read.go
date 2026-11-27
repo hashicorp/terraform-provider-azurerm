@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-05-01-preview/roledefinitions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	authorizationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -26,8 +27,8 @@ func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Authorization.ScopedRoleAssignmentsClient
-			roleDefinitionsClient := metadata.Client.Authorization.ScopedRoleDefinitionsClient
+			client := authorizationClient.From(metadata.Client).ScopedRoleAssignmentsClient
+			roleDefinitionsClient := authorizationClient.From(metadata.Client).ScopedRoleDefinitionsClient
 
 			id, err := parse.ScopedRoleAssignmentID(metadata.ResourceData.Id())
 			if err != nil {
@@ -99,7 +100,7 @@ const (
 
 func retryMarketplaceRoleAssignmentsClient(ctx context.Context, metadata sdk.ResourceMetaData, id parse.ScopedRoleAssignmentId, properties *roleassignments.RoleAssignmentCreateParameters) func() *pluginsdk.RetryError {
 	return func() *pluginsdk.RetryError {
-		roleAssignmentsClient := metadata.Client.Authorization.ScopedRoleAssignmentsClient
+		roleAssignmentsClient := authorizationClient.From(metadata.Client).ScopedRoleAssignmentsClient
 		resp, err := roleAssignmentsClient.Create(ctx, id.ScopedId, *properties)
 		if err != nil {
 			if response.WasStatusCode(resp.HttpResponse, 400) && strings.Contains(err.Error(), "PrincipalNotFound") {

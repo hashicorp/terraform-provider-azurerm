@@ -11,13 +11,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/accessconnector"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	databricksClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/client"
 )
 
 func (r Resource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DataBricks.AccessConnectorClient
+			client := databricksClient.From(metadata.Client).AccessConnectorClient
 			id, err := accessconnector.ParseAccessConnectorID(metadata.ResourceData.Id())
 			if err != nil {
 				return err

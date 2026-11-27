@@ -17,7 +17,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/clusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/extensions"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	hdinsightClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -25,10 +26,10 @@ import (
 
 func HdinsightClusterUpdate(clusterKind string, readFunc pluginsdk.ReadFunc) pluginsdk.UpdateFunc {
 	return func(d *pluginsdk.ResourceData, meta any) error {
-		client := meta.(*clients.Client).HDInsight.Clusters
-		extensionsClient := meta.(*clients.Client).HDInsight.Extensions
-		applicationsClient := meta.(*clients.Client).HDInsight.Applications
-		ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+		client := hdinsightClient.From(meta).Clusters
+		extensionsClient := hdinsightClient.From(meta).Extensions
+		applicationsClient := hdinsightClient.From(meta).Applications
+		ctx, cancel := timeouts.ForUpdate(account.StopContext(meta), d)
 		defer cancel()
 
 		id, err := commonids.ParseHDInsightClusterID(d.Id())
@@ -153,8 +154,8 @@ func HdinsightClusterUpdate(clusterKind string, readFunc pluginsdk.ReadFunc) plu
 
 func HdinsightClusterDelete(clusterKind string) pluginsdk.DeleteFunc {
 	return func(d *pluginsdk.ResourceData, meta any) error {
-		client := meta.(*clients.Client).HDInsight.Clusters
-		ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+		client := hdinsightClient.From(meta).Clusters
+		ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 		defer cancel()
 
 		id, err := commonids.ParseHDInsightClusterID(d.Id())

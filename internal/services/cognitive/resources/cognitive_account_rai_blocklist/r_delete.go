@@ -11,13 +11,14 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/raiblocklists"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	cognitiveClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/client"
 )
 
 func (c Resource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Cognitive.RaiBlocklistsClient
+			client := cognitiveClient.From(metadata.Client).RaiBlocklistsClient
 
 			id, err := raiblocklists.ParseRaiBlocklistID(metadata.ResourceData.Id())
 			if err != nil {

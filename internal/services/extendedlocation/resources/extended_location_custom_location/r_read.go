@@ -13,13 +13,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/extendedlocation/2021-08-15/customlocations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	extendedlocationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/extendedlocation/client"
 )
 
 func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ExtendedLocation.CustomLocationsClient
+			client := extendedlocationClient.From(metadata.Client).CustomLocationsClient
 			id, err := customlocations.ParseCustomLocationID(metadata.ResourceData.Id())
 			if err != nil {
 				return err

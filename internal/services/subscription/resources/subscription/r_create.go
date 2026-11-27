@@ -18,17 +18,20 @@ import (
 	tagsSdk "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/tags"
 	subscriptionAlias "github.com/hashicorp/go-azure-sdk/resource-manager/subscription/2021-10-01/subscriptions"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	resourceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
+	subscriptionClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta any) error {
-	aliasClient := meta.(*clients.Client).Subscription.AliasClient
-	client := meta.(*clients.Client).Subscription.SubscriptionsClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	aliasClient := subscriptionClient.From(meta).AliasClient
+	client := subscriptionClient.From(meta).SubscriptionsClient
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	var aliasName string
@@ -41,7 +44,7 @@ func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta any) error {
 
 	id := subscriptionAlias.NewAliasID(aliasName)
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := aliasClient.AliasGet(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -141,7 +144,7 @@ func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta any) error {
 	}
 
 	if d.HasChange("tags") {
-		tagsClient := meta.(*clients.Client).Resource.TagsClient
+		tagsClient := resourceClient.From(meta).TagsClient
 		t := tags.Expand(d.Get("tags").(map[string]any))
 		scope := commonids.NewScopeID(commonids.NewSubscriptionID(*alias.Model.Properties.SubscriptionId).ID())
 		tagsResource := tagsSdk.TagsResource{

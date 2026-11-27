@@ -22,8 +22,10 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/managedapplications/2021-07-01/applicationdefinitions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/managedapplications/2021-07-01/applications"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	managedapplicationsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedapplications/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedapplications/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -161,14 +163,14 @@ func resourceManagedApplicationSchema() map[string]*pluginsdk.Schema {
 }
 
 func resourceManagedApplicationCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).ManagedApplication.ApplicationClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	client := managedapplicationsClient.From(meta).ApplicationClient
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForCreateUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	id := applications.NewApplicationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -187,7 +189,7 @@ func resourceManagedApplicationCreate(d *pluginsdk.ResourceData, meta any) error
 	}
 
 	if v, ok := d.GetOk("managed_resource_group_name"); ok {
-		targetResourceGroupId := commonids.NewResourceGroupID(meta.(*clients.Client).Account.SubscriptionId, v.(string))
+		targetResourceGroupId := commonids.NewResourceGroupID(account.From(meta).SubscriptionId, v.(string))
 		parameters.Properties = applications.ApplicationProperties{
 			ManagedResourceGroupId: pointer.To(targetResourceGroupId.ID()),
 		}
@@ -224,8 +226,8 @@ func resourceManagedApplicationCreate(d *pluginsdk.ResourceData, meta any) error
 }
 
 func resourceManagedApplicationUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).ManagedApplication.ApplicationClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	client := managedapplicationsClient.From(meta).ApplicationClient
+	ctx, cancel := timeouts.ForUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := applications.ParseApplicationID(d.Id())
@@ -270,8 +272,8 @@ func resourceManagedApplicationUpdate(d *pluginsdk.ResourceData, meta any) error
 }
 
 func resourceManagedApplicationRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).ManagedApplication.ApplicationClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := managedapplicationsClient.From(meta).ApplicationClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := applications.ParseApplicationID(d.Id())
@@ -343,8 +345,8 @@ func resourceManagedApplicationRead(d *pluginsdk.ResourceData, meta any) error {
 }
 
 func resourceManagedApplicationDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).ManagedApplication.ApplicationClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := managedapplicationsClient.From(meta).ApplicationClient
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := applications.ParseApplicationID(d.Id())

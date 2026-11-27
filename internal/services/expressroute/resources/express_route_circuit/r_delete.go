@@ -7,15 +7,16 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressroutecircuits"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	expressrouteClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/expressroute/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceExpressRouteCircuitDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).ExpressRoute.ExpressRouteCircuits
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := expressrouteClient.From(meta).ExpressRouteCircuits
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := expressroutecircuits.ParseExpressRouteCircuitID(d.Id())

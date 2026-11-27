@@ -13,15 +13,17 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/profiles"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/securitypolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	cdnClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceCdnFrontdoorSecurityPolicyCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cdn.FrontDoorSecurityPoliciesClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	client := cdnClient.From(meta).FrontDoorSecurityPoliciesClient
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	// NOTE: The profile id is used to retrieve properties from the related profile that must match in this security policy
@@ -33,7 +35,7 @@ func resourceCdnFrontdoorSecurityPolicyCreate(d *pluginsdk.ResourceData, meta an
 	securityPolicyName := d.Get("name").(string)
 	id := securitypolicies.NewSecurityPolicyID(profileId.SubscriptionId, profileId.ResourceGroupName, profileId.ProfileName, securityPolicyName)
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -46,7 +48,7 @@ func resourceCdnFrontdoorSecurityPolicyCreate(d *pluginsdk.ResourceData, meta an
 		}
 	}
 
-	profileClient := meta.(*clients.Client).Cdn.FrontDoorProfilesClient
+	profileClient := cdnClient.From(meta).FrontDoorProfilesClient
 	resp, err := profileClient.Get(ctx, pointer.From(profileId))
 	if err != nil {
 		return fmt.Errorf("unable to retrieve the 'sku_name' from the CDN FrontDoor Profile(Name: %q)': %+v", profileId.ProfileName, err)

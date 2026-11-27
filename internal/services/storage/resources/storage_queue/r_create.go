@@ -10,15 +10,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/storagequeues"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceStorageQueueCreate(d *pluginsdk.ResourceData, meta any) error {
-	queueClient := meta.(*clients.Client).Storage.ResourceManager.StorageQueues
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	queueClient := client.From(meta).ResourceManager.StorageQueues
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	queueName := d.Get("name").(string)
@@ -33,7 +35,7 @@ func resourceStorageQueueCreate(d *pluginsdk.ResourceData, meta any) error {
 
 	id := storagequeues.NewQueueID(accountId.SubscriptionId, accountId.ResourceGroupName, accountId.StorageAccountName, queueName)
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := queueClient.QueueGet(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {

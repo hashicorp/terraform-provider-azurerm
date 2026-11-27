@@ -13,23 +13,26 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/fluidrelay/2022-05-26/fluidrelayservers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	fluidrelayClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/fluidrelay/client"
 )
 
 func (s Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) (err error) {
-			client := metadata.Client.FluidRelay.FluidRelayServers
+			client := fluidrelayClient.From(metadata.Client).FluidRelayServers
 
 			var model ServerModel
 			if err = metadata.Decode(&model); err != nil {
 				return err
 			}
 
-			id := fluidrelayservers.NewFluidRelayServerID(metadata.Client.Account.SubscriptionId, model.ResourceGroup, model.Name)
+			id := fluidrelayservers.NewFluidRelayServerID(account.From(metadata.Client).SubscriptionId, model.ResourceGroup, model.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if !response.WasNotFound(existing.HttpResponse) {
 					if err != nil {

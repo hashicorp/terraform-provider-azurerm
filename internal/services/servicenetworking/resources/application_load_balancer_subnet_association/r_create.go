@@ -13,15 +13,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2025-01-01/associationsinterface"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2025-01-01/trafficcontrollerinterface"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	servicenetworkingClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicenetworking/client"
 )
 
 func (t Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			trafficControllerClient := metadata.Client.ServiceNetworking.TrafficControllerInterface
-			client := metadata.Client.ServiceNetworking.AssociationsInterface
+			trafficControllerClient := servicenetworkingClient.From(metadata.Client).TrafficControllerInterface
+			client := servicenetworkingClient.From(metadata.Client).AssociationsInterface
 
 			var config AssociationResourceModel
 			if err := metadata.Decode(&config); err != nil {
@@ -35,7 +37,7 @@ func (t Resource) Create() sdk.ResourceFunc {
 
 			id := associationsinterface.NewAssociationID(albId.SubscriptionId, albId.ResourceGroupName, albId.TrafficControllerName, config.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)

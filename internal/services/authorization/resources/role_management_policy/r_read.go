@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/rolemanagementpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	authorizationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -21,14 +22,14 @@ func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Authorization.RoleManagementPoliciesClient
+			client := authorizationClient.From(metadata.Client).RoleManagementPoliciesClient
 
 			id, err := parse.RoleManagementPolicyID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			policyId, err := FindRoleManagementPolicyId(ctx, metadata.Client.Authorization.RoleManagementPoliciesClient, id.Scope, id.RoleDefinitionId)
+			policyId, err := FindRoleManagementPolicyId(ctx, authorizationClient.From(metadata.Client).RoleManagementPoliciesClient, id.Scope, id.RoleDefinitionId)
 			if err != nil {
 				return err
 			}

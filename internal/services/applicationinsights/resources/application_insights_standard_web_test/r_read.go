@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-06-15/webtestsapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	applicationinsightsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/client"
 )
 
 //go:generate go run ../../../../tools/generator-tests resourceidentity -resource-name application_insights_standard_web_test -test-name basicConfig
@@ -21,7 +22,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AppInsights.StandardWebTestsClient
+			client := applicationinsightsClient.From(metadata.Client).StandardWebTestsClient
 
 			id, err := webtestsapis.ParseWebTestID(metadata.ResourceData.Id())
 			if err != nil {

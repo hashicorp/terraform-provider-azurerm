@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	managedredisClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/client"
 )
 
 type Action struct {
@@ -73,7 +74,7 @@ func (m *Action) Metadata(_ context.Context, _ action.MetadataRequest, response 
 }
 
 func (m *Action) Invoke(ctx context.Context, request action.InvokeRequest, response *action.InvokeResponse) {
-	client := m.Client.ManagedRedis.Client
+	client := managedredisClient.From(m.Client).Client
 
 	model := ManagedRedisFlushDatabasesActionActionModel{}
 

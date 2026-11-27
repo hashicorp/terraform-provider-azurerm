@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	botClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/resources/bot_service_azure_bot/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/jackofallops/kermit/sdk/botservice/2021-05-01-preview/botservice"
@@ -47,7 +48,7 @@ func (r Resource) StateUpgraders() sdk.StateUpgradeData {
 
 func (r Resource) CustomImporter() sdk.ResourceRunFunc {
 	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-		client := metadata.Client.Bot.BotClient
+		client := botClient.From(metadata.Client).BotClient
 
 		id, err := commonids.ParseBotServiceID(metadata.ResourceData.Id())
 		if err != nil {

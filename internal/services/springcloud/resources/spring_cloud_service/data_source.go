@@ -11,7 +11,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	springcloudClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -161,10 +162,10 @@ func RegisterDataSource() *pluginsdk.Resource {
 }
 
 func dataSourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).AppPlatform.ServicesClient
-	configServersClient := meta.(*clients.Client).AppPlatform.ConfigServersClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := springcloudClient.From(meta).ServicesClient
+	configServersClient := springcloudClient.From(meta).ConfigServersClient
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id := commonids.NewSpringCloudServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))

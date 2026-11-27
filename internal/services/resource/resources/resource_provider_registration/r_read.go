@@ -15,18 +15,19 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2021-07-01/features"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-09-01/providers"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	clientsAccount "github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	resourceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Resource.ResourceProvidersClient
-			featureClient := metadata.Client.Resource.FeaturesClient
-			account := metadata.Client.Account
+			client := resourceClient.From(metadata.Client).ResourceProvidersClient
+			featureClient := resourceClient.From(metadata.Client).FeaturesClient
+			account := clientsAccount.From(metadata.Client)
 
 			id, err := providers.ParseSubscriptionProviderID(metadata.ResourceData.Id())
 			if err != nil {
@@ -99,7 +100,7 @@ const (
 	Unregistered  = "Unregistered"
 )
 
-func (r Resource) checkIfManagedByTerraform(name string, account *clients.ResourceManagerAccount) error {
+func (r Resource) checkIfManagedByTerraform(name string, account *clientsAccount.ResourceManagerAccount) error {
 	for resourceProvider := range account.RegisteredResourceProviders {
 		if resourceProvider == name {
 			fmtStr := `
@@ -164,7 +165,7 @@ func (r Resource) applyFeatures(ctx context.Context, metadata sdk.ResourceMetaDa
 }
 
 func (r Resource) registerFeature(ctx context.Context, metadata sdk.ResourceMetaData, id features.FeatureId) error {
-	client := metadata.Client.Resource.FeaturesClient
+	client := resourceClient.From(metadata.Client).FeaturesClient
 	existing, err := client.Get(ctx, id)
 	if err != nil {
 		return fmt.Errorf("error checking for existing feature %q: %+v", id, err)
@@ -210,7 +211,7 @@ func (r Resource) registerFeature(ctx context.Context, metadata sdk.ResourceMeta
 }
 
 func (r Resource) unregisterFeature(ctx context.Context, metadata sdk.ResourceMetaData, id features.FeatureId) error {
-	client := metadata.Client.Resource.FeaturesClient
+	client := resourceClient.From(metadata.Client).FeaturesClient
 	existing, err := client.Get(ctx, id)
 	if err != nil {
 		return fmt.Errorf("error checking for existing feature %q: %+v", id, err)

@@ -11,15 +11,18 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/notificationrecipientuser"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	apimanagementClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/client"
 )
 
 func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ApiManagement.NotificationRecipientUserClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := apimanagementClient.From(metadata.Client).NotificationRecipientUserClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			var model ApiManagementNotificationRecipientUserModel
 			if err := metadata.Decode(&model); err != nil {
@@ -33,7 +36,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			id := notificationrecipientuser.NewRecipientUserID(subscriptionId, apiManagementId.ResourceGroupName, apiManagementId.ServiceName, notificationrecipientuser.NotificationName(model.NotificationName), model.UserId)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				// CheckEntityExists can not be used, it returns autorest error
 				notificationId := notificationrecipientuser.NewNotificationID(subscriptionId, apiManagementId.ResourceGroupName, apiManagementId.ServiceName, notificationrecipientuser.NotificationName(model.NotificationName))
 				users, err := client.ListByNotificationComplete(ctx, notificationId)

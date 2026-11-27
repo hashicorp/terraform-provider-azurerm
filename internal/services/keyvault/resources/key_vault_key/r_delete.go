@@ -11,16 +11,18 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceKeyVaultKeyDelete(d *pluginsdk.ResourceData, meta any) error {
-	keyVaultsClient := meta.(*clients.Client).KeyVault
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	keyVaultsClient := client.From(meta)
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := keyvault.ParseNestedItemID(d.Id(), keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
@@ -51,7 +53,7 @@ func resourceKeyVaultKeyDelete(d *pluginsdk.ResourceData, meta any) error {
 		return fmt.Errorf("retrieving key vault %q properties: %+v", *keyVaultId, err)
 	}
 
-	shouldPurge := meta.(*clients.Client).Features.KeyVault.PurgeSoftDeletedKeysOnDestroy
+	shouldPurge := features.From(meta).KeyVault.PurgeSoftDeletedKeysOnDestroy
 	if shouldPurge && kv.Model != nil && pointer.From(kv.Model.Properties.EnablePurgeProtection) {
 		log.Printf("[DEBUG] cannot purge key %q because vault %q has purge protection enabled", id.Name, keyVaultId.String())
 		shouldPurge = false

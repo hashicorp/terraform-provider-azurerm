@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/volumegroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	netappClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -415,7 +416,7 @@ func FlattenNetAppVolumeGroupSAPHanaVolumes(ctx context.Context, input *[]volume
 
 		// Getting volume resource directly from standalone volume
 		// since VolumeGroup Volumes don't return DataProtection information
-		volumeClient := metadata.Client.NetApp.VolumeClient
+		volumeClient := netappClient.From(metadata.Client).VolumeClient
 		id, err := volumes.ParseVolumeID(pointer.From(item.Id))
 		if err != nil {
 			return []models.NetAppVolumeGroupSAPHanaVolume{}, err
@@ -497,7 +498,7 @@ func FlattenNetAppVolumeGroupOracleVolumes(ctx context.Context, input *[]volumeg
 
 		// Getting volume resource directly from standalone volume
 		// since VolumeGroup Volumes don't return DataProtection information
-		volumeClient := metadata.Client.NetApp.VolumeClient
+		volumeClient := netappClient.From(metadata.Client).VolumeClient
 		id, err := volumes.ParseVolumeID(pointer.From(item.Id))
 		if err != nil {
 			return []models.NetAppVolumeGroupOracleVolume{}, err
@@ -612,7 +613,7 @@ func GetUserDefinedVolumeName(input *string) string {
 }
 
 func DeleteVolume(ctx context.Context, metadata sdk.ResourceMetaData, volumeId string) error {
-	client := metadata.Client.NetApp.VolumeClient
+	client := netappClient.From(metadata.Client).VolumeClient
 
 	id, err := volumes.ParseVolumeID(volumeId)
 	if err != nil {

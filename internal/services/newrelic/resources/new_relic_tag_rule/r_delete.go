@@ -10,13 +10,14 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2024-03-01/tagrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	newrelicClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/newrelic/client"
 )
 
 func (r Resource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.NewRelic.TagRulesClient
+			client := newrelicClient.From(metadata.Client).TagRulesClient
 
 			id, err := tagrules.ParseTagRuleID(metadata.ResourceData.Id())
 			if err != nil {

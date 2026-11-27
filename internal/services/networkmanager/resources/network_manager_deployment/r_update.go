@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networkmanagers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	networkmanagerClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/networkmanager/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/networkmanager/parse"
 )
 
@@ -27,7 +28,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 			locks.ByID(id.ID())
 			defer locks.UnlockByID(id.ID())
 
-			client := metadata.Client.NetworkManager.NetworkManagers
+			client := networkmanagerClient.From(metadata.Client).NetworkManagers
 
 			listParam := networkmanagers.NetworkManagerDeploymentStatusParameter{
 				Regions:         &[]string{id.Location},

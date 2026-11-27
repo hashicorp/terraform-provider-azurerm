@@ -13,13 +13,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	streamanalyticsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/client"
 )
 
 func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.StreamAnalytics.ClustersClient
+			client := streamanalyticsClient.From(metadata.Client).ClustersClient
 			id, err := clusters.ParseClusterID(metadata.ResourceData.Id())
 			if err != nil {
 				return err

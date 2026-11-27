@@ -12,8 +12,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	mgParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
+	resourceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -22,8 +24,8 @@ import (
 )
 
 func managementGroupTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Resource.LegacyDeploymentsClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	client := resourceClient.From(meta).LegacyDeploymentsClient
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	managementGroupId, err := mgParse.ManagementGroupID(d.Get("management_group_id").(string))
@@ -33,7 +35,7 @@ func managementGroupTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, 
 
 	id := parse.NewManagementGroupTemplateDeploymentID(managementGroupId.Name, d.Get("name").(string))
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.GetAtManagementGroupScope(ctx, id.ManagementGroupName, id.DeploymentName)
 		if err != nil {
 			if !response.WasNotFound(existing.Response.Response) {

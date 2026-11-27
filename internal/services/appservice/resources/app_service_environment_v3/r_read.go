@@ -14,7 +14,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualnetworks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/appserviceenvironments"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	appserviceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/client"
+	networkClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -23,7 +26,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AppService.AppServiceEnvironmentClient
+			client := appserviceClient.From(metadata.Client).AppServiceEnvironmentClient
 			id, err := commonids.ParseAppServiceEnvironmentID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -155,7 +158,7 @@ func resolvePreflightVnetLocation(ctx context.Context, metadata sdk.ResourceMeta
 
 	vnetId := commonids.NewVirtualNetworkID(subnet.SubscriptionId, subnet.ResourceGroupName, subnet.VirtualNetworkName)
 
-	vnet, err := metadata.Client.Network.VirtualNetworks.Get(ctx, vnetId, virtualnetworks.DefaultGetOperationOptions())
+	vnet, err := networkClient.From(metadata.Client).VirtualNetworks.Get(ctx, vnetId, virtualnetworks.DefaultGetOperationOptions())
 	if err != nil {
 		if !response.WasNotFound(vnet.HttpResponse) {
 			return "", true
@@ -163,7 +166,7 @@ func resolvePreflightVnetLocation(ctx context.Context, metadata sdk.ResourceMeta
 
 		// The VNet doesn't exist yet, so we can't determine its location. Rely on the configured
 		// fallback if one is available, otherwise gracefully skip preflight validation.
-		fallback := metadata.Client.Features.EnhancedValidation.LocationFallback
+		fallback := features.From(metadata.Client).EnhancedValidation.LocationFallback
 		if fallback == nil {
 			metadata.Logger.Info(fmt.Sprintf("skipping preflight validation for %q: Virtual Network %q not found and no location fallback configured", model.Name, vnetId.ID()))
 			return "", true

@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resourceconnector/2022-10-27/appliances"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	arcresourcebridgeClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/arcresourcebridge/client"
 )
 
 func (r Resource) Read() sdk.ResourceFunc {
@@ -26,7 +27,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.ArcResourceBridge.AppliancesClient
+			client := arcresourcebridgeClient.From(metadata.Client).AppliancesClient
 
 			resp, err := client.Get(ctx, *id)
 			if err != nil {

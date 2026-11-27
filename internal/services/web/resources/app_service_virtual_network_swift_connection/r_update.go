@@ -10,19 +10,21 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
+	networkClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/custompollers"
+	webClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/web/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceAppServiceVirtualNetworkSwiftConnectionUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Web.WebAppsClient
+	client := webClient.From(meta).WebAppsClient
 
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := parse.VirtualNetworkSwiftConnectionID(d.Id())
@@ -61,7 +63,7 @@ func resourceAppServiceVirtualNetworkSwiftConnectionUpdate(d *pluginsdk.Resource
 		return fmt.Errorf("creating association between %s and %s: %w", appID, subnetID, err)
 	}
 
-	pollerType := custompollers.NewVirtualNetworkAndSubnetProvisioningSucceededPoller(meta.(*clients.Client).Network, subnetID)
+	pollerType := custompollers.NewVirtualNetworkAndSubnetProvisioningSucceededPoller(networkClient.From(meta), subnetID)
 	poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("polling for completion of association between %s and %s: %w", appID, subnetID, err)

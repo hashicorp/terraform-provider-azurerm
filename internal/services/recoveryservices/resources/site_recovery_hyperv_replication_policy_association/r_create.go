@@ -11,7 +11,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationfabrics"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationprotectioncontainermappings"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	recoveryservicesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/client"
 )
 
 func (h Resource) Create() sdk.ResourceFunc {
@@ -28,10 +30,10 @@ func (h Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("parsing %s: %+v", plan.FabricId, err)
 			}
 
-			client := metadata.Client.RecoveryServices.ContainerMappingClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := recoveryservicesClient.From(metadata.Client).ContainerMappingClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
-			containerId, err := fetchHyperVReplicationPolicyAssociationContainerNameByHostName(ctx, metadata.Client.RecoveryServices.ProtectionContainerClient, *parsedFabricId)
+			containerId, err := fetchHyperVReplicationPolicyAssociationContainerNameByHostName(ctx, recoveryservicesClient.From(metadata.Client).ProtectionContainerClient, *parsedFabricId)
 			if err != nil {
 				return fmt.Errorf("fetching container id: %+v", err)
 			}

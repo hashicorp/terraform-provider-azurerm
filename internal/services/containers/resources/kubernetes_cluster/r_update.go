@@ -18,19 +18,21 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-07-01/agentpools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-07-01/maintenanceconfigurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-07-01/managedclusters"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	containersClient2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/helpers"
+	keyvaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta any) error {
-	containersClient := meta.(*clients.Client).Containers
+	containersClient := containersClient2.From(meta)
 	nodePoolsClient := containersClient.AgentPoolsClient
 	clusterClient := containersClient.KubernetesClustersClient
-	keyVaultsClient := meta.(*clients.Client).KeyVault
+	keyVaultsClient := keyvaultClient.From(meta)
 	env := containersClient.Environment
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := commonids.ParseKubernetesClusterID(d.Id())
@@ -763,7 +765,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta any) error 
 	}
 
 	if d.HasChange("maintenance_window") {
-		client := meta.(*clients.Client).Containers.MaintenanceConfigurationsClient
+		client := containersClient2.From(meta).MaintenanceConfigurationsClient
 		maintenanceWindowProperties := expandKubernetesClusterMaintenanceConfigurationDefault(d.Get("maintenance_window").([]any))
 		maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "default")
 		if maintenanceWindowProperties != nil {
@@ -781,7 +783,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta any) error 
 	}
 
 	if d.HasChange("maintenance_window_auto_upgrade") {
-		client := meta.(*clients.Client).Containers.MaintenanceConfigurationsClient
+		client := containersClient2.From(meta).MaintenanceConfigurationsClient
 		maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "aksManagedAutoUpgradeSchedule")
 		existing, err := client.Get(ctx, maintenanceId)
 		if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -807,7 +809,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta any) error 
 	}
 
 	if d.HasChange("maintenance_window_node_os") {
-		client := meta.(*clients.Client).Containers.MaintenanceConfigurationsClient
+		client := containersClient2.From(meta).MaintenanceConfigurationsClient
 		maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "aksManagedNodeOSUpgradeSchedule")
 		existing, err := client.Get(ctx, maintenanceId)
 		if err != nil && !response.WasNotFound(existing.HttpResponse) {

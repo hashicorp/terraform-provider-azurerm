@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	containersClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -37,7 +38,7 @@ func (ListResource) List(ctx context.Context, request list.ListRequest, stream *
 		return
 	}
 
-	client := metadata.Client.Containers.KubernetesClustersClient
+	client := containersClient.From(metadata.Client).KubernetesClustersClient
 	var data sdk.DefaultListModel
 	diags := request.Config.Get(ctx, &data)
 	if diags.HasError() {

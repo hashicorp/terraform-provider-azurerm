@@ -10,14 +10,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2024-03-31/dicomservices"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	healthcareClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceHealthcareApisDicomServiceUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceDicomServiceClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	client := healthcareClient.From(meta).HealthcareWorkspaceDicomServiceClient
+	ctx, cancel := timeouts.ForCreateUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := dicomservices.ParseDicomServiceID(d.Id())

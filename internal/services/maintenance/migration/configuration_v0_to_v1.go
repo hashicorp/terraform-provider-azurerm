@@ -8,7 +8,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/maintenanceconfigurations"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -54,7 +54,7 @@ func (ConfigurationV0ToV1) Schema() map[string]*pluginsdk.Schema {
 
 func (ConfigurationV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
-		subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+		subscriptionId := account.From(meta).SubscriptionId
 
 		log.Printf("[DEBUG] Migrating IDs to correct casing for Maintenance Configuration")
 

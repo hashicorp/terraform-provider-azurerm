@@ -10,14 +10,16 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/dataconnectors"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	sentinelClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceSentinelDataConnectorMicrosoftDefenderAdvancedThreatProtectionCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Sentinel.DataConnectorsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	client := sentinelClient.From(meta).DataConnectorsClient
+	ctx, cancel := timeouts.ForCreateUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	workspaceId, err := workspaces.ParseWorkspaceID(d.Get("log_analytics_workspace_id").(string))
@@ -27,7 +29,7 @@ func resourceSentinelDataConnectorMicrosoftDefenderAdvancedThreatProtectionCreat
 	name := d.Get("name").(string)
 	id := dataconnectors.NewDataConnectorID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, name)
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		resp, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(resp.HttpResponse) {
@@ -42,7 +44,7 @@ func resourceSentinelDataConnectorMicrosoftDefenderAdvancedThreatProtectionCreat
 
 	tenantId := d.Get("tenant_id").(string)
 	if tenantId == "" {
-		tenantId = meta.(*clients.Client).Account.TenantId
+		tenantId = account.From(meta).TenantId
 	}
 
 	param := dataconnectors.MDATPDataConnector{

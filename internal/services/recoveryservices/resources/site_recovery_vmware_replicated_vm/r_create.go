@@ -16,7 +16,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationfabrics"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationprotecteditems"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	recoveryservicesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -24,11 +26,11 @@ func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 120 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.RecoveryServices.ReplicationProtectedItemsClient
-			fabricClient := metadata.Client.RecoveryServices.FabricClient
-			containerClient := metadata.Client.RecoveryServices.ProtectionContainerClient
-			vmwareMachinesClient := metadata.Client.RecoveryServices.VMWareMachinesClient
-			runAsAccountsClient := metadata.Client.RecoveryServices.VMWareRunAsAccountsClient
+			client := recoveryservicesClient.From(metadata.Client).ReplicationProtectedItemsClient
+			fabricClient := recoveryservicesClient.From(metadata.Client).FabricClient
+			containerClient := recoveryservicesClient.From(metadata.Client).ProtectionContainerClient
+			vmwareMachinesClient := recoveryservicesClient.From(metadata.Client).VMWareMachinesClient
+			runAsAccountsClient := recoveryservicesClient.From(metadata.Client).VMWareRunAsAccountsClient
 
 			var model SiteRecoveryReplicatedVmVMwareModel
 			err := metadata.Decode(&model)
@@ -54,7 +56,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 			id := replicationprotecteditems.NewReplicationProtectedItemID(parsedContainerId.SubscriptionId, parsedContainerId.ResourceGroupName, parsedContainerId.VaultName, parsedContainerId.ReplicationFabricName, parsedContainerId.ReplicationProtectionContainerName, model.Name)
 			fabricId := replicationfabrics.NewReplicationFabricID(parsedContainerId.SubscriptionId, parsedContainerId.ResourceGroupName, parsedContainerId.VaultName, parsedContainerId.ReplicationFabricName)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {

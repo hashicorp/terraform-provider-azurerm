@@ -13,7 +13,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -21,11 +23,11 @@ import (
 )
 
 func resourceSynapseSqlPoolCreate(d *pluginsdk.ResourceData, meta any) error {
-	sqlClient := meta.(*clients.Client).Synapse.SqlPoolClient
-	sqlPTDEClient := meta.(*clients.Client).Synapse.SqlPoolTransparentDataEncryptionClient
-	workspaceClient := meta.(*clients.Client).Synapse.WorkspaceClient
-	geoBackUpClient := meta.(*clients.Client).Synapse.SqlPoolGeoBackupPoliciesClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	sqlClient := client.From(meta).SqlPoolClient
+	sqlPTDEClient := client.From(meta).SqlPoolTransparentDataEncryptionClient
+	workspaceClient := client.From(meta).WorkspaceClient
+	geoBackUpClient := client.From(meta).SqlPoolGeoBackupPoliciesClient
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	// todo 6.0 - move to the case-sensitive parser when validation.AsGeneratedID is removed: this parses a config
@@ -37,7 +39,7 @@ func resourceSynapseSqlPoolCreate(d *pluginsdk.ResourceData, meta any) error {
 
 	id := parse.NewSqlPoolID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, d.Get("name").(string))
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := sqlClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
 		if err != nil {
 			if !response.WasNotFound(existing.Response.Response) {

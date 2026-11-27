@@ -17,7 +17,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/managedenvironments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	containerappsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/client"
+	loganalyticsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -143,8 +146,8 @@ func (r DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ContainerApps.ManagedEnvironmentClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := containerappsClient.From(metadata.Client).ManagedEnvironmentClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			var environment ContainerAppEnvironmentDataSourceModel
 			if err := metadata.Decode(&environment); err != nil {
@@ -177,7 +180,7 @@ func (r DataSource) Read() sdk.ResourceFunc {
 					}
 
 					if appsLogs := props.AppLogsConfiguration; appsLogs != nil && appsLogs.LogAnalyticsConfiguration != nil {
-						lawClient := metadata.Client.LogAnalytics.SharedKeyWorkspacesClient
+						lawClient := loganalyticsClient.From(metadata.Client).SharedKeyWorkspacesClient
 						lawName, err := findLogAnalyticsWorkspaceName(ctx, lawClient, subscriptionId, pointer.From(appsLogs.LogAnalyticsConfiguration.CustomerId))
 						if err != nil {
 							return fmt.Errorf("retrieving Log Analytics Workspace: %+v", err)

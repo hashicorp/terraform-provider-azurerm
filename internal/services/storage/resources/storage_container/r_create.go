@@ -13,7 +13,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/blobcontainers"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -21,9 +23,9 @@ import (
 )
 
 func resourceStorageContainerCreate(d *pluginsdk.ResourceData, meta any) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	containerClient := meta.(*clients.Client).Storage.ResourceManager.BlobContainers
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	subscriptionId := account.From(meta).SubscriptionId
+	containerClient := client.From(meta).ResourceManager.BlobContainers
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	containerName := d.Get("name").(string)
@@ -38,7 +40,7 @@ func resourceStorageContainerCreate(d *pluginsdk.ResourceData, meta any) error {
 
 	id := commonids.NewStorageContainerID(subscriptionId, accountId.ResourceGroupName, accountId.StorageAccountName, containerName)
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := containerClient.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -71,7 +73,7 @@ func resourceStorageContainerCreate(d *pluginsdk.ResourceData, meta any) error {
 		return fmt.Errorf("creating %s: %v", id, err)
 	}
 
-	if meta.(*clients.Client).Features.PersistIDOnCreateBeforePollingForCompletion {
+	if features.From(meta).PersistIDOnCreateBeforePollingForCompletion {
 		d.SetId(id.ID())
 		if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
 			return err

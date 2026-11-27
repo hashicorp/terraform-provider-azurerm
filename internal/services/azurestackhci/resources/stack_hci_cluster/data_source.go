@@ -18,7 +18,10 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automanage/2022-05-04/configurationprofiles"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/clusters"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	automanageClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage/client"
+	azurestackhciClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/azurestackhci/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -116,9 +119,9 @@ func (r DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AzureStackHCI.Clusters
-			subscriptionId := metadata.Client.Account.SubscriptionId
-			hciAssignmentClient := metadata.Client.Automanage.ConfigurationProfileHCIAssignmentsClient
+			client := azurestackhciClient.From(metadata.Client).Clusters
+			subscriptionId := account.From(metadata.Client).SubscriptionId
+			hciAssignmentClient := automanageClient.From(metadata.Client).ConfigurationProfileHCIAssignmentsClient
 
 			var cluster StackHCIClusterDataSourceModel
 			if err := metadata.Decode(&cluster); err != nil {

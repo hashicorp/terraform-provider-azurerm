@@ -13,7 +13,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	resourceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -39,11 +40,11 @@ func RegisterDataSource() *pluginsdk.Resource {
 }
 
 func dataSourceResourceGroupRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Resource.ResourceGroupsClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := resourceClient.From(meta).ResourceGroupsClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
-	id := commonids.NewResourceGroupID(meta.(*clients.Client).Account.SubscriptionId, d.Get("name").(string))
+	id := commonids.NewResourceGroupID(account.From(meta).SubscriptionId, d.Get("name").(string))
 	resp, err := client.Get(ctx, id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {

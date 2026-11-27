@@ -17,7 +17,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/variable"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	automationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -154,16 +156,16 @@ func FormatAutomationVariableValue(d *pluginsdk.ResourceData, varType string) (s
 }
 
 func ResourceAutomationVariableCreate(d *pluginsdk.ResourceData, meta any, varType string) error {
-	client := meta.(*clients.Client).Automation.Variable
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	client := automationClient.From(meta).Variable
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	varTypeLower := strings.ToLower(varType)
 
 	id := variable.NewVariableID(subscriptionId, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		resp, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(resp.HttpResponse) {
@@ -202,8 +204,8 @@ func ResourceAutomationVariableCreate(d *pluginsdk.ResourceData, meta any, varTy
 }
 
 func ResourceAutomationVariableUpdate(d *pluginsdk.ResourceData, meta any, varType string) error {
-	client := meta.(*clients.Client).Automation.Variable
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	client := automationClient.From(meta).Variable
+	ctx, cancel := timeouts.ForUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := variable.ParseVariableID(d.Id())
@@ -260,8 +262,8 @@ func ResourceAutomationVariableUpdate(d *pluginsdk.ResourceData, meta any, varTy
 }
 
 func ResourceAutomationVariableRead(d *pluginsdk.ResourceData, meta any, varType string) error {
-	client := meta.(*clients.Client).Automation.Variable
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := automationClient.From(meta).Variable
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := variable.ParseVariableID(d.Id())
@@ -308,9 +310,9 @@ func ResourceAutomationVariableRead(d *pluginsdk.ResourceData, meta any, varType
 }
 
 func DataSourceAutomationVariableRead(d *pluginsdk.ResourceData, meta any, varType string) error {
-	client := meta.(*clients.Client).Automation.Variable
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := automationClient.From(meta).Variable
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id := variable.NewVariableID(subscriptionId, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
@@ -355,8 +357,8 @@ func DataSourceAutomationVariableRead(d *pluginsdk.ResourceData, meta any, varTy
 }
 
 func ResourceAutomationVariableDelete(d *pluginsdk.ResourceData, meta any, varType string) error {
-	client := meta.(*clients.Client).Automation.Variable
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := automationClient.From(meta).Variable
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := variable.ParseVariableID(d.Id())

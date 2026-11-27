@@ -6,17 +6,18 @@ package synapse_linked_service
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	synapseClient2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceSynapseLinkedServiceDelete(d *pluginsdk.ResourceData, meta any) error {
-	synapseClient := meta.(*clients.Client).Synapse
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	synapseClient := synapseClient2.From(meta)
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
-	environment := meta.(*clients.Client).Account.Environment
+	environment := account.From(meta).Environment
 	synapseDomainSuffix, ok := environment.Synapse.DomainSuffix()
 	if !ok {
 		return fmt.Errorf("could not determine Synapse domain suffix for environment %q", environment.Name)

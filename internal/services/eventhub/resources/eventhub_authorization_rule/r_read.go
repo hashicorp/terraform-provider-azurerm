@@ -10,15 +10,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/authorizationruleseventhubs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/eventhubs"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceEventHubAuthorizationRuleRead(d *pluginsdk.ResourceData, meta any) error {
-	eventHubsClient := meta.(*clients.Client).Eventhub.EventHubsClient
-	authorizationRulesClient := meta.(*clients.Client).Eventhub.EventHubAuthorizationRulesClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	eventHubsClient := client.From(meta).EventHubsClient
+	authorizationRulesClient := client.From(meta).EventHubAuthorizationRulesClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := eventhubs.ParseEventhubAuthorizationRuleID(d.Id())

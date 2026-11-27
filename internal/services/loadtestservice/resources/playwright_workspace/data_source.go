@@ -14,7 +14,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/loadtestservice/2025-09-01/playwrightworkspaces"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	loadtestserviceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadtestservice/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -83,8 +85,8 @@ func (DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.LoadTestService.PlaywrightWorkspacesClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := loadtestserviceClient.From(metadata.Client).PlaywrightWorkspacesClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			var state PlaywrightWorkspaceDataSourceModel
 			if err := metadata.Decode(&state); err != nil {

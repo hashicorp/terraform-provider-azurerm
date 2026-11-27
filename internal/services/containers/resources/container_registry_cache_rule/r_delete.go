@@ -10,13 +10,14 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-07-01/cacherules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
 )
 
 func (Resource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			cacheRulesClient := metadata.Client.Containers.CacheRulesClient
+			cacheRulesClient := client.From(metadata.Client).CacheRulesClient
 
 			id, err := cacherules.ParseCacheRuleID(metadata.ResourceData.Id())
 			if err != nil {

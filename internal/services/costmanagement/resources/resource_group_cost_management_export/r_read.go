@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2025-03-01/exports"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	costmanagementClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/costmanagement/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/costmanagement/helpers"
 )
 
@@ -19,7 +20,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.CostManagement.ExportClient
+			client := costmanagementClient.From(metadata.Client).ExportClient
 
 			id, err := exports.ParseScopedExportID(metadata.ResourceData.Id())
 			if err != nil {

@@ -10,13 +10,14 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-03-01/virtualmachineruncommands"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	computeClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/client"
 )
 
 func (r Resource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Compute.VirtualMachineRunCommandsClient
+			client := computeClient.From(metadata.Client).VirtualMachineRunCommandsClient
 
 			id, err := virtualmachineruncommands.ParseVirtualMachineRunCommandID(metadata.ResourceData.Id())
 			if err != nil {

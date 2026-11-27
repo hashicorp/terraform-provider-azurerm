@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/chaosstudio/2023-11-01/targets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	chaosstudioClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/chaosstudio/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -64,7 +65,7 @@ func (r ChaosStudioTargetResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ChaosStudio.V20231101.Targets
+			client := chaosstudioClient.From(metadata.Client).V20231101.Targets
 			schema := ChaosStudioTargetResourceSchema{}
 
 			id, err := commonids.ParseChaosStudioTargetID(metadata.ResourceData.Id())
@@ -97,7 +98,7 @@ func (r ChaosStudioTargetResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ChaosStudio.V20231101.Targets
+			client := chaosstudioClient.From(metadata.Client).V20231101.Targets
 
 			id, err := commonids.ParseChaosStudioTargetID(metadata.ResourceData.Id())
 			if err != nil {

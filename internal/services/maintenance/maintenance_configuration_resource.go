@@ -19,7 +19,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/maintenanceconfigurations"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	maintenanceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -238,14 +240,14 @@ func resourceMaintenanceConfiguration() *pluginsdk.Resource {
 }
 
 func resourceMaintenanceConfigurationCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Maintenance.ConfigurationsClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	client := maintenanceClient.From(meta).ConfigurationsClient
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForCreateUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	id := maintenanceconfigurations.NewMaintenanceConfigurationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -302,8 +304,8 @@ func resourceMaintenanceConfigurationCreate(d *pluginsdk.ResourceData, meta any)
 }
 
 func resourceMaintenanceConfigurationUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Maintenance.ConfigurationsClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	client := maintenanceClient.From(meta).ConfigurationsClient
+	ctx, cancel := timeouts.ForUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := maintenanceconfigurations.ParseMaintenanceConfigurationID(d.Id())
@@ -360,8 +362,8 @@ func resourceMaintenanceConfigurationUpdate(d *pluginsdk.ResourceData, meta any)
 }
 
 func resourceMaintenanceConfigurationRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Maintenance.ConfigurationsClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := maintenanceClient.From(meta).ConfigurationsClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := maintenanceconfigurations.ParseMaintenanceConfigurationID(d.Id())
@@ -411,8 +413,8 @@ func resourceMaintenanceConfigurationRead(d *pluginsdk.ResourceData, meta any) e
 }
 
 func resourceMaintenanceConfigurationDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Maintenance.ConfigurationsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := maintenanceClient.From(meta).ConfigurationsClient
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := maintenanceconfigurations.ParseMaintenanceConfigurationIDInsensitively(d.Id())

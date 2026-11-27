@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	appserviceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/custompollers"
 )
 
@@ -27,7 +28,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.AppService.WebAppsClient
+			client := appserviceClient.From(metadata.Client).WebAppsClient
 			id, err := webapps.ParseSlotID(activeSlot.SlotID)
 			if err != nil {
 				return fmt.Errorf("parsing App ID: %+v", err)

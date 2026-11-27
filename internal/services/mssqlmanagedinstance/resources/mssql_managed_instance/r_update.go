@@ -16,15 +16,16 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstanceazureadonlyauthentications"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstances"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	mssqlmanagedinstanceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/client"
 )
 
 func (r Resource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 24 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MSSQLManagedInstance.ManagedInstancesClient
-			adminClient := metadata.Client.MSSQLManagedInstance.ManagedInstanceAdministratorsClient
-			azureADAuthenticationOnlyClient := metadata.Client.MSSQLManagedInstance.ManagedInstanceAzureADOnlyAuthenticationsClient
+			client := mssqlmanagedinstanceClient.From(metadata.Client).ManagedInstancesClient
+			adminClient := mssqlmanagedinstanceClient.From(metadata.Client).ManagedInstanceAdministratorsClient
+			azureADAuthenticationOnlyClient := mssqlmanagedinstanceClient.From(metadata.Client).ManagedInstanceAzureADOnlyAuthenticationsClient
 
 			id, err := commonids.ParseSqlManagedInstanceID(metadata.ResourceData.Id())
 			if err != nil {

@@ -8,15 +8,16 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/namespaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/queues"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	servicebusClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceServiceBusQueueAuthorizationRuleDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).ServiceBus.QueuesClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := servicebusClient.From(meta).QueuesClient
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := queues.ParseQueueAuthorizationRuleID(d.Id())

@@ -15,7 +15,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-12-01/subscriptions"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	subscriptionClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -77,8 +79,8 @@ func (r DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Subscription.SubscriptionsClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := subscriptionClient.From(metadata.Client).SubscriptionsClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			id := commonids.NewSubscriptionID(subscriptionId)
 			resp, err := client.ListLocations(ctx, id, subscriptions.DefaultListLocationsOperationOptions())

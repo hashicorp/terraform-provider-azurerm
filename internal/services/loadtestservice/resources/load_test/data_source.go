@@ -15,7 +15,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/loadtestservice/2022-12-01/loadtests"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	loadtestserviceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadtestservice/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -114,8 +116,8 @@ func (r DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.LoadTestService.V20221201.LoadTests
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := loadtestserviceClient.From(metadata.Client).V20221201.LoadTests
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			var loadTest LoadTestDataSourceModel
 			if err := metadata.Decode(&loadTest); err != nil {

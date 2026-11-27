@@ -11,13 +11,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationfabrics"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	recoveryservicesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/client"
 )
 
 func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.RecoveryServices.FabricClient
+			client := recoveryservicesClient.From(metadata.Client).FabricClient
 			id, err := replicationfabrics.ParseReplicationFabricID(metadata.ResourceData.Id())
 			if err != nil {
 				return fmt.Errorf("parsing %s: %+v", metadata.ResourceData.Id(), err)

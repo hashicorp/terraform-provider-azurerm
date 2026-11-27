@@ -9,7 +9,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2022-04-01/trafficmanagergeographichierarchies"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	trafficmanagerClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -34,8 +35,8 @@ func RegisterDataSource() *pluginsdk.Resource {
 }
 
 func dataSourceArmTrafficManagerGeographicalLocationRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).TrafficManager.GeographialHierarchiesClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := trafficmanagerClient.From(meta).GeographialHierarchiesClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	results, err := client.GeographicHierarchiesGetDefault(ctx)

@@ -16,9 +16,13 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-05-01-preview/roledefinitions"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/parse"
+	subscriptionClient2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -26,10 +30,10 @@ func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			roleAssignmentsClient := metadata.Client.Authorization.ScopedRoleAssignmentsClient
-			roleDefinitionsClient := metadata.Client.Authorization.ScopedRoleDefinitionsClient
-			subscriptionClient := metadata.Client.Subscription.SubscriptionsClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			roleAssignmentsClient := client.From(metadata.Client).ScopedRoleAssignmentsClient
+			roleDefinitionsClient := client.From(metadata.Client).ScopedRoleDefinitionsClient
+			subscriptionClient := subscriptionClient2.From(metadata.Client).SubscriptionsClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			var config RoleAssignmentModel
 			if err := metadata.Decode(&config); err != nil {
@@ -81,7 +85,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				options.TenantId = &tenantId
 			}
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := roleAssignmentsClient.Get(ctx, id.ScopedId, options)
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {

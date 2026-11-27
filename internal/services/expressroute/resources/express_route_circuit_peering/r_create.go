@@ -14,17 +14,19 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressroutecircuitpeerings"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/routefilters"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	expressrouteClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/expressroute/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceExpressRouteCircuitPeeringCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).ExpressRoute.ExpressRouteCircuitPeerings
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	client := expressrouteClient.From(meta).ExpressRouteCircuitPeerings
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
+	subscriptionId := account.From(meta).SubscriptionId
 	defer cancel()
 
 	id := commonids.NewExpressRouteCircuitPeeringID(subscriptionId, d.Get("resource_group_name").(string), d.Get("express_route_circuit_name").(string), d.Get("peering_type").(string))
@@ -32,7 +34,7 @@ func resourceExpressRouteCircuitPeeringCreate(d *pluginsdk.ResourceData, meta an
 	locks.ByName(id.CircuitName, expressRouteCircuitResourceName)
 	defer locks.UnlockByName(id.CircuitName, expressRouteCircuitResourceName)
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -50,7 +52,7 @@ func resourceExpressRouteCircuitPeeringCreate(d *pluginsdk.ResourceData, meta an
 
 	routeFilterId := d.Get("route_filter_id").(string)
 
-	circuitConnClient := meta.(*clients.Client).ExpressRoute.ExpressRouteCircuitConnections
+	circuitConnClient := expressrouteClient.From(meta).ExpressRouteCircuitConnections
 	circuitConnectionId := commonids.NewExpressRouteCircuitPeeringID(id.SubscriptionId, id.ResourceGroupName, id.CircuitName, id.PeeringName)
 	connResp, err := circuitConnClient.List(ctx, circuitConnectionId)
 	if err != nil && !response.WasNotFound(connResp.HttpResponse) {

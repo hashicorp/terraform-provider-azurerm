@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/deployments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	cognitiveClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/client"
 )
 
 func (r Resource) Update() sdk.ResourceFunc {
@@ -24,7 +25,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.Cognitive.DeploymentsClient
+			client := cognitiveClient.From(metadata.Client).DeploymentsClient
 			accountId, err := cognitiveservicesaccounts.ParseAccountID(model.CognitiveAccountId)
 			if err != nil {
 				return err

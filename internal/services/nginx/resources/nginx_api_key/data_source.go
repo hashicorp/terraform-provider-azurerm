@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxapikey"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxdeployment"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	nginxClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/nginx/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -70,7 +71,7 @@ func (m DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			client := meta.Client.Nginx.NginxApiKey
+			client := nginxClient.From(meta.Client).NginxApiKey
 			var state APIKeyDataSourceModel
 			if err := meta.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)

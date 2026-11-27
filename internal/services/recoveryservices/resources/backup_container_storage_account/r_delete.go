@@ -8,16 +8,17 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protectioncontainers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	recoveryservicesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceBackupProtectionContainerStorageAccountDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).RecoveryServices.BackupProtectionContainersClient
-	opClient := meta.(*clients.Client).RecoveryServices.BackupOperationStatusesClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := recoveryservicesClient.From(meta).BackupProtectionContainersClient
+	opClient := recoveryservicesClient.From(meta).BackupOperationStatusesClient
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := protectioncontainers.ParseProtectionContainerID(d.Id())

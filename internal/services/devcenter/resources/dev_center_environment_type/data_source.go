@@ -13,7 +13,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2025-02-01/devcenters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2025-02-01/environmenttypes"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	devcenterClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/devcenter/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devcenter/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -63,8 +65,8 @@ func (r DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DevCenter.V20250201.EnvironmentTypes
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := devcenterClient.From(metadata.Client).V20250201.EnvironmentTypes
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			var state DevCenterEnvironmentTypeDataSourceModel
 			if err := metadata.Decode(&state); err != nil {

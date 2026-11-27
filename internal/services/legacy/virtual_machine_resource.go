@@ -26,11 +26,14 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networkinterfaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/publicipaddresses"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	clientsAccount "github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute"
+	computeClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
+	networkClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/client"
 	intStor "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/base64"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -611,15 +614,15 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 }
 
 func resourceVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Compute.VirtualMachinesClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	client := computeClient.From(meta).VirtualMachinesClient
+	subscriptionId := clientsAccount.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForCreateUpdate(clientsAccount.StopContext(meta), d)
 	defer cancel()
 
 	id := virtualmachines.NewVirtualMachineID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 			existing, err := client.Get(ctx, id, virtualmachines.DefaultGetOperationOptions())
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {
@@ -769,8 +772,8 @@ func resourceVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta any) err
 }
 
 func resourceVirtualMachineRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Compute.VirtualMachinesClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := computeClient.From(meta).VirtualMachinesClient
+	ctx, cancel := timeouts.ForRead(clientsAccount.StopContext(meta), d)
 	defer cancel()
 
 	id, err := virtualmachines.ParseVirtualMachineID(d.Id())
@@ -904,8 +907,8 @@ func resourceVirtualMachineRead(d *pluginsdk.ResourceData, meta any) error {
 }
 
 func resourceVirtualMachineDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Compute.VirtualMachinesClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := computeClient.From(meta).VirtualMachinesClient
+	ctx, cancel := timeouts.ForDelete(clientsAccount.StopContext(meta), d)
 	defer cancel()
 
 	id, err := virtualmachines.ParseVirtualMachineID(d.Id())
@@ -938,7 +941,7 @@ func resourceVirtualMachineDelete(d *pluginsdk.ResourceData, meta any) error {
 	deleteDataDisks := d.Get("delete_data_disks_on_termination").(bool)
 
 	if deleteOsDisk || deleteDataDisks {
-		storageClient := meta.(*clients.Client).Storage
+		storageClient := intStor.From(meta)
 
 		model := virtualMachine.Model
 		if model == nil {
@@ -1046,8 +1049,8 @@ func resourceVirtualMachineDeleteManagedDisk(d *pluginsdk.ResourceData, disk *vi
 	}
 	managedDiskID := *disk.Id
 
-	client := meta.(*clients.Client).Compute.DisksClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := computeClient.From(meta).DisksClient
+	ctx, cancel := timeouts.ForDelete(clientsAccount.StopContext(meta), d)
 	defer cancel()
 
 	id, err := commonids.ParseManagedDiskIDInsensitively(managedDiskID)
@@ -1844,8 +1847,8 @@ func resourceVirtualMachineStorageImageReferenceHash(v any) int {
 }
 
 func resourceVirtualMachineGetManagedDiskInfo(d *pluginsdk.ResourceData, disk *virtualmachines.ManagedDiskParameters, meta any) (*disks.Disk, error) {
-	client := meta.(*clients.Client).Compute.DisksClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := computeClient.From(meta).DisksClient
+	ctx, cancel := timeouts.ForRead(clientsAccount.StopContext(meta), d)
 	defer cancel()
 
 	if disk == nil || disk.Id == nil {
@@ -1867,8 +1870,8 @@ func resourceVirtualMachineGetManagedDiskInfo(d *pluginsdk.ResourceData, disk *v
 }
 
 func determineVirtualMachineIPAddress(ctx context.Context, meta any, props *virtualmachines.VirtualMachineProperties) (string, error) {
-	nicClient := meta.(*clients.Client).Network.NetworkInterfaces
-	pipClient := meta.(*clients.Client).Network.PublicIPAddresses
+	nicClient := networkClient.From(meta).NetworkInterfaces
+	pipClient := networkClient.From(meta).PublicIPAddresses
 
 	if props == nil {
 		return "", nil

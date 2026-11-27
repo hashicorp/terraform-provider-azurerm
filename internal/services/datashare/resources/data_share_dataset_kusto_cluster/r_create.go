@@ -10,14 +10,16 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/dataset"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/share"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	datashareClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceDataShareDataSetKustoClusterCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).DataShare.DataSetClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	client := datashareClient.From(meta).DataSetClient
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	shareId, err := share.ParseShareID(d.Get("share_id").(string))
@@ -26,7 +28,7 @@ func resourceDataShareDataSetKustoClusterCreate(d *pluginsdk.ResourceData, meta 
 	}
 	id := dataset.NewDataSetID(shareId.SubscriptionId, shareId.ResourceGroupName, shareId.AccountName, shareId.ShareName, d.Get("name").(string))
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {

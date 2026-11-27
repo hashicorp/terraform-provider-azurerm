@@ -12,13 +12,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2025-03-01/scheduledactionoperationgroup"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	costmanagementClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/costmanagement/client"
 )
 
 func (Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.CostManagement.ScheduledActionOperationGroupClient
+			client := costmanagementClient.From(metadata.Client).ScheduledActionOperationGroupClient
 
 			id, err := scheduledactionoperationgroup.ParseScopedScheduledActionID(metadata.ResourceData.Id())
 			if err != nil {

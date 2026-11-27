@@ -13,7 +13,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2024-03-01/monitors"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	newrelicClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/newrelic/client"
 )
 
 func (r Resource) Create() sdk.ResourceFunc {
@@ -25,11 +28,11 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.NewRelic.MonitorsClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := newrelicClient.From(metadata.Client).MonitorsClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 			id := monitors.NewMonitorID(subscriptionId, model.ResourceGroupName, model.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for existing %s: %+v", id, err)

@@ -17,7 +17,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/customipprefixes"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -26,8 +29,8 @@ func (r Resource) Create() sdk.ResourceFunc {
 		Timeout: 9 * time.Hour,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			r.client = metadata.Client.Network.CustomIPPrefixes
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			r.client = client.From(metadata.Client).CustomIPPrefixes
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			deadline, ok := ctx.Deadline()
 			if !ok {
@@ -41,7 +44,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			id := customipprefixes.NewCustomIPPrefixID(subscriptionId, model.ResourceGroupName, model.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := r.client.Get(ctx, id, customipprefixes.DefaultGetOperationOptions())
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {

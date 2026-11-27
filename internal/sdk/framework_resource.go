@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -34,7 +33,7 @@ func (r *ResourceMetadata) ResourceRequiresImport(resourceName string, idFormatt
 }
 
 type ResourceMetadata struct {
-	Client *clients.Client
+	Client ClientProvider
 
 	SubscriptionId string
 
@@ -52,15 +51,17 @@ func (r *ResourceMetadata) Defaults(req resource.ConfigureRequest, resp *resourc
 		return
 	}
 
-	c, ok := req.ProviderData.(*clients.Client)
+	c, ok := req.ProviderData.(ClientProvider)
 	if !ok {
 		resp.Diagnostics.AddError("Client Provider Data Error", fmt.Sprintf("invalid provider data supplied, got %+v", req.ProviderData))
 		return
 	}
 
 	r.Client = c
-	r.SubscriptionId = c.Account.SubscriptionId
-	r.Features = c.Features
+	if acc := c.ClientAccount(); acc != nil {
+		r.SubscriptionId = acc.SubscriptionId
+	}
+	r.Features = c.UserFeatures()
 
 	r.TimeoutCreate = 30 * time.Minute
 	r.TimeoutUpdate = pointer.To(30 * time.Minute)
@@ -74,15 +75,17 @@ func (r *ResourceMetadata) DefaultsDataSource(req datasource.ConfigureRequest, r
 		return
 	}
 
-	c, ok := req.ProviderData.(*clients.Client)
+	c, ok := req.ProviderData.(ClientProvider)
 	if !ok {
 		resp.Diagnostics.AddError("Client Provider Data Error", fmt.Sprintf("invalid provider data supplied, got %+v", req.ProviderData))
 		return
 	}
 
 	r.Client = c
-	r.SubscriptionId = c.Account.SubscriptionId
-	r.Features = c.Features
+	if acc := c.ClientAccount(); acc != nil {
+		r.SubscriptionId = acc.SubscriptionId
+	}
+	r.Features = c.UserFeatures()
 
 	r.TimeoutRead = 5 * time.Minute
 }

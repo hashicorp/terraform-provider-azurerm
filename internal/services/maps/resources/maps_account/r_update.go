@@ -11,15 +11,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maps/2023-06-01/accounts"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	mapsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/maps/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maps/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceMapsAccountUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Maps.AccountsClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	client := mapsClient.From(meta).AccountsClient
+	ctx, cancel := timeouts.ForUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := accounts.ParseAccountID(d.Id())

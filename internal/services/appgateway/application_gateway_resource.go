@@ -26,8 +26,10 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	appgatewayClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/appgateway/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appgateway/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appgateway/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/base64"
@@ -1703,14 +1705,14 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 }
 
 func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).AppGateway.ApplicationGateways
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	client := appgatewayClient.From(meta).ApplicationGateways
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	id := applicationgateways.NewApplicationGatewayID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -1858,8 +1860,8 @@ func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta any) error
 }
 
 func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).AppGateway.ApplicationGateways
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	client := appgatewayClient.From(meta).ApplicationGateways
+	ctx, cancel := timeouts.ForUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := applicationgateways.ParseApplicationGatewayID(d.Id())
@@ -2091,8 +2093,8 @@ func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta any) error
 }
 
 func resourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).AppGateway.ApplicationGateways
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := appgatewayClient.From(meta).ApplicationGateways
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := applicationgateways.ParseApplicationGatewayID(d.Id())
@@ -2297,8 +2299,8 @@ func resourceApplicationGatewaySetFlatten(d *pluginsdk.ResourceData, id *applica
 }
 
 func resourceApplicationGatewayDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).AppGateway.ApplicationGateways
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := appgatewayClient.From(meta).ApplicationGateways
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := applicationgateways.ParseApplicationGatewayID(d.Id())

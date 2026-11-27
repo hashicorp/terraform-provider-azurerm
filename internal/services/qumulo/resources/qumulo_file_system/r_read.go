@@ -16,13 +16,15 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/subnets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/qumulostorage/2026-04-16/filesystems"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	networkClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/client"
+	qumuloClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/qumulo/client"
 )
 
 func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Qumulo.FileSystemsClient
+			client := qumuloClient.From(metadata.Client).FileSystemsClient
 
 			id, err := filesystems.ParseFileSystemID(metadata.ResourceData.Id())
 			if err != nil {
@@ -97,7 +99,7 @@ func checkSubnet(ctx context.Context, rawSubnetId string, metadata sdk.ResourceM
 		return err
 	}
 
-	subnet, err := metadata.Client.Network.Subnets.Get(ctx, *subnetId, subnets.GetOperationOptions{})
+	subnet, err := networkClient.From(metadata.Client).Subnets.Get(ctx, *subnetId, subnets.GetOperationOptions{})
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", subnetId, err)
 	}

@@ -13,7 +13,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationprotectioncontainermappings"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationprotectioncontainers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	recoveryservicesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/client"
 )
 
 func (s Resource) Create() sdk.ResourceFunc {
@@ -26,9 +28,9 @@ func (s Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-			client := metadata.Client.RecoveryServices.ContainerMappingClient
-			containerClient := metadata.Client.RecoveryServices.ProtectionContainerClient
-			settingsClient := metadata.Client.RecoveryServices.VaultsSettingsClient
+			client := recoveryservicesClient.From(metadata.Client).ContainerMappingClient
+			containerClient := recoveryservicesClient.From(metadata.Client).ProtectionContainerClient
+			settingsClient := recoveryservicesClient.From(metadata.Client).VaultsSettingsClient
 
 			if err = validateReplicationPolicyAssociationVaultConfig(ctx, settingsClient, model.RecoveryVaultId); err != nil {
 				return fmt.Errorf("validating %s: %+v", model.RecoveryVaultId, err)
@@ -47,7 +49,7 @@ func (s Resource) Create() sdk.ResourceFunc {
 
 			id := replicationprotectioncontainermappings.NewReplicationProtectionContainerMappingID(parsedContainerId.SubscriptionId, parsedContainerId.ResourceGroupName, parsedContainerId.VaultName, parsedContainerId.ReplicationFabricName, parsedContainerId.ReplicationProtectionContainerName, model.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {

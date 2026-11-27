@@ -15,18 +15,20 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	computeClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Compute.DisksClient
-	virtualMachinesClient := meta.(*clients.Client).Compute.VirtualMachinesClient
-	skusClient := meta.(*clients.Client).Compute.SkusClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	client := computeClient.From(meta).DisksClient
+	virtualMachinesClient := computeClient.From(meta).VirtualMachinesClient
+	skusClient := computeClient.From(meta).SkusClient
+	ctx, cancel := timeouts.ForUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	name := d.Get("name").(string)
@@ -140,7 +142,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta any) error {
 	if d.HasChange("disk_size_gb") {
 		if oldSize, newSize := d.GetChange("disk_size_gb"); newSize.(int) > oldSize.(int) {
 			canBeResizedWithoutDowntime := false
-			if meta.(*clients.Client).Features.ManagedDisk.ExpandWithoutDowntime {
+			if features.From(meta).ManagedDisk.ExpandWithoutDowntime {
 				shouldDetach = helpers.DetermineIfDataDiskRequiresDetaching(disk.Model, oldSize.(int), newSize.(int))
 				diskSupportsNoDowntimeResize := helpers.DetermineIfDataDiskSupportsNoDowntimeResize(disk.Model, shouldDetach)
 
@@ -168,7 +170,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta any) error {
 	if d.HasChange("disk_encryption_set_id") {
 		shouldShutDown = true
 		if diskEncryptionSetId := d.Get("disk_encryption_set_id").(string); diskEncryptionSetId != "" {
-			encryptionType, err := helpers.RetrieveDiskEncryptionSetEncryptionType(ctx, meta.(*clients.Client).Compute.DiskEncryptionSetsClient, diskEncryptionSetId)
+			encryptionType, err := helpers.RetrieveDiskEncryptionSetEncryptionType(ctx, computeClient.From(meta).DiskEncryptionSetsClient, diskEncryptionSetId)
 			if err != nil {
 				return err
 			}
@@ -240,7 +242,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta any) error {
 		locks.ByName(virtualMachineId.VirtualMachineName, helpers.VirtualMachineResourceName)
 		defer locks.UnlockByName(virtualMachineId.VirtualMachineName, helpers.VirtualMachineResourceName)
 
-		if err = helpers.ResourceManagedDiskUpdateWithVmShutDown(ctx, meta.(*clients.Client), id, virtualMachineId, diskUpdate, shouldDetach); err != nil {
+		if err = helpers.ResourceManagedDiskUpdateWithVmShutDown(ctx, meta, id, virtualMachineId, diskUpdate, shouldDetach); err != nil {
 			return err
 		}
 	} else { // otherwise, just update it

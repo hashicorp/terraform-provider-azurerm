@@ -15,20 +15,23 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automanage/2022-05-04/configurationprofiles"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	automanageClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage/client"
+	azurestackhciClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/azurestackhci/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceArmStackHCIClusterCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).AzureStackHCI.Clusters
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	client := azurestackhciClient.From(meta).Clusters
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	id := clusters.NewClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -56,7 +59,7 @@ func resourceArmStackHCIClusterCreate(d *pluginsdk.ResourceData, meta any) error
 	if v, ok := d.GetOk("tenant_id"); ok {
 		cluster.Properties.AadTenantId = pointer.To(v.(string))
 	} else {
-		tenantId := meta.(*clients.Client).Account.TenantId
+		tenantId := account.From(meta).TenantId
 		cluster.Properties.AadTenantId = pointer.To(tenantId)
 	}
 
@@ -67,8 +70,8 @@ func resourceArmStackHCIClusterCreate(d *pluginsdk.ResourceData, meta any) error
 	d.SetId(id.ID())
 
 	if v, ok := d.GetOk("automanage_configuration_id"); ok {
-		configurationProfilesClient := meta.(*clients.Client).Automanage.ConfigurationProfilesClient
-		hciAssignmentsClient := meta.(*clients.Client).Automanage.ConfigurationProfileHCIAssignmentsClient
+		configurationProfilesClient := automanageClient.From(meta).ConfigurationProfilesClient
+		hciAssignmentsClient := automanageClient.From(meta).ConfigurationProfileHCIAssignmentsClient
 
 		configurationProfileId, err := configurationprofiles.ParseConfigurationProfileID(v.(string))
 		if err != nil {

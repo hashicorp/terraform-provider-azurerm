@@ -13,19 +13,22 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roleassignments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-05-01-preview/roledefinitions"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/parse"
+	subscriptionClient2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceArmRoleAssignmentCreate(d *pluginsdk.ResourceData, meta any) error {
-	roleAssignmentsClient := meta.(*clients.Client).Authorization.ScopedRoleAssignmentsClient
-	roleDefinitionsClient := meta.(*clients.Client).Authorization.ScopedRoleDefinitionsClient
-	subscriptionClient := meta.(*clients.Client).Subscription.SubscriptionsClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	roleAssignmentsClient := client.From(meta).ScopedRoleAssignmentsClient
+	roleDefinitionsClient := client.From(meta).ScopedRoleDefinitionsClient
+	subscriptionClient := subscriptionClient2.From(meta).SubscriptionsClient
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	name := d.Get("name").(string)
@@ -80,7 +83,7 @@ func resourceArmRoleAssignmentCreate(d *pluginsdk.ResourceData, meta any) error 
 		options.TenantId = pointer.To(tenantId)
 	}
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := roleAssignmentsClient.Get(ctx, id.ScopedId, options)
 		if err != nil && !response.WasNotFound(existing.HttpResponse) {
 			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)

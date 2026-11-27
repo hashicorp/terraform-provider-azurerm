@@ -10,13 +10,14 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/exascaledbstoragevaults"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	oracleClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/client"
 )
 
 func (Resource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Oracle.OracleClient.ExascaleDbStorageVaults
+			client := oracleClient.From(metadata.Client).OracleClient.ExascaleDbStorageVaults
 
 			id, err := exascaledbstoragevaults.ParseExascaleDbStorageVaultID(metadata.ResourceData.Id())
 			if err != nil {

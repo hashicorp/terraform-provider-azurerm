@@ -9,16 +9,18 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceKeyVaultManagedStorageAccountDelete(d *pluginsdk.ResourceData, meta any) error {
-	keyVaultsClient := meta.(*clients.Client).KeyVault
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	keyVaultsClient := client.From(meta)
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := keyvault.ParseNestedItemID(d.Id(), keyvault.VersionTypeAny, keyvault.NestedItemTypeStorage)
@@ -49,7 +51,7 @@ func resourceKeyVaultManagedStorageAccountDelete(d *pluginsdk.ResourceData, meta
 		return nil
 	}
 
-	shouldPurge := meta.(*clients.Client).Features.KeyVault.PurgeSoftDeleteOnDestroy
+	shouldPurge := features.From(meta).KeyVault.PurgeSoftDeleteOnDestroy
 	description := fmt.Sprintf("Secret %q (Key Vault %q)", id.Name, id.KeyVaultBaseURL)
 	deleter := deleteAndPurgeSecret{
 		secretsClient:        keyVaultsClient.DataPlaneKeyVaultClient.Secrets.Clone(id.KeyVaultBaseURL),

@@ -13,15 +13,17 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2025-01-01/frontendsinterface"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2025-01-01/trafficcontrollerinterface"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	servicenetworkingClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicenetworking/client"
 )
 
 func (f Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			trafficControllerClient := metadata.Client.ServiceNetworking.TrafficControllerInterface
-			client := metadata.Client.ServiceNetworking.FrontendsInterface
+			trafficControllerClient := servicenetworkingClient.From(metadata.Client).TrafficControllerInterface
+			client := servicenetworkingClient.From(metadata.Client).FrontendsInterface
 
 			var config FrontendsModel
 			if err := metadata.Decode(&config); err != nil {
@@ -47,7 +49,7 @@ func (f Resource) Create() sdk.ResourceFunc {
 
 			id := frontendsinterface.NewFrontendID(trafficControllerId.SubscriptionId, trafficControllerId.ResourceGroupName, trafficControllerId.TrafficControllerName, config.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				resp, err := client.Get(ctx, id)
 				if err != nil {
 					if !response.WasNotFound(resp.HttpResponse) {

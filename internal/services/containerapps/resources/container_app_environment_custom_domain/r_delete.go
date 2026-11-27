@@ -10,16 +10,19 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/managedenvironments"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	containerappsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/client"
+	loganalyticsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/client"
 )
 
 func (r Resource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			lawClient := metadata.Client.LogAnalytics.SharedKeyWorkspacesClient
-			client := metadata.Client.ContainerApps.ManagedEnvironmentClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			lawClient := loganalyticsClient.From(metadata.Client).SharedKeyWorkspacesClient
+			client := containerappsClient.From(metadata.Client).ManagedEnvironmentClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			id, err := managedenvironments.ParseManagedEnvironmentID(metadata.ResourceData.Id())
 			if err != nil {

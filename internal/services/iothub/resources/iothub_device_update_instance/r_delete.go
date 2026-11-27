@@ -10,13 +10,14 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/deviceupdate/2022-10-01/deviceupdates"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	iothubClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/client"
 )
 
 func (r Resource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.IoTHub.DeviceUpdatesClient
+			client := iothubClient.From(metadata.Client).DeviceUpdatesClient
 
 			id, err := deviceupdates.ParseInstanceID(metadata.ResourceData.Id())
 			if err != nil {

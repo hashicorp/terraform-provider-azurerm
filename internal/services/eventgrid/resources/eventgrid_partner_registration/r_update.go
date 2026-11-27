@@ -11,13 +11,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/partnerregistrations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	eventgridClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/client"
 )
 
 func (r Resource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.EventGrid.PartnerRegistrations
+			client := eventgridClient.From(metadata.Client).PartnerRegistrations
 
 			id, err := partnerregistrations.ParsePartnerRegistrationID(metadata.ResourceData.Id())
 			if err != nil {

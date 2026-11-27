@@ -9,14 +9,15 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceStorageContainerRead(d *pluginsdk.ResourceData, meta any) error {
-	containerClient := meta.(*clients.Client).Storage.ResourceManager.BlobContainers
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	containerClient := client.From(meta).ResourceManager.BlobContainers
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := commonids.ParseStorageContainerID(d.Id())

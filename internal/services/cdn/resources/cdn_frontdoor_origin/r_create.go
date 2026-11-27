@@ -15,17 +15,19 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/profiles"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/privatelinkservices"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	cdnClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceCdnFrontDoorOriginCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cdn.FrontDoorOriginsClient
-	profileClient := meta.(*clients.Client).Cdn.FrontDoorProfilesClient
+	client := cdnClient.From(meta).FrontDoorOriginsClient
+	profileClient := cdnClient.From(meta).FrontDoorProfilesClient
 
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	originGroup, err := afdorigingroups.ParseOriginGroupID(d.Get("cdn_frontdoor_origin_group_id").(string))
@@ -35,7 +37,7 @@ func resourceCdnFrontDoorOriginCreate(d *pluginsdk.ResourceData, meta any) error
 
 	id := afdorigins.NewOriginGroupOriginID(originGroup.SubscriptionId, originGroup.ResourceGroupName, originGroup.ProfileName, originGroup.OriginGroupName, d.Get("name").(string))
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {

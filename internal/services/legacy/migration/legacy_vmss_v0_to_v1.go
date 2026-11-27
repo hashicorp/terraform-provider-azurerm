@@ -11,7 +11,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	computeClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/base64"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -698,7 +698,7 @@ func (LegacyVMSSV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		// however it existed in the legacy migration so even though this is
 		//  essentially a noop there's no reason this shouldn't be the same I guess
 
-		client := meta.(*clients.Client).Compute.VirtualMachineScaleSetsClient
+		client := computeClient.From(meta).VirtualMachineScaleSetsClient
 
 		id, err := virtualmachinescalesets.ParseVirtualMachineScaleSetIDInsensitively(rawState["id"].(string))
 		if err != nil {

@@ -13,14 +13,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-05-01/privatelinkassociation"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	resourceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 )
 
 func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Resource.PrivateLinkAssociationClient
+			client := resourceClient.From(metadata.Client).PrivateLinkAssociationClient
 
 			var config ResourceManagementPrivateLinkAssociationResourceSchema
 			if err := metadata.Decode(&config); err != nil {
@@ -43,7 +45,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			id := privatelinkassociation.NewPrivateLinkAssociationID(managementGroupId.GroupId, name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {

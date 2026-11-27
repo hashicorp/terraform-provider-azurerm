@@ -11,7 +11,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/privateendpoints"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	databricksClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -82,8 +83,8 @@ func RegisterDataSource() *pluginsdk.Resource {
 }
 
 func dataSourceDatabricksWorkspacePrivateEndpointConnectionRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).DataBricks.WorkspacesClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := databricksClient.From(meta).WorkspacesClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 	workspace := d.Get("workspace_id").(string)
 

@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	dataprotectionClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/client"
 )
 
 const (
@@ -76,7 +77,7 @@ func (v *Action) Metadata(_ context.Context, _ action.MetadataRequest, response 
 }
 
 func (v *Action) Invoke(ctx context.Context, request action.InvokeRequest, response *action.InvokeResponse) {
-	client := v.Client.DataProtection.BackupInstanceClient
+	client := dataprotectionClient.From(v.Client).BackupInstanceClient
 
 	ctx, cancel := context.WithTimeout(ctx, time.Minute*30)
 	defer cancel()

@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	cdnClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/client"
 )
 
 type Action struct {
@@ -92,7 +93,7 @@ func (a *Action) Metadata(_ context.Context, _ action.MetadataRequest, response 
 }
 
 func (a *Action) Invoke(ctx context.Context, request action.InvokeRequest, response *action.InvokeResponse) {
-	client := a.Client.Cdn.AFDEndpointsClient
+	client := cdnClient.From(a.Client).AFDEndpointsClient
 
 	model := FrontDoorCachePurgeActionModel{}
 	response.Diagnostics.Append(request.Config.Get(ctx, &model)...)

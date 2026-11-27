@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	mssqlClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -66,7 +67,7 @@ func (r ListResource) ListResourceConfigSchema(_ context.Context, _ list.ListRes
 }
 
 func (r ListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
-	client := metadata.Client.MSSQL.DatabasesClient
+	client := mssqlClient.From(metadata.Client).DatabasesClient
 
 	var data MssqlDatabaseListModel
 	diags := request.Config.Get(ctx, &data)

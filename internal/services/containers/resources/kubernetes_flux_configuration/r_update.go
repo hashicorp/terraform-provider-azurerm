@@ -11,13 +11,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2025-04-01/fluxconfiguration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	containersClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
+	storageClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 )
 
 func (r Resource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Containers.KubernetesFluxConfigurationClient
+			client := containersClient.From(metadata.Client).KubernetesFluxConfigurationClient
 
 			id, err := fluxconfiguration.ParseScopedFluxConfigurationIDInsensitively(metadata.ResourceData.Id())
 			if err != nil {
@@ -45,7 +47,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 
 			properties.Properties.ConfigurationProtectedSettings = nil
 			if metadata.ResourceData.HasChange("blob_storage") {
-				azureBlob, err := expandAzureBlobDefinitionModel(model.BlobStorage, metadata.Client.Storage.StorageDomainSuffix)
+				azureBlob, err := expandAzureBlobDefinitionModel(model.BlobStorage, storageClient.From(metadata.Client).StorageDomainSuffix)
 				if err != nil {
 					return fmt.Errorf("expanding `blob_storage`: %+v", err)
 				}

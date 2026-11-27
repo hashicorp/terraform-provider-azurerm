@@ -13,13 +13,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2023-03-01/prometheusrulegroupresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	monitorClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/client"
 )
 
 func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Monitor.AlertPrometheusRuleGroupClient
+			client := monitorClient.From(metadata.Client).AlertPrometheusRuleGroupClient
 
 			id, err := prometheusrulegroupresources.ParsePrometheusRuleGroupID(metadata.ResourceData.Id())
 			if err != nil {

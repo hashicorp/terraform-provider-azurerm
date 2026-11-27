@@ -15,8 +15,10 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/machinelearningcomputes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	machinelearningClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -165,9 +167,9 @@ func resourceComputeCluster() *pluginsdk.Resource {
 }
 
 func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta any) error {
-	mlWorkspacesClient := meta.(*clients.Client).MachineLearning.Workspaces
-	client := meta.(*clients.Client).MachineLearning.MachineLearningComputes
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	mlWorkspacesClient := machinelearningClient.From(meta).Workspaces
+	client := machinelearningClient.From(meta).MachineLearningComputes
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	workspaceID, err := workspaces.ParseWorkspaceID(d.Get("machine_learning_workspace_id").(string))
@@ -200,7 +202,7 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta any) error {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.ComputeGet(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -262,8 +264,8 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta any) error {
 }
 
 func resourceComputeClusterRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).MachineLearning.MachineLearningComputes
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := machinelearningClient.From(meta).MachineLearningComputes
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := machinelearningcomputes.ParseComputeID(d.Id())
@@ -332,8 +334,8 @@ func resourceComputeClusterRead(d *pluginsdk.ResourceData, meta any) error {
 }
 
 func resourceComputeClusterUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).MachineLearning.MachineLearningComputes
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	client := machinelearningClient.From(meta).MachineLearningComputes
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := machinelearningcomputes.ParseComputeID(d.Id())
@@ -377,8 +379,8 @@ func resourceComputeClusterUpdate(d *pluginsdk.ResourceData, meta any) error {
 }
 
 func resourceComputeClusterDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).MachineLearning.MachineLearningComputes
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := machinelearningClient.From(meta).MachineLearningComputes
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := machinelearningcomputes.ParseComputeID(d.Id())

@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/consumergroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	eventhubClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/client"
 )
 
 func (r Resource) Update() sdk.ResourceFunc {
@@ -26,7 +27,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.Eventhub.ConsumerGroupClient
+			client := eventhubClient.From(metadata.Client).ConsumerGroupClient
 
 			parameters := consumergroups.ConsumerGroup{
 				Name: pointer.To(id.ConsumerGroupName),

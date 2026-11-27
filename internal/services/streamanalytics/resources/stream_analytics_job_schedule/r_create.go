@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/streamingjobs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	streamanalyticsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
 )
 
@@ -27,7 +28,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.StreamAnalytics.JobsClient
+			client := streamanalyticsClient.From(metadata.Client).JobsClient
 			streamAnalyticsId, err := streamingjobs.ParseStreamingJobID(model.StreamAnalyticsJob)
 			if err != nil {
 				return err

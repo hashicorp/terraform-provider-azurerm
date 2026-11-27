@@ -12,15 +12,17 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/backupvaults"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/client"
 )
 
 func (r Resource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 120 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			vaultClient := metadata.Client.NetApp.BackupVaultsClient
-			backupClient := metadata.Client.NetApp.BackupClient
+			vaultClient := client.From(metadata.Client).BackupVaultsClient
+			backupClient := client.From(metadata.Client).BackupClient
 
 			id, err := backupvaults.ParseBackupVaultID(metadata.ResourceData.Id())
 			if err != nil {
@@ -30,7 +32,7 @@ func (r Resource) Delete() sdk.ResourceFunc {
 			// Attempt to delete backup vault with retries
 			for range 5 {
 				// Delete backups
-				if err := deleteBackupsFromVault(ctx, id, backupClient, metadata.Client.Features.NetApp.DeleteBackupsOnBackupVaultDestroy); err != nil {
+				if err := deleteBackupsFromVault(ctx, id, backupClient, features.From(metadata.Client).NetApp.DeleteBackupsOnBackupVaultDestroy); err != nil {
 					return err
 				}
 

@@ -14,14 +14,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/secrets"
 	"github.com/hashicorp/go-cty/cty"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	keyvaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta any) error {
-	keyVaultsClient := meta.(*clients.Client).KeyVault
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	keyVaultsClient := keyvaultClient.From(meta)
+	ctx, cancel := timeouts.ForUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := keyvault.ParseNestedItemID(d.Id(), keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret)
@@ -34,7 +35,7 @@ func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta any) error {
 		return err
 	}
 
-	meta.(*clients.Client).KeyVault.AddToCache(*keyVaultId, id.KeyVaultBaseURL)
+	keyvaultClient.From(meta).AddToCache(*keyVaultId, id.KeyVaultBaseURL)
 
 	ok, err := keyVaultsClient.Exists(ctx, *keyVaultId)
 	if err != nil {
@@ -46,7 +47,7 @@ func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta any) error {
 		return nil
 	}
 
-	client := meta.(*clients.Client).KeyVault.DataPlaneKeyVaultClient.Secrets.Clone(id.KeyVaultBaseURL)
+	client := keyvaultClient.From(meta).DataPlaneKeyVaultClient.Secrets.Clone(id.KeyVaultBaseURL)
 	secretId := secrets.NewSecretID(id.KeyVaultBaseURL, id.Name)
 	secretVersionId := secrets.NewSecretversionID(id.KeyVaultBaseURL, id.Name, "")
 

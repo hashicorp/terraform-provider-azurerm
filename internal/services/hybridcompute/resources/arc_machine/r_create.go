@@ -13,15 +13,18 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2024-07-10/machines"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	hybridcomputeClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/hybridcompute/client"
 )
 
 func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			subscriptionId := metadata.Client.Account.SubscriptionId
-			client := metadata.Client.HybridCompute.HybridComputeClient_v2024_07_10.Machines
+			subscriptionId := account.From(metadata.Client).SubscriptionId
+			client := hybridcomputeClient.From(metadata.Client).HybridComputeClient_v2024_07_10.Machines
 
 			var model ArcMachineResourceModel
 			if err := metadata.Decode(&model); err != nil {
@@ -30,7 +33,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			id := machines.NewMachineID(subscriptionId, model.ResourceGroupName, model.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id, machines.DefaultGetOperationOptions())
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {

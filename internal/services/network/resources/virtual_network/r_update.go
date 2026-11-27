@@ -14,16 +14,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networksecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualnetworks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	networkClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Network.VirtualNetworks
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	client := networkClient.From(meta).VirtualNetworks
+	ctx, cancel := timeouts.ForUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := commonids.ParseVirtualNetworkID(d.Id())
@@ -178,7 +179,7 @@ func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta any) error {
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{string(virtualnetworks.ProvisioningStateUpdating)},
 		Target:     []string{string(virtualnetworks.ProvisioningStateSucceeded)},
-		Refresh:    helpers.VirtualNetworkProvisioningStateRefreshFunc(ctx, meta.(*clients.Client).Network.VirtualNetworks, *id),
+		Refresh:    helpers.VirtualNetworkProvisioningStateRefreshFunc(ctx, networkClient.From(meta).VirtualNetworks, *id),
 		MinTimeout: 1 * time.Minute,
 		Timeout:    time.Until(timeout),
 	}

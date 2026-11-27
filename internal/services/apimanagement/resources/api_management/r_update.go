@@ -18,15 +18,16 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/tenantaccess"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	apimanagementClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).ApiManagement.ServiceClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	client := apimanagementClient.From(meta).ServiceClient
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForCreateUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	sku := expandAzureRmApiManagementSkuName(d.Get("sku_name").(string))
@@ -187,7 +188,7 @@ func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta any) err
 		if sku.Name != apimanagementservice.SkuTypeConsumption && !strings.Contains(string(sku.Name), "V2") {
 			signInSettingServiceId := signinsettings.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName)
 			signInSettings := expandApiManagementSignInSettings(signInSettingsRaw)
-			signInClient := meta.(*clients.Client).ApiManagement.SignInClient
+			signInClient := apimanagementClient.From(meta).SignInClient
 			if _, err := signInClient.CreateOrUpdate(ctx, signInSettingServiceId, signInSettings, signinsettings.CreateOrUpdateOperationOptions{}); err != nil {
 				return fmt.Errorf(" setting Sign In settings for %s: %+v", id, err)
 			}
@@ -202,7 +203,7 @@ func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta any) err
 		if sku.Name != apimanagementservice.SkuTypeConsumption && !strings.Contains(string(sku.Name), "V2") {
 			signUpSettingServiceId := signupsettings.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName)
 			signUpSettings := expandApiManagementSignUpSettings(signUpSettingsRaw)
-			signUpClient := meta.(*clients.Client).ApiManagement.SignUpClient
+			signUpClient := apimanagementClient.From(meta).SignUpClient
 			if _, err := signUpClient.CreateOrUpdate(ctx, signUpSettingServiceId, signUpSettings, signupsettings.CreateOrUpdateOperationOptions{}); err != nil {
 				return fmt.Errorf(" setting Sign Up settings for %s: %+v", id, err)
 			}
@@ -217,7 +218,7 @@ func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta any) err
 		if sku.Name != apimanagementservice.SkuTypeConsumption && !strings.Contains(string(sku.Name), "V2") && len(delegationSettingsRaw) > 0 {
 			delegationSettingServiceId := delegationsettings.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName)
 			delegationSettings := expandApiManagementDelegationSettings(delegationSettingsRaw)
-			delegationClient := meta.(*clients.Client).ApiManagement.DelegationSettingsClient
+			delegationClient := apimanagementClient.From(meta).DelegationSettingsClient
 			if _, err := delegationClient.CreateOrUpdate(ctx, delegationSettingServiceId, delegationSettings, delegationsettings.CreateOrUpdateOperationOptions{}); err != nil {
 				return fmt.Errorf(" setting Delegation settings for %s: %+v", id, err)
 			}
@@ -233,7 +234,7 @@ func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta any) err
 			tenantAccessServiceId := tenantaccess.NewAccessID(subscriptionId, id.ResourceGroupName, id.ServiceName, "access")
 			tenantAccessInformationParametersRaw := d.Get("tenant_access").([]any)
 			tenantAccessInformationParameters := expandApiManagementTenantAccessSettings(tenantAccessInformationParametersRaw)
-			tenantAccessClient := meta.(*clients.Client).ApiManagement.TenantAccessClient
+			tenantAccessClient := apimanagementClient.From(meta).TenantAccessClient
 			if _, err := tenantAccessClient.Update(ctx, tenantAccessServiceId, tenantAccessInformationParameters, tenantaccess.UpdateOperationOptions{}); err != nil {
 				return fmt.Errorf(" updating tenant access settings for %s: %+v", id, err)
 			}

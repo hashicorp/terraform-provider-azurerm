@@ -12,6 +12,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2023-12-15-preview/namespaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/topics"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/preflight"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -186,7 +188,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 				return nil
 			}
 
-			if metadata.Client.Features.EnhancedValidation.PreflightEnabled {
+			if features.From(metadata.Client).EnhancedValidation.PreflightEnabled {
 				if len(metadata.ResourceDiff.GetChangedKeysPrefix("")) > 0 || metadata.ResourceDiff.Id() == "" {
 					var model EventGridNamespaceResourceModel
 					if err := metadata.DecodeDiff(&model); err != nil {
@@ -198,7 +200,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 						return err
 					}
 
-					id := namespaces.NewNamespaceID(metadata.Client.Account.SubscriptionId, model.ResourceGroup, model.Name)
+					id := namespaces.NewNamespaceID(account.From(metadata.Client).SubscriptionId, model.ResourceGroup, model.Name)
 					preflightValidate, err := preflight.NewValidationRequest(pointer.To(model.Location), pointer.To(id), "2023-12-15-preview", req)
 					if err != nil {
 						return fmt.Errorf("constructing preflight validation request: %w", err)

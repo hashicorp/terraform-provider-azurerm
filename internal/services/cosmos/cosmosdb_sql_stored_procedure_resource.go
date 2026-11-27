@@ -12,8 +12,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	cosmosClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -86,14 +88,14 @@ func resourceCosmosDbSQLStoredProcedure() *pluginsdk.Resource {
 }
 
 func resourceCosmosDbSQLStoredProcedureCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := cosmosClient.From(meta).CosmosDBClient
 
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
-	id := cosmosdb.NewStoredProcedureID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("database_name").(string), d.Get("container_name").(string), d.Get("name").(string))
+	id := cosmosdb.NewStoredProcedureID(account.From(meta).SubscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("database_name").(string), d.Get("container_name").(string), d.Get("name").(string))
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.SqlResourcesGetSqlStoredProcedure(ctx, id)
 		if !response.WasNotFound(existing.HttpResponse) {
 			if err != nil {
@@ -123,9 +125,9 @@ func resourceCosmosDbSQLStoredProcedureCreate(d *pluginsdk.ResourceData, meta an
 }
 
 func resourceCosmosDbSQLStoredProcedureUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := cosmosClient.From(meta).CosmosDBClient
 
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := cosmosdb.ParseStoredProcedureID(d.Id())
@@ -155,9 +157,9 @@ func resourceCosmosDbSQLStoredProcedureUpdate(d *pluginsdk.ResourceData, meta an
 }
 
 func resourceCosmosDbSQLStoredProcedureRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := cosmosClient.From(meta).CosmosDBClient
 
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := cosmosdb.ParseStoredProcedureID(d.Id())
@@ -189,9 +191,9 @@ func resourceCosmosDbSQLStoredProcedureRead(d *pluginsdk.ResourceData, meta any)
 }
 
 func resourceCosmosDbSQLStoredProcedureDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := cosmosClient.From(meta).CosmosDBClient
 
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := cosmosdb.ParseStoredProcedureID(d.Id())

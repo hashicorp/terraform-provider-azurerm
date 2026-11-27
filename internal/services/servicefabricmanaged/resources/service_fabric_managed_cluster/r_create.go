@@ -13,7 +13,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicefabricmanagedcluster/2024-04-01/managedcluster"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicefabricmanagedcluster/2024-04-01/nodetype"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabricmanaged/client"
 )
 
 func (k Resource) Create() sdk.ResourceFunc {
@@ -24,10 +27,10 @@ func (k Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-			clusterClient := metadata.Client.ServiceFabricManaged.ManagedClusterClient
-			nodeTypeClient := metadata.Client.ServiceFabricManaged.NodeTypeClient
+			clusterClient := client.From(metadata.Client).ManagedClusterClient
+			nodeTypeClient := client.From(metadata.Client).NodeTypeClient
 
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			managedClusterId := managedcluster.NewManagedClusterID(subscriptionId, model.ResourceGroup, model.Name)
 			cluster := managedcluster.ManagedCluster{
@@ -43,7 +46,7 @@ func (k Resource) Create() sdk.ResourceFunc {
 			}
 			cluster.Tags = &tagsMap
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := clusterClient.Get(ctx, managedClusterId)
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {

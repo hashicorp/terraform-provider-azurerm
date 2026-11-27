@@ -10,12 +10,13 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplications"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	computeClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/client"
 )
 
 func (r Resource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Compute.GalleryApplicationsClient
+			client := computeClient.From(metadata.Client).GalleryApplicationsClient
 			id, err := galleryapplications.ParseApplicationID(metadata.ResourceData.Id())
 			if err != nil {
 				return err

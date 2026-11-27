@@ -11,7 +11,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/databases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/redisenterprise"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	managedredisClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/client"
 )
 
 func (r Resource) Create() sdk.ResourceFunc {
@@ -23,7 +25,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.ManagedRedis.DatabaseClient
+			client := managedredisClient.From(metadata.Client).DatabaseClient
 
 			clusterId, err := redisenterprise.ParseRedisEnterpriseID(model.ManagedRedisID)
 			if err != nil {
@@ -35,7 +37,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 			dbId := databases.NewDatabaseID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, defaultDatabaseName)
 			id := databases.NewAccessPolicyAssignmentID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, defaultDatabaseName, model.ObjectID)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.AccessPolicyAssignmentGet(ctx, id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for existing %s: %+v", id, err)

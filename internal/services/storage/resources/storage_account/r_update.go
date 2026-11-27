@@ -15,20 +15,22 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/blobservices"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/storageaccounts"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	keyvaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
+	storageClient2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta any) error {
-	tenantId := meta.(*clients.Client).Account.TenantId
-	storageClient := meta.(*clients.Client).Storage.ResourceManager
+	tenantId := account.From(meta).TenantId
+	storageClient := storageClient2.From(meta).ResourceManager
 	client := storageClient.StorageAccounts
-	keyVaultClient := meta.(*clients.Client).KeyVault
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	keyVaultClient := keyvaultClient.From(meta)
+	ctx, cancel := timeouts.ForUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := commonids.ParseStorageAccountID(d.Id())

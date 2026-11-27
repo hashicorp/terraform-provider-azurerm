@@ -12,13 +12,14 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dnsresolver/2022-07-01/dnsforwardingrulesets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dnsresolver/2022-07-01/virtualnetworklinks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	privatednsresolverClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/privatednsresolver/client"
 )
 
 func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PrivateDnsResolver.VirtualNetworkLinksClient
+			client := privatednsresolverClient.From(metadata.Client).VirtualNetworkLinksClient
 
 			id, err := virtualnetworklinks.ParseVirtualNetworkLinkID(metadata.ResourceData.Id())
 			if err != nil {

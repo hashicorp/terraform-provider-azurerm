@@ -12,19 +12,22 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
+	networkClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/custompollers"
+	webClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/web/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceAppServiceVirtualNetworkSwiftConnectionCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Web.WebAppsClient
+	client := webClient.From(meta).WebAppsClient
 
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	appID, err := commonids.ParseAppServiceID(d.Get("app_service_id").(string))
@@ -37,7 +40,7 @@ func resourceAppServiceVirtualNetworkSwiftConnectionCreate(d *pluginsdk.Resource
 		return err
 	}
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.GetSwiftVirtualNetworkConnection(ctx, *appID)
 		if err != nil {
 			return fmt.Errorf("checking for presence of Swift Network Connection for %s: %w", appID, err)
@@ -64,7 +67,7 @@ func resourceAppServiceVirtualNetworkSwiftConnectionCreate(d *pluginsdk.Resource
 		return fmt.Errorf("creating association between %s and %s: %w", appID, subnetID, err)
 	}
 
-	pollerType := custompollers.NewVirtualNetworkAndSubnetProvisioningSucceededPoller(meta.(*clients.Client).Network, subnetID)
+	pollerType := custompollers.NewVirtualNetworkAndSubnetProvisioningSucceededPoller(networkClient.From(meta), subnetID)
 	poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("polling for completion of association between %s and %s: %w", appID, subnetID, err)

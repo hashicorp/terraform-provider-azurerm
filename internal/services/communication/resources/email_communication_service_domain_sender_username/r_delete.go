@@ -10,13 +10,14 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2026-03-18/senderusernames"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	communicationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/communication/client"
 )
 
 func (Resource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Communication.SenderUsernamesClient
+			client := communicationClient.From(metadata.Client).SenderUsernamesClient
 
 			id, err := senderusernames.ParseSenderUsernameID(metadata.ResourceData.Id())
 			if err != nil {

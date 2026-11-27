@@ -11,13 +11,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/qumulostorage/2026-04-16/filesystems"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	qumuloClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/qumulo/client"
 )
 
 func (r Resource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Qumulo.FileSystemsClient
+			client := qumuloClient.From(metadata.Client).FileSystemsClient
 
 			id, err := filesystems.ParseFileSystemID(metadata.ResourceData.Id())
 			if err != nil {

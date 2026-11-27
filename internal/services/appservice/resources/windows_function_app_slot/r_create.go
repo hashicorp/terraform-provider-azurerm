@@ -18,7 +18,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	appserviceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 )
 
@@ -26,9 +29,9 @@ func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			storageDomainSuffix, ok := metadata.Client.Account.Environment.Storage.DomainSuffix()
+			storageDomainSuffix, ok := account.From(metadata.Client).Environment.Storage.DomainSuffix()
 			if !ok {
-				return fmt.Errorf("could not determine Storage domain suffix for environment %q", metadata.Client.Account.Environment.Name)
+				return fmt.Errorf("could not determine Storage domain suffix for environment %q", account.From(metadata.Client).Environment.Name)
 			}
 
 			var functionAppSlot WindowsFunctionAppSlotModel
@@ -37,16 +40,16 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.AppService.WebAppsClient
-			resourceProvidersClient := metadata.Client.AppService.ResourceProvidersClient
+			client := appserviceClient.From(metadata.Client).WebAppsClient
+			resourceProvidersClient := appserviceClient.From(metadata.Client).ResourceProvidersClient
 			functionAppId, err := commonids.ParseFunctionAppID(functionAppSlot.FunctionAppID)
 			if err != nil {
 				return err
 			}
 
-			aseClient := metadata.Client.AppService.AppServiceEnvironmentClient
-			servicePlanClient := metadata.Client.AppService.ServicePlanClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			aseClient := appserviceClient.From(metadata.Client).AppServiceEnvironmentClient
+			servicePlanClient := appserviceClient.From(metadata.Client).ServicePlanClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			id := webapps.NewSlotID(subscriptionId, functionAppId.ResourceGroupName, functionAppId.SiteName, functionAppSlot.Name)
 
@@ -133,7 +136,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 			// Only send for Dynamic and ElasticPremium
 			sendContentSettings := (helpers.PlanIsConsumption(planSKU) || helpers.PlanIsElastic(planSKU)) && !functionAppSlot.ForceDisableContentShare
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.GetSlot(ctx, id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing Windows %s: %+v", id, err)

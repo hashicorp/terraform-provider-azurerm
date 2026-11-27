@@ -13,7 +13,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dynatrace/2023-04-27/monitors"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	dynatraceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/dynatrace/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -187,8 +189,8 @@ func (d DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Dynatrace.MonitorsClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := dynatraceClient.From(metadata.Client).MonitorsClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			var monitor MonitorsDataSourceModel
 			if err := metadata.Decode(&monitor); err != nil {

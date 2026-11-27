@@ -12,7 +12,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/management/2020-05-01/managementgroups"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	managementgroupClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -20,8 +21,8 @@ import (
 
 func resourceManagementGroupSubscriptionAssociationRead(d *pluginsdk.ResourceData, meta any) error {
 	// There is no "read" function on the appropriate client so we need to check if the Subscription is in the Management Group subscription list
-	client := meta.(*clients.Client).ManagementGroups.GroupsClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := managementgroupClient.From(meta).GroupsClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := managementgroups.ParseSubscriptionID(d.Id())

@@ -10,13 +10,14 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/marketplacegalleryimages"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	azurestackhciClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/azurestackhci/client"
 )
 
 func (r Resource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 1 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AzureStackHCI.MarketplaceGalleryImages
+			client := azurestackhciClient.From(metadata.Client).MarketplaceGalleryImages
 
 			id, err := marketplacegalleryimages.ParseMarketplaceGalleryImageID(metadata.ResourceData.Id())
 			if err != nil {

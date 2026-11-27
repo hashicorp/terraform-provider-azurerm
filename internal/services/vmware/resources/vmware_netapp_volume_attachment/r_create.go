@@ -12,7 +12,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2022-05-01/clusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2022-05-01/datastores"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	vmwareClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/client"
 )
 
 func (r Resource) Create() sdk.ResourceFunc {
@@ -23,8 +26,8 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.Vmware.DataStoreClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := vmwareClient.From(metadata.Client).DataStoreClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			vmWareClusterId, err := clusters.ParseClusterID(state.VmwareClusterId)
 			if err != nil {
@@ -33,7 +36,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			id := datastores.NewDataStoreID(subscriptionId, vmWareClusterId.ResourceGroupName, vmWareClusterId.PrivateCloudName, vmWareClusterId.ClusterName, state.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)

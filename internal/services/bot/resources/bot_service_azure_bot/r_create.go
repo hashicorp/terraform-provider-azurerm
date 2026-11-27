@@ -12,7 +12,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	botClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/jackofallops/kermit/sdk/botservice/2021-05-01-preview/botservice"
 )
@@ -21,8 +24,8 @@ func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Bot.BotClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := botClient.From(metadata.Client).BotClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			var config BotServiceModel
 			if err := metadata.Decode(&config); err != nil {
@@ -31,7 +34,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			id := commonids.NewBotServiceID(subscriptionId, config.ResourceGroupName, config.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id.ResourceGroupName, id.BotServiceName)
 				if err != nil {
 					if !response.WasNotFound(existing.Response.Response) {

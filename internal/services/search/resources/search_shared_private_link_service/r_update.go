@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/sharedprivatelinkresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	searchClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/search/client"
 )
 
 func (r Resource) Update() sdk.ResourceFunc {
@@ -31,7 +32,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.Search.SearchSharedPrivateLinkResourceClient
+			client := searchClient.From(metadata.Client).SearchSharedPrivateLinkResourceClient
 
 			if metadata.ResourceData.HasChange("request_message") {
 				props := sharedprivatelinkresources.SharedPrivateLinkResource{

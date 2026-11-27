@@ -10,13 +10,14 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridkubernetes/2024-01-01/connectedclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	arckubernetesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/arckubernetes/client"
 )
 
 func (r Resource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ArcKubernetes.ArcKubernetesClient
+			client := arckubernetesClient.From(metadata.Client).ArcKubernetesClient
 
 			id, err := connectedclusters.ParseConnectedClusterID(metadata.ResourceData.Id())
 			if err != nil {

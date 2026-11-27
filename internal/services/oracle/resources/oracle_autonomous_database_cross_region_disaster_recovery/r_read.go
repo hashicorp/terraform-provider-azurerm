@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/autonomousdatabases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	oracleClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/helpers"
 )
 
@@ -26,7 +27,7 @@ func (Resource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.Oracle.OracleClient.AutonomousDatabases
+			client := oracleClient.From(metadata.Client).OracleClient.AutonomousDatabases
 			result, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(result.HttpResponse) {

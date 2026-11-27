@@ -15,16 +15,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/namespaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/networkrulesets"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	eventhubClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Eventhub.NamespacesClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	client := eventhubClient.From(meta).NamespacesClient
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForCreateUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	id := namespaces.NewNamespaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
@@ -125,7 +126,7 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta any) error 
 			return errors.New("the value of public network access of namespace should be the same as of the network rulesets")
 		}
 
-		ruleSetsClient := meta.(*clients.Client).Eventhub.NetworkRuleSetsClient
+		ruleSetsClient := eventhubClient.From(meta).NetworkRuleSetsClient
 		namespaceId := networkrulesets.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
 		if _, err := ruleSetsClient.NamespacesCreateOrUpdateNetworkRuleSet(ctx, namespaceId, rulesets); err != nil {
 			return fmt.Errorf("setting network ruleset properties for %s: %+v", id, err)

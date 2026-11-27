@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	streamanalyticsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/client"
 )
 
 func (r Resource) Update() sdk.ResourceFunc {
@@ -23,7 +24,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.StreamAnalytics.ClustersClient
+			client := streamanalyticsClient.From(metadata.Client).ClustersClient
 
 			var state ClusterModel
 			if err := metadata.Decode(&state); err != nil {

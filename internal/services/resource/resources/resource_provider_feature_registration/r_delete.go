@@ -11,13 +11,14 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2021-07-01/features"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	resourceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/custompollers"
 )
 
 func (r Resource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Resource.FeaturesClient
+			client := resourceClient.From(metadata.Client).FeaturesClient
 
 			featureId, err := features.ParseFeatureID(metadata.ResourceData.Id())
 			if err != nil {

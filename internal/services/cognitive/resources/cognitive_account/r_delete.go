@@ -12,15 +12,18 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/cognitiveservicesaccounts"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	clientsAccount "github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/client"
+	networkClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceCognitiveAccountDelete(d *pluginsdk.ResourceData, meta any) error {
-	accountsClient := meta.(*clients.Client).Cognitive.AccountsClient
-	deletedAccountsClient := meta.(*clients.Client).Cognitive.AccountsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	accountsClient := client.From(meta).AccountsClient
+	deletedAccountsClient := client.From(meta).AccountsClient
+	ctx, cancel := timeouts.ForDelete(clientsAccount.StopContext(meta), d)
 	defer cancel()
 
 	id, err := cognitiveservicesaccounts.ParseAccountID(d.Id())
@@ -40,7 +43,7 @@ func resourceCognitiveAccountDelete(d *pluginsdk.ResourceData, meta any) error {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
-	if meta.(*clients.Client).Features.CognitiveAccount.PurgeSoftDeleteOnDestroy {
+	if features.From(meta).CognitiveAccount.PurgeSoftDeleteOnDestroy {
 		log.Printf("[DEBUG] Purging %s..", *id)
 		if err := deletedAccountsClient.DeletedAccountsPurgeThenPoll(ctx, deletedAccountId); err != nil {
 			return fmt.Errorf("purging %s: %+v", *id, err)
@@ -71,7 +74,7 @@ func resourceCognitiveAccountDelete(d *pluginsdk.ResourceData, meta any) error {
 			return errors.New("internal-error: context had no deadline")
 		}
 
-		subnetClient := meta.(*clients.Client).Network.Subnets
+		subnetClient := networkClient.From(meta).Subnets
 		log.Printf("[DEBUG] Waiting for Service Association Links to be removed from subnet %s", subnetId.ID())
 
 		stateConf := &pluginsdk.StateChangeConf{

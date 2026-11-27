@@ -15,16 +15,18 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/deletedservice"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	apimanagementClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceApiManagementServiceDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).ApiManagement.ServiceClient
-	deletedServicesClient := meta.(*clients.Client).ApiManagement.DeletedServicesClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := apimanagementClient.From(meta).ServiceClient
+	deletedServicesClient := apimanagementClient.From(meta).DeletedServicesClient
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := apimanagementservice.ParseServiceID(d.Id())
@@ -64,7 +66,7 @@ func resourceApiManagementServiceDelete(d *pluginsdk.ResourceData, meta any) err
 		locationName := location.NormalizeNilable(pointer.To(model.Location))
 
 		// Purge the soft deleted Api Management permanently if the feature flag is enabled
-		if meta.(*clients.Client).Features.ApiManagement.PurgeSoftDeleteOnDestroy {
+		if features.From(meta).ApiManagement.PurgeSoftDeleteOnDestroy {
 			log.Printf("[DEBUG] %s marked for purge - executing purge", *id)
 			deletedServiceId := deletedservice.NewDeletedServiceID(id.SubscriptionId, locationName, id.ServiceName)
 			if _, err := deletedServicesClient.GetByName(ctx, deletedServiceId); err != nil {

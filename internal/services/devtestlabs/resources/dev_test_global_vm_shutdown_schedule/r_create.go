@@ -12,15 +12,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/globalschedules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	devtestlabsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceDevTestGlobalVMShutdownScheduleCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).DevTestLabs.GlobalLabSchedulesClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	client := devtestlabsClient.From(meta).GlobalLabSchedulesClient
+	ctx, cancel := timeouts.ForCreateUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	vmID := d.Get("virtual_machine_id").(string)
@@ -35,7 +37,7 @@ func resourceDevTestGlobalVMShutdownScheduleCreateUpdate(d *pluginsdk.ResourceDa
 	id := globalschedules.NewScheduleID(vmId.SubscriptionId, vmId.ResourceGroupName, name)
 
 	if d.IsNewResource() {
-		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 			existing, err := client.Get(ctx, id, globalschedules.GetOperationOptions{})
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {

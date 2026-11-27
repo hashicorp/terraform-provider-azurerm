@@ -13,7 +13,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	synapseClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -21,9 +23,9 @@ import (
 )
 
 func resourceSynapseManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, meta any) error {
-	workspaceClient := meta.(*clients.Client).Synapse.WorkspacesClient
+	workspaceClient := synapseClient.From(meta).WorkspacesClient
 
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	workspaceId, err := workspaces.ParseWorkspaceID(d.Get("synapse_workspace_id").(string))
@@ -31,7 +33,7 @@ func resourceSynapseManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, meta
 		return err
 	}
 
-	baseURI, err := NewSynapseWorkspaceBaseURI(meta.(*clients.Client).Account.Environment, workspaceId.WorkspaceName)
+	baseURI, err := NewSynapseWorkspaceBaseURI(account.From(meta).Environment, workspaceId.WorkspaceName)
 	if err != nil {
 		return err
 	}
@@ -50,9 +52,9 @@ func resourceSynapseManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, meta
 	id := parse.NewManagedPrivateEndpointID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, virtualNetworkName, d.Get("name").(string))
 
 	dataPlaneID := managedprivateendpoints.NewManagedPrivateEndpointID(baseURI, id.ManagedVirtualNetworkName, id.Name)
-	client := meta.(*clients.Client).Synapse.ManagedPrivateEndpointsClient.Clone(dataPlaneID.BaseURI)
+	client := synapseClient.From(meta).ManagedPrivateEndpointsClient.Clone(dataPlaneID.BaseURI)
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, dataPlaneID)
 		if !response.WasNotFound(existing.HttpResponse) {
 			if err != nil {

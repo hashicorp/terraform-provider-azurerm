@@ -14,7 +14,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redhatopenshift/2025-07-25/openshiftclusters"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	redhatopenshiftClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/redhatopenshift/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -22,8 +25,8 @@ func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.RedHatOpenShift.OpenShiftClustersClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := redhatopenshiftClient.From(metadata.Client).OpenShiftClustersClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			var config RedHatOpenShiftClusterModel
 			if err := metadata.Decode(&config); err != nil {
@@ -32,7 +35,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			id := openshiftclusters.NewOpenShiftClusterID(subscriptionId, config.ResourceGroup, config.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {

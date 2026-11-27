@@ -13,15 +13,17 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplicationversions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	computeClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 )
 
 func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Compute.VirtualMachinesClient
+			client := computeClient.From(metadata.Client).VirtualMachinesClient
 			var state VirtualMachineGalleryApplicationAssignmentResourceResourceModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
@@ -65,7 +67,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 			for _, application := range pointer.From(applications) {
 				if strings.EqualFold(galleryApplicationVersionId.ID(), application.PackageReferenceId) {
 					exists = true
-					if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+					if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 						return tf.ImportAsExistsError(r.ResourceType(), virtualMachineID.ID())
 					}
 				}

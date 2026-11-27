@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	botClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/jackofallops/kermit/sdk/botservice/2021-05-01-preview/botservice"
 )
@@ -19,7 +20,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Bot.BotClient
+			client := botClient.From(metadata.Client).BotClient
 			id, err := commonids.ParseBotServiceID(metadata.ResourceData.Id())
 			if err != nil {
 				return err

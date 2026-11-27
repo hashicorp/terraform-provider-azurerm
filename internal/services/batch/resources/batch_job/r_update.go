@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/data-plane/batch/2022-01-01-15-0/jobs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/batchaccount"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	batchClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/parse"
 )
 
@@ -29,12 +30,12 @@ func (r Resource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			endpoint, err := r.GetEndpoint(ctx, metadata.Client.Batch.AccountClient, batchaccount.NewBatchAccountID(id.SubscriptionId, id.ResourceGroup, id.BatchAccountName))
+			endpoint, err := r.GetEndpoint(ctx, batchClient.From(metadata.Client).AccountClient, batchaccount.NewBatchAccountID(id.SubscriptionId, id.ResourceGroup, id.BatchAccountName))
 			if err != nil {
 				return err
 			}
 
-			client := metadata.Client.Batch.JobsClient.Clone(endpoint)
+			client := batchClient.From(metadata.Client).JobsClient.Clone(endpoint)
 
 			idSDK := jobs.NewJobID(endpoint, id.Name)
 			existing, err := client.JobGet(ctx, idSDK, jobs.DefaultJobGetOperationOptions())

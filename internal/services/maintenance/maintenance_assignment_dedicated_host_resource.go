@@ -17,7 +17,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/configurationassignments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/maintenanceconfigurations"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	maintenanceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -78,8 +80,8 @@ func resourceArmMaintenanceAssignmentDedicatedHost() *pluginsdk.Resource {
 }
 
 func resourceArmMaintenanceAssignmentDedicatedHostCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Maintenance.ConfigurationAssignmentsClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	client := maintenanceClient.From(meta).ConfigurationAssignmentsClient
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	configurationId, err := maintenanceconfigurations.ParseMaintenanceConfigurationID(d.Get("maintenance_configuration_id").(string))
@@ -94,7 +96,7 @@ func resourceArmMaintenanceAssignmentDedicatedHostCreate(d *pluginsdk.ResourceDa
 
 	id := configurationassignments.NewScopedConfigurationAssignmentID(dedicatedHostId.ID(), configurationId.MaintenanceConfigurationName)
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		resp, err := client.GetParent(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(resp.HttpResponse) {
@@ -136,8 +138,8 @@ func resourceArmMaintenanceAssignmentDedicatedHostCreate(d *pluginsdk.ResourceDa
 }
 
 func resourceArmMaintenanceAssignmentDedicatedHostRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Maintenance.ConfigurationAssignmentsClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := maintenanceClient.From(meta).ConfigurationAssignmentsClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := configurationassignments.ParseScopedConfigurationAssignmentID(d.Id())
@@ -186,8 +188,8 @@ func resourceArmMaintenanceAssignmentDedicatedHostRead(d *pluginsdk.ResourceData
 }
 
 func resourceArmMaintenanceAssignmentDedicatedHostDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Maintenance.ConfigurationAssignmentsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := maintenanceClient.From(meta).ConfigurationAssignmentsClient
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := configurationassignments.ParseScopedConfigurationAssignmentID(d.Id())

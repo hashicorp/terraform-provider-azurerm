@@ -9,17 +9,18 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" //nolint:staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/workspaces"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	synapseClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Synapse.WorkspaceClient
-	azureADOnlyAuthenticationsClient := meta.(*clients.Client).Synapse.WorkspaceAzureADOnlyAuthenticationsClient
-	identitySQLControlClient := meta.(*clients.Client).Synapse.WorkspaceManagedIdentitySQLControlSettingsClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	client := synapseClient.From(meta).WorkspaceClient
+	azureADOnlyAuthenticationsClient := synapseClient.From(meta).WorkspaceAzureADOnlyAuthenticationsClient
+	identitySQLControlClient := synapseClient.From(meta).WorkspaceManagedIdentitySQLControlSettingsClient
+	ctx, cancel := timeouts.ForUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := workspaces.ParseWorkspaceID(d.Id())

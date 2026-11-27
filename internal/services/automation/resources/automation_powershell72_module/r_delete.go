@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/module"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	automationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/client"
 )
 
 func (Resource) Delete() sdk.ResourceFunc {
@@ -19,7 +20,7 @@ func (Resource) Delete() sdk.ResourceFunc {
 
 		// the Func returns a function which deletes the Resource Group
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Automation.ModuleClientV2023
+			client := automationClient.From(metadata.Client).ModuleClientV2023
 			id, err := module.ParsePowerShell72ModuleID(metadata.ResourceData.Id())
 			if err != nil {
 				return err

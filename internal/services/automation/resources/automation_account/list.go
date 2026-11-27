@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	automationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -32,7 +33,7 @@ func (r ListResource) Metadata(_ context.Context, _ resource.MetadataRequest, re
 }
 
 func (r ListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
-	client := metadata.Client.Automation.AutomationAccount
+	client := automationClient.From(metadata.Client).AutomationAccount
 
 	var data sdk.DefaultListModel
 	diags := request.Config.Get(ctx, &data)
@@ -87,7 +88,7 @@ func (r ListResource) List(ctx context.Context, request list.ListRequest, stream
 
 			if request.IncludeResource {
 				infoId := agentregistrationinformation.NewAutomationAccountID(id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName)
-				if keysResp, err := metadata.Client.Automation.AgentRegistrationInfoClient.Get(ctx, infoId); err != nil {
+				if keysResp, err := automationClient.From(metadata.Client).AgentRegistrationInfoClient.Get(ctx, infoId); err != nil {
 					sdk.SetErrorDiagnosticAndPushListResult(result, push, "retrieving Automation Account Agent Registration Information", err)
 					return
 				} else {

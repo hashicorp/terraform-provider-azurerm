@@ -8,7 +8,6 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
@@ -40,7 +39,7 @@ type EphemeralResourceWithConfigurationValidation interface {
 }
 
 type EphemeralResourceMetadata struct {
-	Client *clients.Client
+	Client ClientProvider
 
 	SubscriptionId string
 
@@ -53,15 +52,17 @@ func (r *EphemeralResourceMetadata) Defaults(req ephemeral.ConfigureRequest, res
 		return
 	}
 
-	c, ok := req.ProviderData.(*clients.Client)
+	c, ok := req.ProviderData.(ClientProvider)
 	if !ok {
 		resp.Diagnostics.AddError("Client Provider Data Error", fmt.Sprintf("invalid provider data supplied, got %+v", req.ProviderData))
 		return
 	}
 
 	r.Client = c
-	r.SubscriptionId = c.Account.SubscriptionId
-	r.Features = c.Features
+	if acc := c.ClientAccount(); acc != nil {
+		r.SubscriptionId = acc.SubscriptionId
+	}
+	r.Features = c.UserFeatures()
 }
 
 // DecodeOpen performs a Get on the OpenRequest config and attempts to load it into the interface cfg. cfg *must* be a pointer to the struct.

@@ -7,7 +7,8 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	botClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -15,8 +16,8 @@ import (
 )
 
 func resourceArmBotConnectionUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Bot.ConnectionClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	client := botClient.From(meta).ConnectionClient
+	ctx, cancel := timeouts.ForUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := parse.BotConnectionID(d.Id())

@@ -9,7 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/afddomains"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	cdnClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -21,7 +21,7 @@ func importCdnFrontDoorCustomDomainAssociation() pluginsdk.ImporterFunc {
 			return []*pluginsdk.ResourceData{}, err
 		}
 
-		client := meta.(*clients.Client).Cdn.AFDCustomDomainsClient
+		client := cdnClient.From(meta).AFDCustomDomainsClient
 		customDomainId := afddomains.NewCustomDomainID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.AssociationName)
 		resp, err := client.AFDCustomDomainsGet(ctx, customDomainId)
 		if err != nil {

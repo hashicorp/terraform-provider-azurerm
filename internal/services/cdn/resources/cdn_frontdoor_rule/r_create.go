@@ -12,15 +12,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/rules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/rulesets"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	cdnClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/client"
 )
 
 func (c Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 4 * time.Hour,
 		Func: func(ctx context.Context, rmd sdk.ResourceMetaData) error {
-			client := rmd.Client.Cdn.FrontDoorRulesClient
-			ruleSetsClient := rmd.Client.Cdn.FrontDoorRuleSetsClient
+			client := cdnClient.From(rmd.Client).FrontDoorRulesClient
+			ruleSetsClient := cdnClient.From(rmd.Client).FrontDoorRuleSetsClient
 
 			config := CdnFrontDoorRuleResourceModel{}
 			if err := rmd.Decode(&config); err != nil {
@@ -51,7 +53,7 @@ func (c Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("the parent ruleset (%s) was provisioned using batch mode, and individual rules for this cannot be managed by this resource, use `azurerm_cdn_frontdoor_batch_rule_set` instead, or create a non-batch Rule Set with `azurerm_cdn_frontdoor_rule_set`", ruleSetId)
 			}
 
-			if !rmd.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(rmd.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				result, err := client.Get(ctx, id)
 				if err != nil {
 					if !response.WasNotFound(result.HttpResponse) {

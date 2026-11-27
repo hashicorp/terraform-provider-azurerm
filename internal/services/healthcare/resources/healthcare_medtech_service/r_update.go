@@ -13,14 +13,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/iotconnectors"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2024-03-31/workspaces"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	healthcareClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceHealthcareApisMedTechServiceUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceIotConnectorsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	client := healthcareClient.From(meta).HealthcareWorkspaceIotConnectorsClient
+	ctx, cancel := timeouts.ForCreateUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	workspace, err := workspaces.ParseWorkspaceID(d.Get("workspace_id").(string))

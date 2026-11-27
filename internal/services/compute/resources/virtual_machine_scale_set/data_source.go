@@ -20,8 +20,10 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesetvms"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkinterfaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/vmsspublicipaddresses"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	computeClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/helpers"
+	networkClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -144,14 +146,14 @@ func RegisterDataSource() *pluginsdk.Resource {
 }
 
 func dataSourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Compute.VirtualMachineScaleSetsClient
-	instancesClient := meta.(*clients.Client).Compute.VirtualMachineScaleSetVMsClient
-	virtualMachinesClient := meta.(*clients.Client).Compute.VirtualMachinesClient
-	networkInterfacesClient := meta.(*clients.Client).Network.NetworkInterfacesClient
-	publicIPAddressesClient := meta.(*clients.Client).Network.PublicIPAddresses
-	vmssPublicIpAddressesClient := meta.(*clients.Client).Network.VMSSPublicIPAddressesClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := computeClient.From(meta).VirtualMachineScaleSetsClient
+	instancesClient := computeClient.From(meta).VirtualMachineScaleSetVMsClient
+	virtualMachinesClient := computeClient.From(meta).VirtualMachinesClient
+	networkInterfacesClient := networkClient.From(meta).NetworkInterfacesClient
+	publicIPAddressesClient := networkClient.From(meta).PublicIPAddresses
+	vmssPublicIpAddressesClient := networkClient.From(meta).VMSSPublicIPAddressesClient
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id := virtualmachinescalesets.NewVirtualMachineScaleSetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))

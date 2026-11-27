@@ -13,15 +13,18 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/restorepointcollections"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	computeClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/client"
 )
 
 func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Compute.RestorePointCollectionsClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := computeClient.From(metadata.Client).RestorePointCollectionsClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			var config VirtualMachineRestorePointCollectionResourceModel
 			if err := metadata.Decode(&config); err != nil {
@@ -30,7 +33,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			id := restorepointcollections.NewRestorePointCollectionID(subscriptionId, config.ResourceGroup, config.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id, restorepointcollections.DefaultGetOperationOptions())
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {

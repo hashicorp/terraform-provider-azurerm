@@ -12,21 +12,24 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/runtimeenvironment"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	automationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/client"
 )
 
 func (m Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Automation.RuntimeEnvironment
+			client := automationClient.From(metadata.Client).RuntimeEnvironment
 
 			var model AutomationRuntimeEnvironmentResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			subscriptionID := metadata.Client.Account.SubscriptionId
+			subscriptionID := account.From(metadata.Client).SubscriptionId
 
 			autAccId, err := runtimeenvironment.ParseAutomationAccountIDInsensitively(model.AutomationAccountId)
 			if err != nil {
@@ -35,7 +38,7 @@ func (m Resource) Create() sdk.ResourceFunc {
 
 			id := runtimeenvironment.NewRuntimeEnvironmentID(subscriptionID, autAccId.ResourceGroupName, autAccId.AutomationAccountName, model.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)

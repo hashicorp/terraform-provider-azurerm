@@ -9,15 +9,16 @@ import (
 	"net/http"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/blueprints/2018-11-01-preview/assignment"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
+	blueprintsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/blueprints/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceBlueprintAssignmentDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Blueprints.AssignmentsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := blueprintsClient.From(meta).AssignmentsClient
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := assignment.ParseScopedBlueprintAssignmentID(d.Id())

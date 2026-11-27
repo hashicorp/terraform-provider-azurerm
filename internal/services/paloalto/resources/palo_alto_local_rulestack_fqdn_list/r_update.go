@@ -13,14 +13,15 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/localrulestackresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	paloaltoClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/client"
 )
 
 func (r Resource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.FqdnListLocalRulestackResources
-			rulestackClient := metadata.Client.PaloAlto.LocalRulestackResources
+			client := paloaltoClient.From(metadata.Client).FqdnListLocalRulestackResources
+			rulestackClient := paloaltoClient.From(metadata.Client).LocalRulestackResources
 
 			model := LocalRulestackFQDNListModel{}
 

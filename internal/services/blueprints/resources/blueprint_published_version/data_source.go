@@ -11,7 +11,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/blueprints/2018-11-01-preview/publishedblueprint"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	blueprintsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/blueprints/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -91,8 +92,8 @@ func RegisterDataSource() *pluginsdk.Resource {
 }
 
 func dataSourceBlueprintPublishedVersionRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Blueprints.PublishedBlueprintsClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := blueprintsClient.From(meta).PublishedBlueprintsClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id := publishedblueprint.NewScopedVersionID(d.Get("scope_id").(string), d.Get("blueprint_name").(string), d.Get("version").(string))

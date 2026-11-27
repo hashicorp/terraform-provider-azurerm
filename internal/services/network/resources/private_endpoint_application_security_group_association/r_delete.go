@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/privateendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 )
 
@@ -24,7 +25,7 @@ func (p Resource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			privateEndpointClient := metadata.Client.Network.PrivateEndpoints
+			privateEndpointClient := client.From(metadata.Client).PrivateEndpoints
 
 			privateEndpointId, err := privateendpoints.ParsePrivateEndpointID(state.PrivateEndpointId)
 			if err != nil {
@@ -34,7 +35,7 @@ func (p Resource) Delete() sdk.ResourceFunc {
 			locks.ByName(privateEndpointId.PrivateEndpointName, "azurerm_private_endpoint")
 			defer locks.UnlockByName(privateEndpointId.PrivateEndpointName, "azurerm_private_endpoint")
 
-			ASGClient := metadata.Client.Network.ApplicationSecurityGroups
+			ASGClient := client.From(metadata.Client).ApplicationSecurityGroups
 
 			ASGId, err := applicationsecuritygroups.ParseApplicationSecurityGroupID(state.ApplicationSecurityGroupId)
 			if err != nil {

@@ -9,7 +9,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	botClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -17,8 +18,8 @@ import (
 )
 
 func resourceArmBotConnectionRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Bot.ConnectionClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := botClient.From(meta).ConnectionClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := parse.BotConnectionID(d.Id())

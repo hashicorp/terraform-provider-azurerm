@@ -12,8 +12,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networkmanagers"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	networkmanagerClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/networkmanager/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/networkmanager/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/networkmanager/parse"
 )
@@ -26,7 +28,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.NetworkManager.NetworkManagers
+			client := networkmanagerClient.From(metadata.Client).NetworkManagers
 
 			networkManagerId, err := networkmanagers.ParseNetworkManagerID(state.NetworkManagerId)
 			if err != nil {
@@ -53,7 +55,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("unexpected null model of %s", *id)
 			}
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				if !response.WasNotFound(resp.HttpResponse) && resp.Model.Value != nil && len(*resp.Model.Value) != 0 && *(*resp.Model.Value)[0].ConfigurationIds != nil && len(*(*resp.Model.Value)[0].ConfigurationIds) != 0 {
 					return metadata.ResourceRequiresImport(r.ResourceType(), id)
 				}
@@ -70,7 +72,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
-			if metadata.Client.Features.PersistIDOnCreateBeforePollingForCompletion {
+			if features.From(metadata.Client).PersistIDOnCreateBeforePollingForCompletion {
 				metadata.SetID(id)
 			}
 

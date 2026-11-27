@@ -12,7 +12,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/loadtestservice/2025-09-01/playwrightworkspaces"
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	loadtestserviceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadtestservice/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -29,7 +31,7 @@ func (ListResource) Metadata(_ context.Context, _ resource.MetadataRequest, resp
 }
 
 func (ListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
-	client := metadata.Client.LoadTestService.PlaywrightWorkspacesClient
+	client := loadtestserviceClient.From(metadata.Client).PlaywrightWorkspacesClient
 
 	var data sdk.DefaultListModel
 	diags := request.Config.Get(ctx, &data)
@@ -40,7 +42,7 @@ func (ListResource) List(ctx context.Context, request list.ListRequest, stream *
 
 	var results []playwrightworkspaces.PlaywrightWorkspace
 
-	subscriptionID := metadata.Client.Account.SubscriptionId
+	subscriptionID := account.From(metadata.Client).SubscriptionId
 	if !data.SubscriptionId.IsNull() {
 		subscriptionID = data.SubscriptionId.ValueString()
 	}

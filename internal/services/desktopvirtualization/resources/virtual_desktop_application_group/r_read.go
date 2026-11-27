@@ -13,14 +13,15 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2025-10-10/applicationgroup"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2025-10-10/desktop"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2025-10-10/hostpool"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	desktopvirtualizationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceVirtualDesktopApplicationGroupRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).DesktopVirtualization.ApplicationGroupsClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := desktopvirtualizationClient.From(meta).ApplicationGroupsClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := applicationgroup.ParseApplicationGroupID(d.Id())
@@ -52,7 +53,7 @@ func resourceVirtualDesktopApplicationGroupRead(d *pluginsdk.ResourceData, meta 
 		d.Set("type", string(props.ApplicationGroupType))
 		defaultDesktopDisplayName := ""
 		if props.ApplicationGroupType == applicationgroup.ApplicationGroupTypeDesktop {
-			desktopClient := meta.(*clients.Client).DesktopVirtualization.DesktopsClient
+			desktopClient := desktopvirtualizationClient.From(meta).DesktopsClient
 			// default desktop name created for Application Group is 'sessionDesktop'
 			desktopId := desktop.NewDesktopID(id.SubscriptionId, id.ResourceGroupName, id.ApplicationGroupName, "sessionDesktop")
 			desktopResp, err := desktopClient.Get(ctx, desktopId)

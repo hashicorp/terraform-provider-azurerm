@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/policy"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	apimanagementClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -27,7 +27,7 @@ func (ApiManagementPolicyV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		id := policy.NewServiceID(apiMgmtId.SubscriptionId, apiMgmtId.ResourceGroupName, apiMgmtId.ServiceName)
 		rawState["id"] = id.ID()
 
-		client := meta.(*clients.Client).ApiManagement.PolicyClient
+		client := apimanagementClient.From(meta).PolicyClient
 		resp, err := client.Get(ctx, id, policy.GetOperationOptions{Format: pointer.To(policy.PolicyExportFormatXml)})
 		if err != nil {
 			return nil, fmt.Errorf("making Read request for API Management Policy (Resource Group %q / API Management Service %q / API %q): %+v", id.ResourceGroupName, id.ServiceName, "policy", err)

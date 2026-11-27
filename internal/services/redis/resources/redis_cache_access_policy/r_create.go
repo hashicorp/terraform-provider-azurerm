@@ -11,8 +11,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-11-01/rediscacheaccesspolicies"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	redisClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/client"
 )
 
 func (r Resource) Create() sdk.ResourceFunc {
@@ -23,8 +26,8 @@ func (r Resource) Create() sdk.ResourceFunc {
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding %+v", err)
 			}
-			client := metadata.Client.Redis.CacheAccessPoliciesClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := redisClient.From(metadata.Client).CacheAccessPoliciesClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			redisId, err := rediscacheaccesspolicies.ParseRediID(model.RedisCacheID)
 			if err != nil {
@@ -32,7 +35,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 			}
 			id := rediscacheaccesspolicies.NewAccessPolicyID(subscriptionId, redisId.ResourceGroupName, redisId.RedisName, model.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.AccessPolicyGet(ctx, id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for existing %s: %+v", id, err)

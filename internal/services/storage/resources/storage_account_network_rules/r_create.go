@@ -10,17 +10,19 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/storageaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	storageClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceStorageAccountNetworkRulesCreate(d *pluginsdk.ResourceData, meta any) error {
-	tenantId := meta.(*clients.Client).Account.TenantId
-	client := meta.(*clients.Client).Storage.ResourceManager.StorageAccounts
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	tenantId := account.From(meta).TenantId
+	client := storageClient.From(meta).ResourceManager.StorageAccounts
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := commonids.ParseStorageAccountID(d.Get("storage_account_id").(string))
@@ -56,7 +58,7 @@ func resourceStorageAccountNetworkRulesCreate(d *pluginsdk.ResourceData, meta an
 		}
 	}
 	if usesNonDefaultStorageAccountRules {
-		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 			return tf.ImportAsExistsError("azurerm_storage_account_network_rule", id.ID())
 		}
 	}

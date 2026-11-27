@@ -26,6 +26,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	keyvaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"golang.org/x/crypto/pkcs12"
 )
@@ -119,8 +120,8 @@ func (e *KeyVaultCertificateEphemeralResource) Schema(_ context.Context, _ ephem
 }
 
 func (e *KeyVaultCertificateEphemeralResource) Open(ctx context.Context, req ephemeral.OpenRequest, resp *ephemeral.OpenResponse) {
-	keyVaultsClient := e.Client.KeyVault
-	client := e.Client.KeyVault.ManagementClient
+	keyVaultsClient := keyvaultClient.From(e.Client)
+	client := keyvaultClient.From(e.Client).ManagementClient
 	ctx, cancel := context.WithTimeout(ctx, time.Minute*5)
 	defer cancel()
 

@@ -11,16 +11,18 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apitag"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/tag"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	apimanagementClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceApiManagementApiTagCreate(d *pluginsdk.ResourceData, meta any) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	tagClient := meta.(*clients.Client).ApiManagement.TagClient
-	client := meta.(*clients.Client).ApiManagement.ApiTagClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	subscriptionId := account.From(meta).SubscriptionId
+	tagClient := apimanagementClient.From(meta).TagClient
+	client := apimanagementClient.From(meta).ApiTagClient
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	apiId, err := api.ParseApiID(d.Get("api_id").(string))
@@ -32,7 +34,7 @@ func resourceApiManagementApiTagCreate(d *pluginsdk.ResourceData, meta any) erro
 
 	id := apitag.NewApiTagID(subscriptionId, apiId.ResourceGroupName, apiId.ServiceName, apiId.ApiId, d.Get("name").(string))
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		tagExists, err := tagClient.Get(ctx, tagId)
 		if err != nil {
 			if !response.WasNotFound(tagExists.HttpResponse) {

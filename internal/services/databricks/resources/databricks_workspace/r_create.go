@@ -17,25 +17,29 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	databricksClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/client"
+	loadbalancerClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/client"
+	networkClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).DataBricks.WorkspacesClient
-	acClient := meta.(*clients.Client).DataBricks.AccessConnectorClient
-	lbClient := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
-	subnetsClient := meta.(*clients.Client).Network.Subnets
+	client := databricksClient.From(meta).WorkspacesClient
+	acClient := databricksClient.From(meta).AccessConnectorClient
+	lbClient := loadbalancerClient.From(meta).LoadBalancersClient
+	subnetsClient := networkClient.From(meta).Subnets
 
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
-	id := workspaces.NewWorkspaceID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := workspaces.NewWorkspaceID(account.From(meta).SubscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {

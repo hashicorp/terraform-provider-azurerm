@@ -8,7 +8,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	clientsAccount "github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/datalakestore/filesystems"
@@ -25,8 +26,8 @@ func RegisterResource() *pluginsdk.Resource {
 			_, err := filesystems.ParseFileSystemID(id, storageDomainSuffix)
 			return err
 		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta any) ([]*pluginsdk.ResourceData, error) {
-			storageClient := meta.(*clients.Client).Storage
-			subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+			storageClient := client.From(meta)
+			subscriptionId := clientsAccount.From(meta).SubscriptionId
 			ctx, cancel := context.WithTimeout(ctx, d.Timeout(pluginsdk.TimeoutRead))
 			defer cancel()
 

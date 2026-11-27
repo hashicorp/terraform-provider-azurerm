@@ -25,25 +25,27 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/replicationlinks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/transparentdataencryptions"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	mssqlClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/client"
+	resourceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).MSSQL.DatabasesClient
-	serversClient := meta.(*clients.Client).MSSQL.ServersClient
-	securityAlertPoliciesClient := meta.(*clients.Client).MSSQL.DatabaseSecurityAlertPoliciesClient
-	longTermRetentionClient := meta.(*clients.Client).MSSQL.LongTermRetentionPoliciesClient
-	shortTermRetentionClient := meta.(*clients.Client).MSSQL.BackupShortTermRetentionPoliciesClient
-	elasticPoolClient := meta.(*clients.Client).MSSQL.ElasticPoolsClient
-	geoBackupPoliciesClient := meta.(*clients.Client).MSSQL.GeoBackupPoliciesClient
-	replicationLinksClient := meta.(*clients.Client).MSSQL.ReplicationLinksClient
-	resourcesClient := meta.(*clients.Client).Resource.ResourcesClient
-	transparentEncryptionClient := meta.(*clients.Client).MSSQL.TransparentDataEncryptionsClient
+	client := mssqlClient.From(meta).DatabasesClient
+	serversClient := mssqlClient.From(meta).ServersClient
+	securityAlertPoliciesClient := mssqlClient.From(meta).DatabaseSecurityAlertPoliciesClient
+	longTermRetentionClient := mssqlClient.From(meta).LongTermRetentionPoliciesClient
+	shortTermRetentionClient := mssqlClient.From(meta).BackupShortTermRetentionPoliciesClient
+	elasticPoolClient := mssqlClient.From(meta).ElasticPoolsClient
+	geoBackupPoliciesClient := mssqlClient.From(meta).GeoBackupPoliciesClient
+	replicationLinksClient := mssqlClient.From(meta).ReplicationLinksClient
+	resourcesClient := resourceClient.From(meta).ResourcesClient
+	transparentEncryptionClient := mssqlClient.From(meta).TransparentDataEncryptionsClient
 
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreateUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	name := d.Get("name").(string)

@@ -13,13 +13,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resourceconnector/2022-10-27/appliances"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	arcresourcebridgeClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/arcresourcebridge/client"
 )
 
 func (r Resource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ArcResourceBridge.AppliancesClient
+			client := arcresourcebridgeClient.From(metadata.Client).AppliancesClient
 
 			id, err := appliances.ParseApplianceID(metadata.ResourceData.Id())
 			if err != nil {

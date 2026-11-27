@@ -12,14 +12,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxapikey"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxdeployment"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	nginxClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/nginx/client"
 )
 
 func (m Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Nginx.NginxApiKey
+			client := nginxClient.From(metadata.Client).NginxApiKey
 
 			var model APIKeyModel
 			if err := metadata.Decode(&model); err != nil {
@@ -31,7 +34,7 @@ func (m Resource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			subscriptionID := metadata.Client.Account.SubscriptionId
+			subscriptionID := account.From(metadata.Client).SubscriptionId
 			id := nginxapikey.NewApiKeyID(
 				subscriptionID,
 				deployID.ResourceGroupName,
@@ -39,7 +42,7 @@ func (m Resource) Create() sdk.ResourceFunc {
 				model.Name,
 			)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.ApiKeysGet(ctx, id)
 				if !response.WasNotFound(existing.HttpResponse) {
 					if err != nil {

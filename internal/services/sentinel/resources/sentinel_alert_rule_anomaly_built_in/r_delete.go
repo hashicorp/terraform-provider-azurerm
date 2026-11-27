@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/securitymlanalyticssettings"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	sentinelClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/client"
 )
 
 func (r Resource) Delete() sdk.ResourceFunc {
@@ -17,7 +18,7 @@ func (r Resource) Delete() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			// it's not able to delete built-in rules.
-			client := metadata.Client.Sentinel.AnalyticsSettingsClient
+			client := sentinelClient.From(metadata.Client).AnalyticsSettingsClient
 
 			id, err := securitymlanalyticssettings.ParseSecurityMLAnalyticsSettingID(metadata.ResourceData.Id())
 			if err != nil {

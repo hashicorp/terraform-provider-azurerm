@@ -10,13 +10,14 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagediscovery/2025-09-01/storagediscoveryworkspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	storageClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 )
 
 func (r Resource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Storage.StorageDiscoveryWorkspacesClient
+			client := storageClient.From(metadata.Client).StorageDiscoveryWorkspacesClient
 
 			id, err := storagediscoveryworkspaces.ParseProviderStorageDiscoveryWorkspaceID(metadata.ResourceData.Id())
 			if err != nil {

@@ -12,7 +12,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridkubernetes/2024-01-01/connectedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2025-04-01/fluxconfiguration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	arckubernetesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/arckubernetes/client"
+	storageClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/containers"
 )
 
@@ -29,8 +33,8 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.ArcKubernetes.FluxConfigurationClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := arckubernetesClient.From(metadata.Client).FluxConfigurationClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 			clusterID, err := connectedclusters.ParseConnectedClusterID(model.ClusterID)
 			if err != nil {
 				return err
@@ -40,7 +44,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 			connectedClusterId := connectedclusters.NewConnectedClusterID(subscriptionId, clusterID.ResourceGroupName, clusterID.ConnectedClusterName)
 			id := fluxconfiguration.NewScopedFluxConfigurationID(connectedClusterId.ID(), model.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -73,7 +77,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				properties.Properties.Bucket, properties.Properties.ConfigurationProtectedSettings = expandBucketDefinitionModel(model.Bucket)
 			} else if _, exists = metadata.ResourceData.GetOk("blob_storage"); exists {
 				properties.Properties.SourceKind = pointer.To(fluxconfiguration.SourceKindTypeAzureBlob)
-				azureBlob, err := expandArcAzureBlobDefinitionModel(model.BlobStorage, metadata.Client.Storage.StorageDomainSuffix)
+				azureBlob, err := expandArcAzureBlobDefinitionModel(model.BlobStorage, storageClient.From(metadata.Client).StorageDomainSuffix)
 				if err != nil {
 					return fmt.Errorf("expanding `blob_storage`: %+v", err)
 				}

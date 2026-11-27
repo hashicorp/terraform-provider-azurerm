@@ -14,7 +14,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/namespaces"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	relayClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -102,14 +104,14 @@ func (d DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Relay.NamespacesClient
+			client := relayClient.From(metadata.Client).NamespacesClient
 
 			var state RelayNamespaceDataSourceModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			id := namespaces.NewNamespaceID(metadata.Client.Account.SubscriptionId, state.ResourceGroupName, state.Name)
+			id := namespaces.NewNamespaceID(account.From(metadata.Client).SubscriptionId, state.ResourceGroupName, state.Name)
 
 			resp, err := client.Get(ctx, id)
 			if err != nil {

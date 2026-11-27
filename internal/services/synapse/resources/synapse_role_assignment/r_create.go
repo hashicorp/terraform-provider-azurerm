@@ -11,7 +11,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	synapseClient2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/resources/synapse_role_assignment/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -20,10 +22,10 @@ import (
 )
 
 func resourceSynapseRoleAssignmentCreate(d *pluginsdk.ResourceData, meta any) error {
-	synapseClient := meta.(*clients.Client).Synapse
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	synapseClient := synapseClient2.From(meta)
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
-	env := meta.(*clients.Client).Account.Environment
+	env := account.From(meta).Environment
 	synapseDomainSuffix, ok := env.Synapse.DomainSuffix()
 	if !ok {
 		return fmt.Errorf("could not determine the domain suffix for synapse in environment %q: %+v", env.Name, env.Storage)
@@ -65,7 +67,7 @@ func resourceSynapseRoleAssignmentCreate(d *pluginsdk.ResourceData, meta any) er
 		}
 	}
 	// TODO: unpick this/refactor to use ID Formatters
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		if listResp.Value != nil && len(*listResp.Value) != 0 {
 			existing := (*listResp.Value)[0]
 			if !response.WasNotFound(existing.Response.Response) {

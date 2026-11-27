@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2026-03-18/domains"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2026-03-18/emailservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	communicationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/communication/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/communication/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -21,7 +22,7 @@ func (Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Communication.DomainClient
+			client := communicationClient.From(metadata.Client).DomainClient
 
 			state := EmailCommunicationServiceDomainResourceModel{}
 

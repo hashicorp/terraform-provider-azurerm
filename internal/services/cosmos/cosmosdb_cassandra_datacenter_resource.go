@@ -18,8 +18,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2023-04-15/managedcassandras"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	cosmosClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -144,8 +146,8 @@ func resourceCassandraDatacenter() *pluginsdk.Resource {
 }
 
 func resourceCassandraDatacenterCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cosmos.ManagedCassandraClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	client := cosmosClient.From(meta).ManagedCassandraClient
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	clusterId, err := managedcassandras.ParseCassandraClusterID(d.Get("cassandra_cluster_id").(string))
@@ -154,7 +156,7 @@ func resourceCassandraDatacenterCreate(d *pluginsdk.ResourceData, meta any) erro
 	}
 	id := managedcassandras.NewDataCenterID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.CassandraClusterName, d.Get("name").(string))
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.CassandraDataCentersGet(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -203,8 +205,8 @@ func resourceCassandraDatacenterCreate(d *pluginsdk.ResourceData, meta any) erro
 }
 
 func resourceCassandraDatacenterRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cosmos.ManagedCassandraClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := cosmosClient.From(meta).ManagedCassandraClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := managedcassandras.ParseDataCenterID(d.Id())
@@ -247,8 +249,8 @@ func resourceCassandraDatacenterRead(d *pluginsdk.ResourceData, meta any) error 
 }
 
 func resourceCassandraDatacenterUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cosmos.ManagedCassandraClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	client := cosmosClient.From(meta).ManagedCassandraClient
+	ctx, cancel := timeouts.ForUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := managedcassandras.ParseDataCenterID(d.Id())
@@ -303,8 +305,8 @@ func resourceCassandraDatacenterUpdate(d *pluginsdk.ResourceData, meta any) erro
 }
 
 func resourceCassandraDatacenterDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cosmos.ManagedCassandraClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := cosmosClient.From(meta).ManagedCassandraClient
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := managedcassandras.ParseDataCenterID(d.Id())

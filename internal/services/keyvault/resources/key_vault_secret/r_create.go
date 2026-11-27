@@ -17,15 +17,17 @@ import (
 	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/secrets"
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	keyvaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta any) error {
-	keyVaultsClient := meta.(*clients.Client).KeyVault
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	keyVaultsClient := keyvaultClient.From(meta)
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	name := d.Get("name").(string)
@@ -39,11 +41,11 @@ func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta any) error {
 		return fmt.Errorf("looking up Secret %q vault url from id %q: %+v", name, *keyVaultId, err)
 	}
 
-	client := meta.(*clients.Client).KeyVault.DataPlaneKeyVaultClient.Secrets.Clone(*keyVaultBaseUrl)
+	client := keyvaultClient.From(meta).DataPlaneKeyVaultClient.Secrets.Clone(*keyVaultBaseUrl)
 	secretId := secrets.NewSecretID(*keyVaultBaseUrl, name)
 	secretVersionId := secrets.NewSecretversionID(secretId.BaseURI, secretId.SecretName, "")
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.GetSecret(ctx, secretVersionId)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -89,8 +91,8 @@ func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta any) error {
 	if resp, err := client.SetSecret(ctx, secretId, parameters); err != nil {
 		// In the case that the Secret already exists in a Soft Deleted / Recoverable state we check if `recover_soft_deleted_key_vaults` is set
 		// and attempt recovery where appropriate
-		if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedSecrets && response.WasConflict(resp.HttpResponse) {
-			deletedSecretsClient := meta.(*clients.Client).KeyVault.DataPlaneKeyVaultClient.DeletedSecrets.Clone(*keyVaultBaseUrl)
+		if features.From(meta).KeyVault.RecoverSoftDeletedSecrets && response.WasConflict(resp.HttpResponse) {
+			deletedSecretsClient := keyvaultClient.From(meta).DataPlaneKeyVaultClient.DeletedSecrets.Clone(*keyVaultBaseUrl)
 			deletedSecretId := deletedsecrets.NewDeletedsecretID(*keyVaultBaseUrl, name)
 			recoveredSecret, err := deletedSecretsClient.RecoverDeletedSecret(ctx, deletedSecretId)
 			if err != nil {

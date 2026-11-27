@@ -8,14 +8,15 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/fileshares"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceStorageShareDelete(d *pluginsdk.ResourceData, meta any) error {
-	fileSharesClient := meta.(*clients.Client).Storage.ResourceManager.FileShares
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	fileSharesClient := client.From(meta).ResourceManager.FileShares
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := fileshares.ParseShareID(d.Id())

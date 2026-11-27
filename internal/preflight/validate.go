@@ -15,6 +15,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	preflightClient "github.com/hashicorp/terraform-provider-azurerm/internal/preflight/client"
 	preflightsdk "github.com/hashicorp/terraform-provider-azurerm/internal/preflight/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
@@ -81,7 +82,7 @@ func buildValidationRequest(location *string, id resourceids.ResourceId, provide
 }
 
 func (v ValidationRequest) ValidateResource(ctx context.Context, metadata sdk.ResourceMetaData) error {
-	client := metadata.Client.Preflight.PreflightClient
+	client := preflightClient.From(metadata.Client).PreflightClient
 
 	input := preflightsdk.ResourceValidationRequest{
 		Location:       v.Location,

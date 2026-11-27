@@ -11,16 +11,18 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2025-08-01/vaults"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/backupprotecteditems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protecteditems"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	recoveryservicesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceRecoveryServicesVaultDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).RecoveryServices.VaultsClient
-	protectedItemsClient := meta.(*clients.Client).RecoveryServices.ProtectedItemsGroupClient
-	protectedItemClient := meta.(*clients.Client).RecoveryServices.ProtectedItemsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := recoveryservicesClient.From(meta).VaultsClient
+	protectedItemsClient := recoveryservicesClient.From(meta).ProtectedItemsGroupClient
+	protectedItemClient := recoveryservicesClient.From(meta).ProtectedItemsClient
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := vaults.ParseVaultID(d.Id())
@@ -28,7 +30,7 @@ func resourceRecoveryServicesVaultDelete(d *pluginsdk.ResourceData, meta any) er
 		return err
 	}
 
-	if meta.(*clients.Client).Features.RecoveryService.PurgeProtectedItemsFromVaultOnDestroy {
+	if features.From(meta).RecoveryService.PurgeProtectedItemsFromVaultOnDestroy {
 		log.Printf("[DEBUG] Purging Protected Items from %s", id)
 
 		vaultId := backupprotecteditems.NewVaultID(id.SubscriptionId, id.ResourceGroupName, id.VaultName)

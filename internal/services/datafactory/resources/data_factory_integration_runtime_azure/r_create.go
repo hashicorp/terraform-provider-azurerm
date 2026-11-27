@@ -16,7 +16,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/integrationruntimes"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	datafactoryClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -24,11 +26,11 @@ import (
 )
 
 func resourceDataFactoryIntegrationRuntimeAzureCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).DataFactory.IntegrationRuntimesClient
-	enableInteractiveQueryClient := meta.(*clients.Client).DataFactory.IntegrationRuntimeEnableInteractiveQueryClient
-	managedVirtualNetworksClient := meta.(*clients.Client).DataFactory.ManagedVirtualNetworks
+	client := datafactoryClient.From(meta).IntegrationRuntimesClient
+	enableInteractiveQueryClient := datafactoryClient.From(meta).IntegrationRuntimeEnableInteractiveQueryClient
+	managedVirtualNetworksClient := datafactoryClient.From(meta).ManagedVirtualNetworks
 
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	dataFactoryId, err := factories.ParseFactoryID(d.Get("data_factory_id").(string))
@@ -38,7 +40,7 @@ func resourceDataFactoryIntegrationRuntimeAzureCreate(d *pluginsdk.ResourceData,
 
 	id := integrationruntimes.NewIntegrationRuntimeID(dataFactoryId.SubscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, d.Get("name").(string))
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id, integrationruntimes.DefaultGetOperationOptions())
 		if err != nil && !response.WasNotFound(existing.HttpResponse) {
 			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)

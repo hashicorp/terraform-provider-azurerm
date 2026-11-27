@@ -12,7 +12,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/data-plane/batch/2022-01-01-15-0/jobs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/batchaccount"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/pool"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	batchClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/parse"
 )
 
@@ -30,15 +32,15 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			endpoint, err := r.GetEndpoint(ctx, metadata.Client.Batch.AccountClient, batchaccount.NewBatchAccountID(poolId.SubscriptionId, poolId.ResourceGroupName, poolId.BatchAccountName))
+			endpoint, err := r.GetEndpoint(ctx, batchClient.From(metadata.Client).AccountClient, batchaccount.NewBatchAccountID(poolId.SubscriptionId, poolId.ResourceGroupName, poolId.BatchAccountName))
 			if err != nil {
 				return err
 			}
-			client := metadata.Client.Batch.JobsClient.Clone(endpoint)
+			client := batchClient.From(metadata.Client).JobsClient.Clone(endpoint)
 
 			id := parse.NewJobID(poolId.SubscriptionId, poolId.ResourceGroupName, poolId.BatchAccountName, poolId.PoolName, model.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				idSDK := jobs.NewJobID(endpoint, model.Name)
 				existing, err := client.JobGet(ctx, idSDK, jobs.DefaultJobGetOperationOptions())
 				if err != nil {

@@ -11,14 +11,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/iotcentral/2021-11-01-preview/apps"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	iotcentralClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/client"
 )
 
 func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.IoTCentral.AppsClient
+			client := iotcentralClient.From(metadata.Client).AppsClient
 			var state IotCentralApplicationNetworkRuleSetModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
@@ -44,7 +46,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 			if property := model.Properties; property != nil {
 				if property.NetworkRuleSets != nil {
 					if !isNetworkRuleSetNullified(*property.NetworkRuleSets) {
-						if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+						if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 							return tf.ImportAsExistsError(r.ResourceType(), id.ID())
 						}
 					}

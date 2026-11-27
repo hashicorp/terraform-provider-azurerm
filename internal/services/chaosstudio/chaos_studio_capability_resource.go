@@ -14,7 +14,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/chaosstudio/2023-11-01/capabilities"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/chaosstudio/2023-11-01/capabilitytypes"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	chaosstudioClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/chaosstudio/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -68,10 +71,10 @@ func (r ChaosStudioCapabilityResource) Attributes() map[string]*pluginsdk.Schema
 func (r ChaosStudioCapabilityResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ChaosStudio.V20231101.Capabilities
-			capabilityTypesClient := metadata.Client.ChaosStudio.V20231101.CapabilityTypes
-			targetsClient := metadata.Client.ChaosStudio.V20231101.Targets
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := chaosstudioClient.From(metadata.Client).V20231101.Capabilities
+			capabilityTypesClient := chaosstudioClient.From(metadata.Client).V20231101.CapabilityTypes
+			targetsClient := chaosstudioClient.From(metadata.Client).V20231101.Targets
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			var config ChaosStudioCapabilityResourceSchema
 
@@ -117,7 +120,7 @@ func (r ChaosStudioCapabilityResource) Create() sdk.ResourceFunc {
 
 			id := commonids.NewChaosStudioCapabilityID(targetId.Scope, targetId.TargetName, config.CapabilityType)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {
@@ -150,7 +153,7 @@ func (r ChaosStudioCapabilityResource) Create() sdk.ResourceFunc {
 func (r ChaosStudioCapabilityResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ChaosStudio.V20231101.Capabilities
+			client := chaosstudioClient.From(metadata.Client).V20231101.Capabilities
 			schema := ChaosStudioCapabilityResourceSchema{}
 
 			id, err := commonids.ParseChaosStudioCapabilityID(metadata.ResourceData.Id())
@@ -186,7 +189,7 @@ func (r ChaosStudioCapabilityResource) Read() sdk.ResourceFunc {
 func (r ChaosStudioCapabilityResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ChaosStudio.V20231101.Capabilities
+			client := chaosstudioClient.From(metadata.Client).V20231101.Capabilities
 
 			id, err := commonids.ParseChaosStudioCapabilityID(metadata.ResourceData.Id())
 			if err != nil {

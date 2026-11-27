@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	mssqlmanagedinstanceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/parse"
 )
 
@@ -17,7 +18,7 @@ func (r Resource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MSSQLManagedInstance.ManagedInstanceStartStopSchedulesClient
+			client := mssqlmanagedinstanceClient.From(metadata.Client).ManagedInstanceStartStopSchedulesClient
 
 			id, err := parse.ManagedInstanceStartStopScheduleID(metadata.ResourceData.Id())
 			if err != nil {

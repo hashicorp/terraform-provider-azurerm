@@ -15,14 +15,14 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/restorabledroppeddatabases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/sqlvulnerabilityassessmentssettings"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-func resourceMssqlServerSetFlatten(ctx context.Context, d *pluginsdk.ResourceData, id *commonids.SqlServerId, model *servers.Server, metaClient *clients.Client) error {
-	connectionClient := metaClient.MSSQL.ServerConnectionPoliciesClient
-	restorableDroppedDatabasesClient := metaClient.MSSQL.RestorableDroppedDatabasesClient
-	vaClient := metaClient.MSSQL.SqlVulnerabilityAssessmentSettingsClient
+func resourceMssqlServerSetFlatten(ctx context.Context, d *pluginsdk.ResourceData, id *commonids.SqlServerId, model *servers.Server, metaClient any) error {
+	connectionClient := client.From(metaClient).ServerConnectionPoliciesClient
+	restorableDroppedDatabasesClient := client.From(metaClient).RestorableDroppedDatabasesClient
+	vaClient := client.From(metaClient).SqlVulnerabilityAssessmentSettingsClient
 
 	d.Set("name", id.ServerName)
 	d.Set("resource_group_name", id.ResourceGroupName)

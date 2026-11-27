@@ -12,7 +12,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/account"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/share"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/synchronizationsetting"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	clientsAccount "github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	datashareClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -90,10 +91,10 @@ func RegisterDataSource() *pluginsdk.Resource {
 }
 
 func dataSourceDataShareRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).DataShare.SharesClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	syncClient := meta.(*clients.Client).DataShare.SynchronizationClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := datashareClient.From(meta).SharesClient
+	subscriptionId := clientsAccount.From(meta).SubscriptionId
+	syncClient := datashareClient.From(meta).SynchronizationClient
+	ctx, cancel := timeouts.ForRead(clientsAccount.StopContext(meta), d)
 	defer cancel()
 
 	name := d.Get("name").(string)

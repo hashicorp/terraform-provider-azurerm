@@ -13,7 +13,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplications"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	computeClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -25,8 +28,8 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.Compute.GalleryApplicationsClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := computeClient.From(metadata.Client).GalleryApplicationsClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			galleryId, err := commonids.ParseSharedImageGalleryID(state.GalleryId)
 			if err != nil {
@@ -35,7 +38,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			id := galleryapplications.NewApplicationID(subscriptionId, galleryId.ResourceGroupName, galleryId.GalleryName, state.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for the presence of existing %q: %+v", id, err)

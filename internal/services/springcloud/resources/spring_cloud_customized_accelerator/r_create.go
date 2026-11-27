@@ -11,7 +11,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	springcloudClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/client"
 )
 
 func (s Resource) Create() sdk.ResourceFunc {
@@ -23,14 +25,14 @@ func (s Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.AppPlatform.AppPlatformClient
+			client := springcloudClient.From(metadata.Client).AppPlatformClient
 			springAcceleratorId, err := appplatform.ParseApplicationAcceleratorID(model.SpringCloudAcceleratorId)
 			if err != nil {
 				return fmt.Errorf("parsing spring service ID: %+v", err)
 			}
 			id := appplatform.NewCustomizedAcceleratorID(springAcceleratorId.SubscriptionId, springAcceleratorId.ResourceGroupName, springAcceleratorId.SpringName, springAcceleratorId.ApplicationAcceleratorName, model.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.CustomizedAcceleratorsGet(ctx, id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for existing %s: %+v", id, err)

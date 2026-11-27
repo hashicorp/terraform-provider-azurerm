@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/serverdnsaliases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	mssqlClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/client"
 )
 
 func (m Resource) Read() sdk.ResourceFunc {
@@ -22,7 +23,7 @@ func (m Resource) Read() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			client := metadata.Client.MSSQL.ServerDNSAliasClient
+			client := mssqlClient.From(metadata.Client).ServerDNSAliasClient
 			alias, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(alias.HttpResponse) {

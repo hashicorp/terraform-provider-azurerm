@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2024-05-01/configurationstores"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	appconfigurationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -98,12 +99,12 @@ func (k DataSource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			configurationStoreEndpoint, err := metadata.Client.AppConfiguration.EndpointForConfigurationStore(ctx, *configurationStoreId)
+			configurationStoreEndpoint, err := appconfigurationClient.From(metadata.Client).EndpointForConfigurationStore(ctx, *configurationStoreId)
 			if err != nil {
 				return fmt.Errorf("retrieving Endpoint for feature %q in %q: %s", model.Key, *configurationStoreId, err)
 			}
 
-			client, err := metadata.Client.AppConfiguration.DataPlaneClientWithEndpoint(*configurationStoreEndpoint)
+			client, err := appconfigurationClient.From(metadata.Client).DataPlaneClientWithEndpoint(*configurationStoreEndpoint)
 			if err != nil {
 				return err
 			}

@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/resourceguardresources"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/resourceguards"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	dataprotectionClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/client"
 )
 
 func (r Resource) Delete() sdk.ResourceFunc {
@@ -24,7 +25,7 @@ func (r Resource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.DataProtection.ResourceGuardProxyClient
+			client := dataprotectionClient.From(metadata.Client).ResourceGuardProxyClient
 
 			id, err := resourceguardproxybaseresources.ParseBackupResourceGuardProxyID(metadata.ResourceData.Id())
 			if err != nil {

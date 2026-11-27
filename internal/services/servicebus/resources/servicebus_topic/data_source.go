@@ -10,7 +10,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/namespaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/topics"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	servicebusClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -96,8 +97,8 @@ func RegisterDataSource() *pluginsdk.Resource {
 }
 
 func dataSourceServiceBusTopicRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).ServiceBus.TopicsClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := servicebusClient.From(meta).TopicsClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	namespaceId, err := topics.ParseNamespaceID(d.Get("namespace_id").(string))
@@ -144,7 +145,7 @@ func dataSourceServiceBusTopicRead(d *pluginsdk.ResourceData, meta any) error {
 				// if the topic is in a premium namespace and partitioning is enabled then the
 				// max size returned by the API will be 16 times greater than the value set
 				if partitioning := props.EnablePartitioning; partitioning != nil && *partitioning {
-					namespacesClient := meta.(*clients.Client).ServiceBus.NamespacesClient
+					namespacesClient := servicebusClient.From(meta).NamespacesClient
 					namespaceId := namespaces.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
 					namespace, err := namespacesClient.Get(ctx, namespaceId)
 					if err != nil {

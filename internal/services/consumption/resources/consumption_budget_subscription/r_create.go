@@ -12,7 +12,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/consumption/2019-10-01/budgets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	consumptionClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/helpers"
 )
 
@@ -20,7 +22,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Consumption.BudgetsClient
+			client := consumptionClient.From(metadata.Client).BudgetsClient
 
 			var config SubscriptionConsumptionBudgetModel
 			if err := metadata.Decode(&config); err != nil {
@@ -29,7 +31,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			id := budgets.NewScopedBudgetID(config.SubscriptionId, config.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {

@@ -12,11 +12,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/accountconnectionresource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	cognitiveClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/client"
 )
 
 func CognitiveAccountConnectionImporter(expectedAuthType accountconnectionresource.ConnectionAuthType, resourceType string) sdk.ResourceRunFunc {
 	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-		client := metadata.Client.Cognitive.AccountConnectionResourceClient
+		client := cognitiveClient.From(metadata.Client).AccountConnectionResourceClient
 
 		id, err := accountconnectionresource.ParseConnectionID(metadata.ResourceData.Id())
 		if err != nil {

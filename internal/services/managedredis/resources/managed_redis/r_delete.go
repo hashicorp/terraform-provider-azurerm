@@ -11,14 +11,15 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/databases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/client"
 )
 
 func (r Resource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			clusterClient := metadata.Client.ManagedRedis.Client
-			dbClient := metadata.Client.ManagedRedis.DatabaseClient
+			clusterClient := client.From(metadata.Client).Client
+			dbClient := client.From(metadata.Client).DatabaseClient
 
 			clusterId, err := redisenterprise.ParseRedisEnterpriseID(metadata.ResourceData.Id())
 			if err != nil {

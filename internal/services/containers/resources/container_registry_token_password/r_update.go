@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/tokens"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 )
 
@@ -38,7 +39,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 			locks.ByID(tokenId.ID())
 			defer locks.UnlockByID(tokenId.ID())
 
-			genPasswords, err := r.generatePassword(ctx, *metadata.Client.Containers, tokenId, *passwords)
+			genPasswords, err := r.generatePassword(ctx, *client.From(metadata.Client), tokenId, *passwords)
 			if err != nil {
 				return err
 			}

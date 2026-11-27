@@ -8,14 +8,15 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/hybridconnections"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	relayClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceRelayHybridConnectionAuthorizationRuleRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Relay.HybridConnectionsClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := relayClient.From(meta).HybridConnectionsClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := hybridconnections.ParseHybridConnectionAuthorizationRuleID(d.Id())

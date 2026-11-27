@@ -11,14 +11,15 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/management/2020-05-01/managementgroups"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	managementgroupClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceManagementGroupSubscriptionAssociationDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).ManagementGroups.GroupsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := managementgroupClient.From(meta).GroupsClient
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := managementgroups.ParseSubscriptionID(d.Id())
@@ -43,7 +44,7 @@ func resourceManagementGroupSubscriptionAssociationDelete(d *pluginsdk.ResourceD
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"Exists"},
 		Target:                    []string{"NotFound"},
-		Refresh:                   subscriptionAssociationRefreshFunc(ctx, meta.(*clients.Client).ManagementGroups.GroupsClient, *id),
+		Refresh:                   subscriptionAssociationRefreshFunc(ctx, managementgroupClient.From(meta).GroupsClient, *id),
 		MinTimeout:                10 * time.Second,
 		ContinuousTargetOccurence: 10,
 		Timeout:                   time.Until(deadline),

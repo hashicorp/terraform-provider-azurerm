@@ -7,14 +7,15 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/databases"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	mysqlClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceMySqlFlexibleDatabaseDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).MySQL.FlexibleServers.Databases
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := mysqlClient.From(meta).FlexibleServers.Databases
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := databases.ParseDatabaseID(d.Id())

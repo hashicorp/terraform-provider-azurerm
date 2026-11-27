@@ -14,8 +14,10 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/workflows"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/workflowtriggers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	logicClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -31,8 +33,8 @@ func ResourceLogicAppTriggerUpdate(d *pluginsdk.ResourceData, meta any, workflow
 }
 
 func ResourceLogicAppComponentUpdate(d *pluginsdk.ResourceData, meta any, kind string, propertyName string, workflowId workflows.WorkflowId, resourceId string, name string, vals map[string]any, resourceName string) error {
-	client := meta.(*clients.Client).Logic.WorkflowClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	client := logicClient.From(meta).WorkflowClient
+	ctx, cancel := timeouts.ForUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	log.Printf("[DEBUG] Preparing arguments for Logic App Workspace %s %s %q", workflowId, kind, name)
@@ -64,7 +66,7 @@ func ResourceLogicAppComponentUpdate(d *pluginsdk.ResourceData, meta any, kind s
 
 	if d.IsNewResource() {
 		if _, hasExisting := vs[name]; hasExisting {
-			if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				return tf.ImportAsExistsError(resourceName, resourceId)
 			}
 		}
@@ -114,8 +116,8 @@ func ResourceLogicAppTriggerRemove(d *pluginsdk.ResourceData, meta any, id workf
 }
 
 func ResourceLogicAppComponentRemove(d *pluginsdk.ResourceData, meta any, kind, propertyName string, id workflows.WorkflowId, name string) error {
-	client := meta.(*clients.Client).Logic.WorkflowClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := logicClient.From(meta).WorkflowClient
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	log.Printf("[DEBUG] Preparing arguments for Logic App Workspace %q (Resource Group %q) %s %q Deletion", id.WorkflowName, id.ResourceGroupName, kind, name)
@@ -220,8 +222,8 @@ func IsCallbackType(tType string) bool {
 }
 
 func RetreiveLogicAppTriggerCallbackUrl(d *pluginsdk.ResourceData, meta any, id workflowtriggers.TriggerId) (*string, error) {
-	client := meta.(*clients.Client).Logic
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := logicClient.From(meta)
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	log.Printf("[DEBUG] Preparing arguments for Logic App Workspace %q (Resource Group %q) %s %q", id.WorkflowName, id.ResourceGroupName, "trigger", id.TriggerName)
@@ -243,8 +245,8 @@ func RetreiveLogicAppTriggerCallbackUrl(d *pluginsdk.ResourceData, meta any, id 
 }
 
 func RetrieveLogicAppComponent(d *pluginsdk.ResourceData, meta any, kind, propertyName string, id workflows.WorkflowId, name string) (*map[string]any, *workflows.Workflow, error) {
-	client := meta.(*clients.Client).Logic.WorkflowClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := logicClient.From(meta).WorkflowClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	log.Printf("[DEBUG] Preparing arguments for %s: %s %q", id.ID(), kind, name)

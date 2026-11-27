@@ -12,14 +12,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/dscconfiguration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	automationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceAutomationDscConfigurationRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Automation.DscConfiguration
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := automationClient.From(meta).DscConfiguration
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := dscconfiguration.ParseConfigurationID(d.Id())

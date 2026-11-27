@@ -12,13 +12,14 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/localrulestackresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	paloaltoClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/client"
 )
 
 func (r Resource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.LocalRulesResources
+			client := paloaltoClient.From(metadata.Client).LocalRulesResources
 
 			id, err := localrulesresources.ParseLocalRuleID(metadata.ResourceData.Id())
 			if err != nil {

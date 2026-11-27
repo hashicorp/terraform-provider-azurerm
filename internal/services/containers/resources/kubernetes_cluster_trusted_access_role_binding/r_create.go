@@ -11,21 +11,24 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-07-01/trustedaccess"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	containersClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
 )
 
 func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Containers.TrustedAccessClient
+			client := containersClient.From(metadata.Client).TrustedAccessClient
 
 			var config KubernetesClusterTrustedAccessRoleBindingResourceSchema
 			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			kubernetesClusterId, err := commonids.ParseKubernetesClusterID(config.KubernetesClusterId)
 			if err != nil {
@@ -34,7 +37,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			id := trustedaccess.NewTrustedAccessRoleBindingID(subscriptionId, kubernetesClusterId.ResourceGroupName, kubernetesClusterId.ManagedClusterName, config.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.RoleBindingsGet(ctx, id)
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {

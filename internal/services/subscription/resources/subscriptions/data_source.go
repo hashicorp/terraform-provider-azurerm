@@ -11,7 +11,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -87,9 +88,8 @@ func RegisterDataSource() *pluginsdk.Resource {
 }
 
 func dataSourceSubscriptionsRead(d *pluginsdk.ResourceData, meta any) error {
-	armClient := meta.(*clients.Client)
-	subClient := armClient.Subscription.SubscriptionsClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	subClient := client.From(meta).SubscriptionsClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	displayNamePrefix := strings.ToLower(d.Get("display_name_prefix").(string))
@@ -142,7 +142,7 @@ func dataSourceSubscriptionsRead(d *pluginsdk.ResourceData, meta any) error {
 		})
 	}
 
-	d.SetId("subscriptions-" + armClient.Account.TenantId)
+	d.SetId("subscriptions-" + account.From(meta).TenantId)
 	if err = d.Set("subscriptions", subscriptions); err != nil {
 		return fmt.Errorf("setting `subscriptions`: %+v", err)
 	}

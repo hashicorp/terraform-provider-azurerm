@@ -15,14 +15,15 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2026-10-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2026-10-01/virtualendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	postgresClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/client"
 )
 
 func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Postgres.VirtualEndpointClient
-			flexibleServerClient := metadata.Client.Postgres.FlexibleServersClient
+			client := postgresClient.From(metadata.Client).VirtualEndpointClient
+			flexibleServerClient := postgresClient.From(metadata.Client).FlexibleServersClient
 
 			state := PostgresqlFlexibleServerVirtualEndpointModel{}
 

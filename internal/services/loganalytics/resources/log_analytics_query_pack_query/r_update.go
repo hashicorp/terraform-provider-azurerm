@@ -11,13 +11,14 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2019-09-01/querypackqueries"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	loganalyticsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/client"
 )
 
 func (r Resource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.LogAnalytics.QueryPackQueriesClient
+			client := loganalyticsClient.From(metadata.Client).QueryPackQueriesClient
 
 			id, err := querypackqueries.ParseQueryID(metadata.ResourceData.Id())
 			if err != nil {

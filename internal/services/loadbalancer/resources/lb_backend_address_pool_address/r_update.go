@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -19,7 +20,7 @@ import (
 func (r Resource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			lbClient := metadata.Client.LoadBalancers.LoadBalancersClient
+			lbClient := client.From(metadata.Client).LoadBalancersClient
 			id, err := parse.BackendAddressPoolAddressID(metadata.ResourceData.Id())
 			if err != nil {
 				return err

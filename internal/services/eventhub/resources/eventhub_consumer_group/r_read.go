@@ -11,12 +11,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/consumergroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	eventhubClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/client"
 )
 
 func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Eventhub.ConsumerGroupClient
+			client := eventhubClient.From(metadata.Client).ConsumerGroupClient
 			id, err := consumergroups.ParseConsumerGroupID(metadata.ResourceData.Id())
 			if err != nil {
 				return err

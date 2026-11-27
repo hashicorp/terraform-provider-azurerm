@@ -21,18 +21,19 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/signupsettings"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/tenantaccess"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	apimanagementClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).ApiManagement.ServiceClient
-	signInClient := meta.(*clients.Client).ApiManagement.SignInClient
-	signUpClient := meta.(*clients.Client).ApiManagement.SignUpClient
-	delegationClient := meta.(*clients.Client).ApiManagement.DelegationSettingsClient
-	tenantAccessClient := meta.(*clients.Client).ApiManagement.TenantAccessClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := apimanagementClient.From(meta).ServiceClient
+	signInClient := apimanagementClient.From(meta).SignInClient
+	signUpClient := apimanagementClient.From(meta).SignUpClient
+	delegationClient := apimanagementClient.From(meta).DelegationSettingsClient
+	tenantAccessClient := apimanagementClient.From(meta).TenantAccessClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := apimanagementservice.ParseServiceID(d.Id())
@@ -51,7 +52,7 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta any) error
 	}
 
 	policyServiceId := policy.NewServiceID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName)
-	policyClient := meta.(*clients.Client).ApiManagement.PolicyClient
+	policyClient := apimanagementClient.From(meta).PolicyClient
 	policy, err := policyClient.Get(ctx, policyServiceId, policy.GetOperationOptions{Format: pointer.To(policy.PolicyExportFormatXml)})
 	if err != nil {
 		if !response.WasNotFound(policy.HttpResponse) {

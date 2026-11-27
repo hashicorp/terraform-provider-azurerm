@@ -11,15 +11,17 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/managedservices/2022-10-01/registrationassignments"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	lighthouseClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/lighthouse/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceLighthouseAssignmentCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Lighthouse.AssignmentsClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	client := lighthouseClient.From(meta).AssignmentsClient
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	lighthouseAssignmentName := d.Get("name").(string)
@@ -37,7 +39,7 @@ func resourceLighthouseAssignmentCreate(d *pluginsdk.ResourceData, meta any) err
 		ExpandRegistrationDefinition: pointer.To(false),
 	}
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id, options)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {

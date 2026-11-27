@@ -13,7 +13,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/publicmaintenanceconfigurations"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	maintenanceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -113,9 +114,9 @@ func dataSourcePublicMaintenanceConfigurations() *pluginsdk.Resource {
 }
 
 func dataSourcePublicMaintenanceConfigurationsRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Maintenance.PublicConfigurationsClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := maintenanceClient.From(meta).PublicConfigurationsClient
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	subId := commonids.NewSubscriptionID(subscriptionId)

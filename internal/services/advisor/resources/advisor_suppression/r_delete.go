@@ -10,13 +10,14 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/advisor/2023-01-01/suppressions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	advisorClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/advisor/client"
 )
 
 func (Resource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Advisor.SuppressionsClient
+			client := advisorClient.From(metadata.Client).SuppressionsClient
 
 			id, err := suppressions.ParseScopedSuppressionID(metadata.ResourceData.Id())
 			if err != nil {

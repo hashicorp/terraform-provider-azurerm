@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	managedidentityClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedidentity/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -28,7 +29,7 @@ func (UserAssignedIdentityListResource) ResourceFunc() *pluginsdk.Resource {
 }
 
 func (UserAssignedIdentityListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
-	client := metadata.Client.ManagedIdentity.V20241130.Identities
+	client := managedidentityClient.From(metadata.Client).V20241130.Identities
 
 	var data sdk.DefaultListModel
 	diags := request.Config.Get(ctx, &data)

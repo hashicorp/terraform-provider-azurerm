@@ -8,7 +8,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	springcloudClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -27,7 +27,7 @@ func ImportSpringCloudAppAssociation(resourceType string) pluginsdk.ImporterFunc
 			return []*pluginsdk.ResourceData{}, err
 		}
 
-		client := meta.(*clients.Client).AppPlatform.BindingsClient
+		client := springcloudClient.From(meta).BindingsClient
 		resp, err := client.Get(ctx, id.ResourceGroupName, id.SpringName, id.AppName, id.BindingName)
 		if err != nil {
 			return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving %s: %+v", id, err)

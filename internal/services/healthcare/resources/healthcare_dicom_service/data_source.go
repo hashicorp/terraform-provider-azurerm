@@ -15,7 +15,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2024-03-31/dicomservices"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2024-03-31/workspaces"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	healthcareClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -179,9 +180,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 }
 
 func dataSourceHealthcareApisDicomServiceRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceDicomServiceClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := healthcareClient.From(meta).HealthcareWorkspaceDicomServiceClient
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	workspaceId, err := workspaces.ParseWorkspaceID(d.Get("workspace_id").(string))

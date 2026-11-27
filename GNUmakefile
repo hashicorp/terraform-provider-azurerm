@@ -119,7 +119,9 @@ build: quick-checks generate ## Run the quick checks, generate code, and compile
 # Generated files are deleted first, so one that has lost its go:generate line shows up as a deleted file in gencheck.
 generate: $(GOFUMPT) $(GOIMPORTS) $(TERRAFMT) ## Regenerate auto-generated code
 	find ./internal/services -name '*resource_identity_gen_test.go' -delete
+	find ./internal/services ./internal/preflight ./internal/clients -name 'provider_gen.go' -delete
 	grep -rl --include='*.go' "NOTE: this file is generated via 'go:generate'" ./internal/services | xargs rm
+	go generate ./internal/clients/
 	go generate ./internal/services/...
 	go generate ./internal/provider/
 
@@ -230,6 +232,7 @@ typos-fix: $(TYPOS) ## Fix spelling errors found by typos
 depscheck: ## Check that go.mod/go.sum and vendor/ are in sync
 	@echo "==> Checking dependencies.."
 	@./scripts/checks/track2-check.sh
+	@./scripts/checks/client-imports-check.sh
 	@echo "==> Checking source code with go mod tidy..."
 	@go mod tidy
 	@git diff --exit-code -- go.mod go.sum || \

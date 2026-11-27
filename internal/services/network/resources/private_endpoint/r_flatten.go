@@ -14,15 +14,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/privatednszonegroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/privateendpoints"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	networkClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-func resourcePrivateEndpointFlatten(ctx context.Context, metaClient *clients.Client, d *pluginsdk.ResourceData, id *privateendpoints.PrivateEndpointId, model *privateendpoints.PrivateEndpoint, fetchCompleteData bool) error {
-	nicsClient := metaClient.Network.NetworkInterfaces
-	dnsClient := metaClient.Network.PrivateDnsZoneGroups
+func resourcePrivateEndpointFlatten(ctx context.Context, metaClient any, d *pluginsdk.ResourceData, id *privateendpoints.PrivateEndpointId, model *privateendpoints.PrivateEndpoint, fetchCompleteData bool) error {
+	nicsClient := networkClient.From(metaClient).NetworkInterfaces
+	dnsClient := networkClient.From(metaClient).PrivateDnsZoneGroups
 
 	d.Set("name", id.PrivateEndpointName)
 	d.Set("resource_group_name", id.ResourceGroupName)

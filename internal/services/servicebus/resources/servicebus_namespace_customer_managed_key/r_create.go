@@ -12,7 +12,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/namespaces"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	servicebusClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -20,7 +22,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ServiceBus.NamespacesClient
+			client := servicebusClient.From(metadata.Client).NamespacesClient
 			var cmk ServiceBusNamespaceCustomerManagedKeyModel
 
 			if err := metadata.Decode(&cmk); err != nil {
@@ -44,7 +46,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: `model` is nil", *id)
 			}
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				if resp.Model.Properties != nil && resp.Model.Properties.Encryption != nil && resp.Model.Properties.Encryption.KeyVaultProperties != nil && len(*resp.Model.Properties.Encryption.KeyVaultProperties) > 0 {
 					return metadata.ResourceRequiresImport(r.ResourceType(), *id)
 				}

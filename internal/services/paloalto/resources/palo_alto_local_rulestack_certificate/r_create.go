@@ -12,16 +12,18 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/certificateobjectlocalrulestackresources"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/localrulestackresources"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	paloaltoClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/client"
 )
 
 func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.CertificateObjectLocalRulestackResources
-			rulestackClient := metadata.Client.PaloAlto.LocalRulestackResources
+			client := paloaltoClient.From(metadata.Client).CertificateObjectLocalRulestackResources
+			rulestackClient := paloaltoClient.From(metadata.Client).LocalRulestackResources
 
 			model := LocalRuleStackCertificateModel{}
 			if err := metadata.Decode(&model); err != nil {
@@ -38,7 +40,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			id := certificateobjectlocalrulestackresources.NewLocalRulestackCertificateID(rulestackId.SubscriptionId, rulestackId.ResourceGroupName, rulestackId.LocalRulestackName, model.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.CertificateObjectLocalRulestackGet(ctx, id)
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {

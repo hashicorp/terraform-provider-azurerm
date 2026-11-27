@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	appserviceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
@@ -173,7 +174,7 @@ func (*Action) ValidateConfig(ctx context.Context, req action.ValidateConfigRequ
 }
 
 func (a *Action) Invoke(ctx context.Context, request action.InvokeRequest, response *action.InvokeResponse) {
-	client := a.Client.AppService.WebAppsClient
+	client := appserviceClient.From(a.Client).WebAppsClient
 
 	model := webAppSetSlotDistributionActionModel{}
 

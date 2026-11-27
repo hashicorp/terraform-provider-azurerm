@@ -6,15 +6,16 @@ package synapse_workspace_sql_aad_admin
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	synapseClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceSynapseWorkspaceSqlAADAdminDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Synapse.WorkspaceSQLAadAdminsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := synapseClient.From(meta).WorkspaceSQLAadAdminsClient
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := parse.WorkspaceSqlAADAdminID(d.Id())

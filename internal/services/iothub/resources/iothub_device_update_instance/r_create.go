@@ -13,7 +13,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/deviceupdate/2022-10-01/deviceupdates"
 	"github.com/hashicorp/go-cty/cty"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	iothubClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -26,7 +28,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.IoTHub.DeviceUpdatesClient
+			client := iothubClient.From(metadata.Client).DeviceUpdatesClient
 			deviceUpdateAccountId, err := deviceupdates.ParseAccountID(model.DeviceUpdateAccountId)
 			if err != nil {
 				return err
@@ -34,7 +36,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			id := deviceupdates.NewInstanceID(deviceUpdateAccountId.SubscriptionId, deviceUpdateAccountId.ResourceGroupName, deviceUpdateAccountId.AccountName, model.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.InstancesGet(ctx, id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for existing %s: %+v", id, err)

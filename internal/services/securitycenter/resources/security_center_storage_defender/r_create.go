@@ -14,7 +14,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/topics"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2025-06-01/defenderforstorage"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	securitycenterClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/client"
 )
 
 func (s Resource) Create() sdk.ResourceFunc {
@@ -26,11 +28,11 @@ func (s Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.SecurityCenter.DefenderForStorageClient
+			client := securitycenterClient.From(metadata.Client).DefenderForStorageClient
 
 			id := commonids.NewScopeID(plan.StorageAccountId)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				resp, err := client.Get(ctx, id)
 				if err != nil {
 					if !response.WasNotFound(resp.HttpResponse) {

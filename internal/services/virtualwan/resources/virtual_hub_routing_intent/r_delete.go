@@ -10,13 +10,14 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	virtualwanClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/virtualwan/client"
 )
 
 func (r Resource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.VirtualWan.VirtualWANs
+			client := virtualwanClient.From(metadata.Client).VirtualWANs
 
 			id, err := virtualwans.ParseRoutingIntentID(metadata.ResourceData.Id())
 			if err != nil {

@@ -11,13 +11,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/codesigning/2025-10-13/codesigningaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	codesigningClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/codesigning/client"
 )
 
 func (m Resource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) (err error) {
-			client := meta.Client.CodeSigning.Client.CodeSigningAccounts
+			client := codesigningClient.From(meta.Client).Client.CodeSigningAccounts
 			id, err := codesigningaccounts.ParseCodeSigningAccountID(meta.ResourceData.Id())
 			if err != nil {
 				return err

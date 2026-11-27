@@ -9,12 +9,12 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/namespaces"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	servicebusClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 func waitForNamespaceStatusToBeReady(ctx context.Context, meta any, id namespaces.NamespaceId, timeout time.Duration) error {
-	namespaceClient := meta.(*clients.Client).ServiceBus.NamespacesClient
+	namespaceClient := servicebusClient.From(meta).NamespacesClient
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending: []string{
 			string(namespaces.EndPointProvisioningStateUpdating),

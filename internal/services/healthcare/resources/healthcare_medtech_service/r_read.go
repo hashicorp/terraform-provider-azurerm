@@ -17,18 +17,19 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/iotconnectors"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2024-03-31/workspaces"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	healthcareClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceHealthcareApisMedTechServiceRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceIotConnectorsClient
-	domainSuffix, ok := meta.(*clients.Client).Account.Environment.ServiceBus.DomainSuffix()
+	client := healthcareClient.From(meta).HealthcareWorkspaceIotConnectorsClient
+	domainSuffix, ok := account.From(meta).Environment.ServiceBus.DomainSuffix()
 	if !ok {
 		return errors.New("unable to retrieve the Domain Suffix for ServiceBus, this is not configured for this Cloud Environment")
 	}
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := iotconnectors.ParseIotConnectorID(d.Id())

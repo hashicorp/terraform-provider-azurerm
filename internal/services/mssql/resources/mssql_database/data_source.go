@@ -15,7 +15,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/databases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/transparentdataencryptions"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	mssqlClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -132,9 +133,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 }
 
 func dataSourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).MSSQL.DatabasesClient
-	transparentEncryptionClient := meta.(*clients.Client).MSSQL.TransparentDataEncryptionsClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := mssqlClient.From(meta).DatabasesClient
+	transparentEncryptionClient := mssqlClient.From(meta).TransparentDataEncryptionsClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	name := d.Get("name").(string)

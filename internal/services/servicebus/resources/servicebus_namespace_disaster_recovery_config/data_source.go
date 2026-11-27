@@ -12,7 +12,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/armdisasterrecoveries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/disasterrecoveryconfigs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/namespaces"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	servicebusClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -77,10 +78,10 @@ func RegisterDataSource() *pluginsdk.Resource {
 }
 
 func dataSourceServiceBusNamespaceDisasterRecoveryConfigRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).ServiceBus.ArmDisasterRecoveriesClient
-	authRuleClient := meta.(*clients.Client).ServiceBus.DisasterRecoveryConfigsClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := servicebusClient.From(meta).ArmDisasterRecoveriesClient
+	authRuleClient := servicebusClient.From(meta).DisasterRecoveryConfigsClient
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	var resourceGroup string

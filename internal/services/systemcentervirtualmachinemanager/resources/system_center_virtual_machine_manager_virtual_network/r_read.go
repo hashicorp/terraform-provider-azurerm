@@ -11,13 +11,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/virtualnetworks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	systemcentervirtualmachinemanagerClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/systemcentervirtualmachinemanager/client"
 )
 
 func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.SystemCenterVirtualMachineManager.VirtualNetworks
+			client := systemcentervirtualmachinemanagerClient.From(metadata.Client).VirtualNetworks
 
 			id, err := virtualnetworks.ParseVirtualNetworkID(metadata.ResourceData.Id())
 			if err != nil {

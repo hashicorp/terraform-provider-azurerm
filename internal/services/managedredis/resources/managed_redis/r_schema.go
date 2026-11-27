@@ -15,8 +15,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/redisenterprise"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/preflight"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -240,7 +243,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 				return err
 			}
 
-			if metadata.Client.Features.EnhancedValidation.PreflightEnabled {
+			if features.From(metadata.Client).EnhancedValidation.PreflightEnabled {
 				// Only perform preflight validation if there are changes. This avoids validation failures and
 				// additional API calls for resources that are unchanged between plan invocations
 				if len(metadata.ResourceDiff.GetChangedKeysPrefix("")) > 0 || metadata.ResourceDiff.Id() == "" {
@@ -249,7 +252,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 						return err
 					}
 
-					resId := redisenterprise.NewRedisEnterpriseID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
+					resId := redisenterprise.NewRedisEnterpriseID(account.From(metadata.Client).SubscriptionId, model.ResourceGroupName, model.Name)
 					preflightValidate, err := preflight.NewValidationRequestWithTypeOverride(new(model.Location), new(resId), "redis", "2025-07-01", req)
 					if err != nil {
 						return fmt.Errorf("constructing preflight validation request: %w", err)
@@ -301,7 +304,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 					if err != nil {
 						return err
 					}
-					clusterClient := metadata.Client.ManagedRedis.Client
+					clusterClient := client.From(metadata.Client).Client
 					if !isSkuAllowedForScaling(ctx, clusterClient, clusterId, model.SkuName) {
 						metadata.ResourceDiff.ForceNew("sku_name")
 					}

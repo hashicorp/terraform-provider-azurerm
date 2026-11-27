@@ -15,7 +15,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/manageddatabases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstancelongtermretentionpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstances"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	mssqlmanagedinstanceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/parse"
 )
 
@@ -23,10 +25,10 @@ func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MSSQLManagedInstance.ManagedDatabasesClient
-			instancesClient := metadata.Client.MSSQLManagedInstance.ManagedInstancesClient
-			longTermRetentionClient := metadata.Client.MSSQLManagedInstance.ManagedInstancesLongTermRetentionPoliciesClient
-			shortTermRetentionClient := metadata.Client.MSSQLManagedInstance.ManagedInstancesShortTermRetentionPoliciesClient
+			client := mssqlmanagedinstanceClient.From(metadata.Client).ManagedDatabasesClient
+			instancesClient := mssqlmanagedinstanceClient.From(metadata.Client).ManagedInstancesClient
+			longTermRetentionClient := mssqlmanagedinstanceClient.From(metadata.Client).ManagedInstancesLongTermRetentionPoliciesClient
+			shortTermRetentionClient := mssqlmanagedinstanceClient.From(metadata.Client).ManagedInstancesShortTermRetentionPoliciesClient
 
 			var model MsSqlManagedDatabaseModel
 			if err := metadata.Decode(&model); err != nil {
@@ -46,7 +48,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("checking for existence and region of Managed Instance for %s: %+v", id, err)
 			}
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)

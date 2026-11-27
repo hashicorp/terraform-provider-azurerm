@@ -13,15 +13,17 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/runbook"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/schedule"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	automationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceAutomationJobScheduleCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Automation.JobSchedule
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	client := automationClient.From(meta).JobSchedule
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForCreateUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -46,7 +48,7 @@ func resourceAutomationJobScheduleCreate(d *pluginsdk.ResourceData, meta any) er
 		Second: &runbookID,
 	}
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := GetJobScheduleFromTFID(ctx, client, tfID)
 		if err != nil {
 			return fmt.Errorf("checking for presence of existing %s: %s", id, err)

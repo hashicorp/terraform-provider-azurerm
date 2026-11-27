@@ -10,13 +10,14 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/python3package"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	automationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/client"
 )
 
 func (m Resource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) (err error) {
-			client := meta.Client.Automation.Python3Package
+			client := automationClient.From(meta.Client).Python3Package
 			id, err := python3package.ParsePython3PackageID(meta.ResourceData.Id())
 			if err != nil {
 				return err

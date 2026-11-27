@@ -9,7 +9,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
@@ -64,7 +64,7 @@ func (s ShareV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		accountId := accounts.AccountId{
 			AccountName:   accountName,
 			SubDomainType: "file",
-			DomainSuffix:  meta.(*clients.Client).Storage.StorageDomainSuffix,
+			DomainSuffix:  client.From(meta).StorageDomainSuffix,
 		}
 
 		newResourceId := shares.NewShareID(accountId, shareName)

@@ -14,13 +14,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxdeployment"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	nginxClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/nginx/client"
 )
 
 func (m Resource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: time.Minute * 30,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			client := meta.Client.Nginx.NginxDeployment
+			client := nginxClient.From(meta.Client).NginxDeployment
 
 			id, err := nginxdeployment.ParseNginxDeploymentID(meta.ResourceData.Id())
 			if err != nil {

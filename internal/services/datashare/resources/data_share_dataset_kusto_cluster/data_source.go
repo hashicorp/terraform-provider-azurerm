@@ -9,7 +9,8 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/dataset"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/share"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	datashareClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -61,8 +62,8 @@ func RegisterDataSource() *pluginsdk.Resource {
 }
 
 func dataSourceDataShareDatasetKustoClusterRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).DataShare.DataSetClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := datashareClient.From(meta).DataSetClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	shareId, err := share.ParseShareID(d.Get("share_id").(string))

@@ -18,13 +18,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-11-01/redispatchschedules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-11-01/redisresources"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	redisClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-func resourceRedisCacheFlatten(ctx context.Context, metaClient *clients.Client, d *pluginsdk.ResourceData, id *redisresources.RediId, redis *redisresources.RedisResource, fetchCompleteData bool) error {
-	client := metaClient.Redis.RedisResourcesClient
-	patchSchedulesClient := metaClient.Redis.PatchSchedulesClient
+func resourceRedisCacheFlatten(ctx context.Context, metaClient any, d *pluginsdk.ResourceData, id *redisresources.RediId, redis *redisresources.RedisResource, fetchCompleteData bool) error {
+	client := redisClient.From(metaClient).RedisResourcesClient
+	patchSchedulesClient := redisClient.From(metaClient).PatchSchedulesClient
 
 	d.Set("name", id.RedisName)
 	d.Set("resource_group_name", id.ResourceGroupName)

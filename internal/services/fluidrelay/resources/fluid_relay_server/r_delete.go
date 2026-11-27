@@ -10,13 +10,14 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/fluidrelay/2022-05-26/fluidrelayservers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	fluidrelayClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/fluidrelay/client"
 )
 
 func (s Resource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			client := meta.Client.FluidRelay.FluidRelayServers
+			client := fluidrelayClient.From(meta.Client).FluidRelayServers
 
 			id, err := fluidrelayservers.ParseFluidRelayServerID(meta.ResourceData.Id())
 			if err != nil {

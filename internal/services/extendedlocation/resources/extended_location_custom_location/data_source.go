@@ -14,7 +14,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/extendedlocation/2021-08-15/customlocations"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	extendedlocationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/extendedlocation/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -126,8 +128,8 @@ func (r DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			subscriptionId := metadata.Client.Account.SubscriptionId
-			client := metadata.Client.ExtendedLocation.CustomLocationsClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
+			client := extendedlocationClient.From(metadata.Client).CustomLocationsClient
 
 			var model ExtendedLocationCustomLocationResourceModel
 			if err := metadata.Decode(&model); err != nil {

@@ -11,7 +11,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/azureadadministrators"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	mysqlClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/parse"
 )
 
@@ -24,13 +26,13 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.MySQL.AzureADAdministratorsClient
+			client := mysqlClient.From(metadata.Client).AzureADAdministratorsClient
 			flexibleServerId, err := azureadadministrators.ParseFlexibleServerID(model.ServerId)
 			if err != nil {
 				return err
 			}
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, *flexibleServerId)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for existing %s: %+v", flexibleServerId, err)

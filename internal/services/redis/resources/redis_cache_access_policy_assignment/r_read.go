@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-11-01/rediscacheaccesspolicyassignments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	redisClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/client"
 )
 
 func (r Resource) Read() sdk.ResourceFunc {
@@ -22,7 +23,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.Redis.CacheAccessPolicyAssignmentsClient
+			client := redisClient.From(metadata.Client).CacheAccessPolicyAssignmentsClient
 
 			resp, err := client.AccessPolicyAssignmentGet(ctx, *id)
 			if err != nil {

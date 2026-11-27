@@ -8,7 +8,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2024-03-01/webpubsub"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -50,8 +51,8 @@ func RegisterDataSource() *pluginsdk.Resource {
 }
 
 func dataSourceWebPubsubPrivateLinkResourceRead(d *pluginsdk.ResourceData, meta any) error {
-	privateLinkResourceClient := meta.(*clients.Client).SignalR.WebPubSubClient.WebPubSub
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	privateLinkResourceClient := client.From(meta).WebPubSubClient.WebPubSub
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	webPubSubIdRaw := d.Get("web_pubsub_id").(string)

@@ -13,7 +13,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/backuppolicies"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	netappClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -82,14 +84,14 @@ func (r DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.NetApp.BackupPolicyClient
+			client := netappClient.From(metadata.Client).BackupPolicyClient
 
 			var state models.NetAppBackupPolicyModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			backupPolicyID := backuppolicies.NewBackupPolicyID(metadata.Client.Account.SubscriptionId, state.ResourceGroupName, state.AccountName, state.Name)
+			backupPolicyID := backuppolicies.NewBackupPolicyID(account.From(metadata.Client).SubscriptionId, state.ResourceGroupName, state.AccountName, state.Name)
 
 			existing, err := client.Get(ctx, backupPolicyID)
 			if err != nil {

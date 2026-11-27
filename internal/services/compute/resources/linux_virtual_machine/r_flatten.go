@@ -13,15 +13,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/helpers"
+	networkClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-func resourceLinuxVirtualMachineFlatten(ctx context.Context, clientsClient *clients.Client, d *pluginsdk.ResourceData, id *virtualmachines.VirtualMachineId, model *virtualmachines.VirtualMachine, includeResource bool) error {
-	disksClient := clientsClient.Compute.DisksClient
-	networkInterfacesClient := clientsClient.Network.NetworkInterfacesClient
-	publicIPAddressesClient := clientsClient.Network.PublicIPAddresses
+func resourceLinuxVirtualMachineFlatten(ctx context.Context, clientsClient any, d *pluginsdk.ResourceData, id *virtualmachines.VirtualMachineId, model *virtualmachines.VirtualMachine, includeResource bool) error {
+	disksClient := client.From(clientsClient).DisksClient
+	networkInterfacesClient := networkClient.From(clientsClient).NetworkInterfacesClient
+	publicIPAddressesClient := networkClient.From(clientsClient).PublicIPAddresses
 
 	d.Set("name", id.VirtualMachineName)
 	d.Set("resource_group_name", id.ResourceGroupName)

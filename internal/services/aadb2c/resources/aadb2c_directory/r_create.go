@@ -12,15 +12,18 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview/tenants"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	aadb2cClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/aadb2c/client"
 )
 
 func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AadB2c.Tenants
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := aadb2cClient.From(metadata.Client).Tenants
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			var model AadB2cDirectoryModel
 			if err := metadata.Decode(&model); err != nil {
@@ -36,7 +39,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			id := tenants.NewB2CDirectoryID(subscriptionId, model.ResourceGroup, model.DomainName)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)

@@ -10,15 +10,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	synapseClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceSynapseSQLPoolWorkloadClassifierCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Synapse.SQLPoolWorkloadClassifierClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	client := synapseClient.From(meta).SQLPoolWorkloadClassifierClient
+	ctx, cancel := timeouts.ForCreateUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	workloadGroupId, err := parse.SqlPoolWorkloadGroupID(d.Get("workload_group_id").(string))
@@ -29,7 +31,7 @@ func resourceSynapseSQLPoolWorkloadClassifierCreateUpdate(d *pluginsdk.ResourceD
 	id := parse.NewSqlPoolWorkloadClassifierID(workloadGroupId.SubscriptionId, workloadGroupId.ResourceGroup, workloadGroupId.WorkspaceName, workloadGroupId.SqlPoolName, workloadGroupId.WorkloadGroupName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 			existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.SqlPoolName, id.WorkloadGroupName, id.WorkloadClassifierName)
 			if err != nil {
 				if !response.WasNotFound(existing.Response.Response) {

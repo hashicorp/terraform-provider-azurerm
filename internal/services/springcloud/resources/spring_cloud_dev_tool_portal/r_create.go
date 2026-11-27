@@ -11,7 +11,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	springcloudClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/jackofallops/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
 )
@@ -25,7 +27,7 @@ func (s Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.AppPlatform.DevToolPortalClient
+			client := springcloudClient.From(metadata.Client).DevToolPortalClient
 			// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
 			// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
 			springId, err := commonids.ParseSpringCloudServiceIDInsensitively(model.SpringCloudServiceId)
@@ -34,7 +36,7 @@ func (s Resource) Create() sdk.ResourceFunc {
 			}
 			id := parse.NewSpringCloudDevToolPortalID(springId.SubscriptionId, springId.ResourceGroupName, springId.ServiceName, model.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.DevToolPortalName)
 				if err != nil && !response.WasNotFound(existing.Response.Response) {
 					return fmt.Errorf("checking for existing %s: %+v", id, err)

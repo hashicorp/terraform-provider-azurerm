@@ -14,15 +14,18 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationsmanagement/2015-11-01-preview/solution"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	loganalyticsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/client"
 )
 
 func (s Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.LogAnalytics.SolutionsClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := loganalyticsClient.From(metadata.Client).SolutionsClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			var config SolutionResourceModel
 			if err := metadata.Decode(&config); err != nil {
@@ -33,7 +36,7 @@ func (s Resource) Create() sdk.ResourceFunc {
 			// "SolutionName(WorkspaceName)". Feedback will be submitted to the OMS team as IMO this isn't ideal.
 			id := solution.NewSolutionID(subscriptionId, config.ResourceGroupName, fmt.Sprintf("%s(%s)", config.SolutionName, config.WorkspaceName))
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {

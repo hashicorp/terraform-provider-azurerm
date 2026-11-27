@@ -9,15 +9,16 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	appplatform_rm "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	springcloudClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/jackofallops/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
 )
 
 func resourceSpringCloudBuildPackBindingRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).AppPlatform.BuildPackBindingClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := springcloudClient.From(meta).BuildPackBindingClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -

@@ -12,8 +12,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2024-03-01/webpubsub"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	signalrClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -25,7 +27,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 			if err := metadata.Decode(&customCertWebPubsub); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
-			client := metadata.Client.SignalR.WebPubSubClient.WebPubSub
+			client := signalrClient.From(metadata.Client).WebPubSubClient.WebPubSub
 
 			webPubsubId, err := webpubsub.ParseWebPubSubID(metadata.ResourceData.Get("web_pubsub_id").(string))
 			if err != nil {
@@ -45,7 +47,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 			locks.ByID(webPubsubId.ID())
 			defer locks.UnlockByID(webPubsubId.ID())
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.CustomCertificatesGet(ctx, id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for existing %s: %+v", id, err)

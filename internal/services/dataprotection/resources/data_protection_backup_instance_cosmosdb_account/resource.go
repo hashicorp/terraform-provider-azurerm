@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2026-06-01/backupinstanceresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	dataprotectionClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -48,7 +49,7 @@ func (r Resource) CustomImporter() sdk.ResourceRunFunc {
 			return err
 		}
 
-		client := metadata.Client.DataProtection.BackupInstanceClient20260601
+		client := dataprotectionClient.From(metadata.Client).BackupInstanceClient20260601
 		resp, err := client.BackupInstancesGet(ctx, *id)
 		if err != nil {
 			return fmt.Errorf("retrieving %s: %+v", *id, err)

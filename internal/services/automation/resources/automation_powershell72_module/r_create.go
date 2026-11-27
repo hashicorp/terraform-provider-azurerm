@@ -13,7 +13,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/module"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	automationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -22,20 +25,20 @@ func (r Resource) Create() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Automation.ModuleClientV2023
+			client := automationClient.From(metadata.Client).ModuleClientV2023
 
 			var model AutomationPowerShell72ModuleModel
 			if err := metadata.Decode(&model); err != nil {
 				return err
 			}
 
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 			accountID, _ := module.ParseAutomationAccountID(model.AutomationAccountID)
 			name := metadata.ResourceData.Get("name").(string)
 
 			id := module.NewPowerShell72ModuleID(subscriptionId, accountID.ResourceGroupName, accountID.AutomationAccountName, name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.PowerShell72ModuleGet(ctx, id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)

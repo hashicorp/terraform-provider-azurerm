@@ -12,7 +12,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/serverendpointresource"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	storageClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -21,14 +24,14 @@ func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Storage.SyncServerEndpointsClient
+			client := storageClient.From(metadata.Client).SyncServerEndpointsClient
 
 			var config StorageSyncServerEndpointResourceSchema
 			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 			storageSyncGroupId, err := serverendpointresource.ParseSyncGroupID(config.StorageSyncGroupId)
 			if err != nil {
 				return err
@@ -36,7 +39,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			id := serverendpointresource.NewServerEndpointID(subscriptionId, storageSyncGroupId.ResourceGroupName, storageSyncGroupId.StorageSyncServiceName, storageSyncGroupId.SyncGroupName, config.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.ServerEndpointsGet(ctx, id)
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {

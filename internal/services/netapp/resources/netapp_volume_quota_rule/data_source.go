@@ -14,7 +14,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/volumequotarules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/volumes"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	netappClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -76,7 +78,7 @@ func (r DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.NetApp.VolumeQuotaRules
+			client := netappClient.From(metadata.Client).VolumeQuotaRules
 
 			var state models.NetAppVolumeQuotaRuleDataSourceModel
 			if err := metadata.Decode(&state); err != nil {
@@ -88,7 +90,7 @@ func (r DataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("error parsing volume id %s: %+v", state.VolumeID, err)
 			}
 
-			id := volumequotarules.NewVolumeQuotaRuleID(metadata.Client.Account.SubscriptionId, volumeID.ResourceGroupName, volumeID.NetAppAccountName, volumeID.CapacityPoolName, volumeID.VolumeName, state.Name)
+			id := volumequotarules.NewVolumeQuotaRuleID(account.From(metadata.Client).SubscriptionId, volumeID.ResourceGroupName, volumeID.NetAppAccountName, volumeID.CapacityPoolName, volumeID.VolumeName, state.Name)
 
 			resp, err := client.Get(ctx, id)
 			if err != nil {

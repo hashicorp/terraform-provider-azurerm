@@ -17,17 +17,18 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roleassignments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-05-01-preview/roledefinitions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2025-10-10/applicationgroup"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
+	authorizationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceArmRoleAssignmentRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Authorization.ScopedRoleAssignmentsClient
-	roleDefinitionsClient := meta.(*clients.Client).Authorization.ScopedRoleDefinitionsClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := authorizationClient.From(meta).ScopedRoleAssignmentsClient
+	roleDefinitionsClient := authorizationClient.From(meta).ScopedRoleDefinitionsClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := parse.ScopedRoleAssignmentID(d.Id())
@@ -91,8 +92,8 @@ func resourceArmRoleAssignmentRead(d *pluginsdk.ResourceData, meta any) error {
 
 func retryRoleAssignmentsClient(d *pluginsdk.ResourceData, id parse.ScopedRoleAssignmentId, param roleassignments.RoleAssignmentCreateParameters, meta any, retryLinkedAuthorizationFailedError bool) func() *pluginsdk.RetryError {
 	return func() *pluginsdk.RetryError {
-		roleAssignmentsClient := meta.(*clients.Client).Authorization.ScopedRoleAssignmentsClient
-		ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+		roleAssignmentsClient := authorizationClient.From(meta).ScopedRoleAssignmentsClient
+		ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 		defer cancel()
 
 		resp, err := roleAssignmentsClient.Create(ctx, id.ScopedId, param)

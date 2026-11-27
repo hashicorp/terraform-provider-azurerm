@@ -12,7 +12,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	mssqlmanagedinstanceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -143,10 +145,10 @@ func (d DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MSSQLManagedInstance.ManagedDatabasesClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
-			longTermRetentionClient := metadata.Client.MSSQLManagedInstance.ManagedInstancesLongTermRetentionPoliciesClient
-			shortTermRetentionClient := metadata.Client.MSSQLManagedInstance.ManagedInstancesShortTermRetentionPoliciesClient
+			client := mssqlmanagedinstanceClient.From(metadata.Client).ManagedDatabasesClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
+			longTermRetentionClient := mssqlmanagedinstanceClient.From(metadata.Client).ManagedInstancesLongTermRetentionPoliciesClient
+			shortTermRetentionClient := mssqlmanagedinstanceClient.From(metadata.Client).ManagedInstancesShortTermRetentionPoliciesClient
 
 			var state MsSqlManagedDatabaseDataSourceModel
 			if err := metadata.Decode(&state); err != nil {

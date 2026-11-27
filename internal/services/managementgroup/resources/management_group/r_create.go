@@ -16,20 +16,21 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/management/2020-05-01/managementgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	managementgroupClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).ManagementGroups.GroupsClient
-	accountClient := meta.(*clients.Client)
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	client := managementgroupClient.From(meta).GroupsClient
+	ctx, cancel := timeouts.ForCreateUpdate(account.StopContext(meta), d)
 	defer cancel()
-	armTenantID := meta.(*clients.Client).Account.TenantId
+	armTenantID := account.From(meta).TenantId
 
 	var groupName string
 	if v := d.Get("name"); v != "" {
@@ -42,7 +43,7 @@ func resourceManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta any) er
 
 	id := commonids.NewManagementGroupID(groupName)
 
-	tenantID := accountClient.Account.TenantId
+	tenantID := account.From(meta).TenantId
 	tenantScopedID := parse.NewTenantScopedManagementGroupID(tenantID, id.GroupId)
 	d.Set("tenant_scoped_id", tenantScopedID.TenantScopedID())
 
@@ -53,7 +54,7 @@ func resourceManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta any) er
 
 	recurse := false
 	if d.IsNewResource() {
-		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 			existing, err := client.Get(ctx, id, managementgroups.GetOperationOptions{
 				CacheControl: &managementGroupCacheControl,
 				Expand:       pointer.To(managementgroups.ExpandChildren),

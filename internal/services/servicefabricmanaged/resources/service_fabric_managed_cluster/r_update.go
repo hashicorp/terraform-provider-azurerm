@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicefabricmanagedcluster/2024-04-01/managedcluster"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicefabricmanagedcluster/2024-04-01/nodetype"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabricmanaged/client"
 )
 
 func (k Resource) Update() sdk.ResourceFunc {
@@ -22,8 +23,8 @@ func (k Resource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-			clusterClient := metadata.Client.ServiceFabricManaged.ManagedClusterClient
-			nodeTypeClient := metadata.Client.ServiceFabricManaged.NodeTypeClient
+			clusterClient := client.From(metadata.Client).ManagedClusterClient
+			nodeTypeClient := client.From(metadata.Client).NodeTypeClient
 
 			id, err := managedcluster.ParseManagedClusterID(metadata.ResourceData.Id())
 			if err != nil {

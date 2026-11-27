@@ -17,7 +17,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/cosmosdb"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/sqldedicatedgateway"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	cosmosClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -88,7 +90,7 @@ func (r CosmosDbSqlDedicatedGatewayResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.Cosmos.SqlDedicatedGatewayClient
+			client := cosmosClient.From(metadata.Client).SqlDedicatedGatewayClient
 			cosmosdbAccountId, err := cosmosdb.ParseDatabaseAccountID(model.CosmosDbAccountId)
 			if err != nil {
 				return err
@@ -96,7 +98,7 @@ func (r CosmosDbSqlDedicatedGatewayResource) Create() sdk.ResourceFunc {
 
 			id := sqldedicatedgateway.NewServiceID(cosmosdbAccountId.SubscriptionId, cosmosdbAccountId.ResourceGroupName, cosmosdbAccountId.DatabaseAccountName, string(sqldedicatedgateway.ServiceTypeSqlDedicatedGateway))
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.ServiceGet(ctx, id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -129,7 +131,7 @@ func (r CosmosDbSqlDedicatedGatewayResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Cosmos.SqlDedicatedGatewayClient
+			client := cosmosClient.From(metadata.Client).SqlDedicatedGatewayClient
 
 			id, err := sqldedicatedgateway.ParseServiceID(metadata.ResourceData.Id())
 			if err != nil {
@@ -172,7 +174,7 @@ func (r CosmosDbSqlDedicatedGatewayResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Cosmos.SqlDedicatedGatewayClient
+			client := cosmosClient.From(metadata.Client).SqlDedicatedGatewayClient
 
 			id, err := sqldedicatedgateway.ParseServiceID(metadata.ResourceData.Id())
 			if err != nil {
@@ -218,7 +220,7 @@ func (r CosmosDbSqlDedicatedGatewayResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Cosmos.SqlDedicatedGatewayClient
+			client := cosmosClient.From(metadata.Client).SqlDedicatedGatewayClient
 
 			id, err := sqldedicatedgateway.ParseServiceID(metadata.ResourceData.Id())
 			if err != nil {

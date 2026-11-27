@@ -9,7 +9,8 @@ import (
 	"log"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	clientsAccount "github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	storageClient2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -97,9 +98,8 @@ func (TableV2ToV3) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		}
 
 		// Fallback: If resource_manager_id is missing, look up the account to get the Resource Group
-		client := meta.(*clients.Client)
-		storageClient := client.Storage
-		subscriptionId := client.Account.SubscriptionId
+		storageClient := storageClient2.From(meta)
+		subscriptionId := clientsAccount.From(meta).SubscriptionId
 
 		account, err := storageClient.FindAccount(ctx, subscriptionId, accountName)
 		if err != nil {

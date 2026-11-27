@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleassignmentschedules"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -24,8 +25,8 @@ func (Resource) Delete() sdk.ResourceFunc {
 		Timeout: 10 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			schedulesClient := metadata.Client.Authorization.RoleAssignmentSchedulesClient
-			requestsClient := metadata.Client.Authorization.RoleAssignmentScheduleRequestClient
+			schedulesClient := client.From(metadata.Client).RoleAssignmentSchedulesClient
+			requestsClient := client.From(metadata.Client).RoleAssignmentScheduleRequestClient
 
 			id, err := parse.PimRoleAssignmentID(metadata.ResourceData.Id())
 			if err != nil {

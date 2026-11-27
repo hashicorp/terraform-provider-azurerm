@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automanage/2022-05-04/configurationprofiles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	automanageClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage/resources/automanage_configuration/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -21,7 +22,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Automanage.ConfigurationProfilesClient
+			client := automanageClient.From(metadata.Client).ConfigurationProfilesClient
 
 			id, err := configurationprofiles.ParseConfigurationProfileID(metadata.ResourceData.Id())
 			if err != nil {

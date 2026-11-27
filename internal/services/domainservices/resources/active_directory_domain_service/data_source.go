@@ -14,7 +14,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	domainservicesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/domainservices/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/domainservices/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -258,9 +259,9 @@ func dataSourceActiveDirectoryDomainServiceReplicaSetSchema() map[string]*plugin
 }
 
 func dataSourceActiveDirectoryDomainServiceRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).DomainServices.DomainServicesClient
-	subscrptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := domainservicesClient.From(meta).DomainServicesClient
+	subscrptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	name := d.Get("name").(string)

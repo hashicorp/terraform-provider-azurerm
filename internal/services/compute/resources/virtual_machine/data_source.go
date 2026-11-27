@@ -14,8 +14,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	computeClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/helpers"
+	networkClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -92,12 +94,12 @@ func RegisterDataSource() *pluginsdk.Resource {
 }
 
 func dataSourceVirtualMachineRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Compute.VirtualMachinesClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	networkInterfacesClient := meta.(*clients.Client).Network.NetworkInterfacesClient
-	publicIPAddressesClient := meta.(*clients.Client).Network.PublicIPAddresses
+	client := computeClient.From(meta).VirtualMachinesClient
+	subscriptionId := account.From(meta).SubscriptionId
+	networkInterfacesClient := networkClient.From(meta).NetworkInterfacesClient
+	publicIPAddressesClient := networkClient.From(meta).PublicIPAddresses
 
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id := virtualmachines.NewVirtualMachineID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))

@@ -14,8 +14,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/replications"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -121,7 +121,7 @@ func expandEncryption(input []any) *registries.EncryptionProperty {
 }
 
 func applyGeoReplicationLocations(ctx context.Context, meta any, registryId registries.RegistryId, oldGeoReplications []replications.Replication, newGeoReplications []replications.Replication) error {
-	replicationClient := meta.(*clients.Client).Containers.ContainerRegistryClient.Replications
+	replicationClient := client.From(meta).ContainerRegistryClient.Replications
 
 	oldReplications := map[string]replications.Replication{}
 	for _, replication := range oldGeoReplications {

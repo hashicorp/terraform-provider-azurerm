@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/tokens"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
+	containersClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 )
 
@@ -24,7 +24,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Containers.ContainerRegistryClient
+			client := containersClient.From(metadata.Client).ContainerRegistryClient
 			id, err := parse.ContainerRegistryTokenPasswordID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -137,7 +137,7 @@ func (r Resource) readPassword(ctx context.Context, client *containerregistry_v2
 	return *passwords, false, nil
 }
 
-func (r Resource) generatePassword(ctx context.Context, clients client.Client, id tokens.TokenId, passwords []tokens.TokenPassword) ([]tokens.TokenPassword, error) {
+func (r Resource) generatePassword(ctx context.Context, clients containersClient.Client, id tokens.TokenId, passwords []tokens.TokenPassword) ([]tokens.TokenPassword, error) {
 	var genPasswords []tokens.TokenPassword
 
 	existingPasswords, _, err := r.readPassword(ctx, clients.ContainerRegistryClient, id)

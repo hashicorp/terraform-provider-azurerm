@@ -19,7 +19,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/loadbalancers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationprotecteditems"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	recoveryservicesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -31,9 +32,9 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta any)
 		return err
 	}
 
-	client := meta.(*clients.Client).RecoveryServices.ReplicationProtectedItemsClient
+	client := recoveryservicesClient.From(meta).ReplicationProtectedItemsClient
 
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	resp, err := client.Get(ctx, *id)
@@ -235,9 +236,9 @@ func waitForReplicationToBeHealthyRefreshFunc(d *pluginsdk.ResourceData, meta an
 			return nil, "", err
 		}
 
-		client := meta.(*clients.Client).RecoveryServices.ReplicationProtectedItemsClient
+		client := recoveryservicesClient.From(meta).ReplicationProtectedItemsClient
 
-		ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+		ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 		defer cancel()
 
 		resp, err := client.Get(ctx, *id)

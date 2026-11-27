@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	recoveryservicesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/client"
 )
 
 func (r Resource) Delete() sdk.ResourceFunc {
@@ -21,7 +22,7 @@ func (r Resource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.RecoveryServices.ReplicationPoliciesClient
+			client := recoveryservicesClient.From(metadata.Client).ReplicationPoliciesClient
 
 			if err = client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s : %+v", id, err)

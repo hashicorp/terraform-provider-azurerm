@@ -11,13 +11,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2025-07-01/jobdefinitions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	storagemoverClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/storagemover/client"
 )
 
 func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.StorageMover.JobDefinitionsClient
+			client := storagemoverClient.From(metadata.Client).JobDefinitionsClient
 
 			id, err := jobdefinitions.ParseJobDefinitionID(metadata.ResourceData.Id())
 			if err != nil {

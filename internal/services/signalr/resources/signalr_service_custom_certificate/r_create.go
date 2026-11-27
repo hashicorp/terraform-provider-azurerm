@@ -13,8 +13,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2024-03-01/signalr"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	signalrClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -26,7 +28,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 			if err := metadata.Decode(&customCertSignalrService); err != nil {
 				return err
 			}
-			client := metadata.Client.SignalR.SignalRClient
+			client := signalrClient.From(metadata.Client).SignalRClient
 
 			signalRServiceId, err := signalr.ParseSignalRID(metadata.ResourceData.Get("signalr_service_id").(string))
 			if err != nil {
@@ -46,7 +48,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 			locks.ByID(signalRServiceId.ID())
 			defer locks.UnlockByID(signalRServiceId.ID())
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.CustomCertificatesGet(ctx, id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing SignalR service custom cert error %s: %+v", id, err)

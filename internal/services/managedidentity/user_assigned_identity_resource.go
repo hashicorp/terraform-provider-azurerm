@@ -17,8 +17,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2024-11-30/identities"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	managedidentityClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedidentity/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedidentity/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -114,18 +117,18 @@ func (r UserAssignedIdentityResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ManagedIdentity.V20241130.Identities
+			client := managedidentityClient.From(metadata.Client).V20241130.Identities
 
 			var config UserAssignedIdentityResourceSchema
 			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			id := commonids.NewUserAssignedIdentityID(subscriptionId, config.ResourceGroupName, config.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.UserAssignedIdentitiesGet(ctx, id)
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {
@@ -177,7 +180,7 @@ func (r UserAssignedIdentityResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ManagedIdentity.V20241130.Identities
+			client := managedidentityClient.From(metadata.Client).V20241130.Identities
 
 			id, err := commonids.ParseUserAssignedIdentityID(metadata.ResourceData.Id())
 			if err != nil {
@@ -201,7 +204,7 @@ func (r UserAssignedIdentityResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ManagedIdentity.V20241130.Identities
+			client := managedidentityClient.From(metadata.Client).V20241130.Identities
 
 			id, err := commonids.ParseUserAssignedIdentityID(metadata.ResourceData.Id())
 			if err != nil {
@@ -221,7 +224,7 @@ func (r UserAssignedIdentityResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ManagedIdentity.V20241130.Identities
+			client := managedidentityClient.From(metadata.Client).V20241130.Identities
 
 			id, err := commonids.ParseUserAssignedIdentityID(metadata.ResourceData.Id())
 			if err != nil {

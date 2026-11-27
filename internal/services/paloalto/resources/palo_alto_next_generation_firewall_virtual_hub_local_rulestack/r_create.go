@@ -14,8 +14,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/firewallresources"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/localrulestackresources"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	paloaltoClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/schema"
 )
 
@@ -23,17 +26,17 @@ func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 3 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.FirewallResources
-			localRuleStackClient := metadata.Client.PaloAlto.LocalRulestackResources
+			client := paloaltoClient.From(metadata.Client).FirewallResources
+			localRuleStackClient := paloaltoClient.From(metadata.Client).LocalRulestackResources
 			var model NextGenerationFirewallVHubLocalRuleStackModel
 
 			if err := metadata.Decode(&model); err != nil {
 				return err
 			}
 
-			id := firewallresources.NewFirewallID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
+			id := firewallresources.NewFirewallID(account.From(metadata.Client).SubscriptionId, model.ResourceGroupName, model.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.FirewallsGet(ctx, id)
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {

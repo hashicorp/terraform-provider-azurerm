@@ -12,7 +12,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/blueprints/2018-11-01-preview/blueprint"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/blueprints/2018-11-01-preview/publishedblueprint"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	blueprintsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/blueprints/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/blueprints/validate"
 	mgValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -91,9 +92,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 }
 
 func dataSourceBlueprintDefinitionRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Blueprints.BlueprintsClient
-	publishedClient := meta.(*clients.Client).Blueprints.PublishedBlueprintsClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := blueprintsClient.From(meta).BlueprintsClient
+	publishedClient := blueprintsClient.From(meta).PublishedBlueprintsClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id := blueprint.NewScopedBlueprintID(d.Get("scope_id").(string), d.Get("name").(string))

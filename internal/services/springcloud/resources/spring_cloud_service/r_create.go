@@ -12,7 +12,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	springcloudClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -20,15 +22,15 @@ import (
 )
 
 func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).AppPlatform.ServicesClient
-	configServersClient := meta.(*clients.Client).AppPlatform.ConfigServersClient
-	monitoringSettingsClient := meta.(*clients.Client).AppPlatform.MonitoringSettingsClient
-	serviceRegistryClient := meta.(*clients.Client).AppPlatform.ServiceRegistryClient
-	agentPoolClient := meta.(*clients.Client).AppPlatform.BuildServiceAgentPoolClient
-	buildServiceClient := meta.(*clients.Client).AppPlatform.BuildServiceClient
-	containerRegistryClient := meta.(*clients.Client).AppPlatform.ContainerRegistryClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	client := springcloudClient.From(meta).ServicesClient
+	configServersClient := springcloudClient.From(meta).ConfigServersClient
+	monitoringSettingsClient := springcloudClient.From(meta).MonitoringSettingsClient
+	serviceRegistryClient := springcloudClient.From(meta).ServiceRegistryClient
+	agentPoolClient := springcloudClient.From(meta).BuildServiceAgentPoolClient
+	buildServiceClient := springcloudClient.From(meta).BuildServiceClient
+	containerRegistryClient := springcloudClient.From(meta).ContainerRegistryClient
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	name := d.Get("name").(string)
@@ -36,7 +38,7 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta any) error
 
 	id := commonids.NewSpringCloudServiceID(subscriptionId, resourceGroup, name)
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id.ResourceGroupName, id.ServiceName)
 		if err != nil {
 			if !response.WasNotFound(existing.Response.Response) {

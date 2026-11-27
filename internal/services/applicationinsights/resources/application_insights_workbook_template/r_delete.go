@@ -10,13 +10,14 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-11-20/workbooktemplatesapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	applicationinsightsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/client"
 )
 
 func (r Resource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AppInsights.WorkbookTemplateClient
+			client := applicationinsightsClient.From(metadata.Client).WorkbookTemplateClient
 
 			id, err := workbooktemplatesapis.ParseWorkbookTemplateID(metadata.ResourceData.Id())
 			if err != nil {

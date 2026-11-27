@@ -10,7 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	iothubClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -77,9 +78,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 }
 
 func dataSourceIotHubSharedAccessPolicyRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).IoTHub.ResourceClient
-	subscriptionId := meta.(*clients.Client).IoTHub.ResourceClient.SubscriptionID
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := iothubClient.From(meta).ResourceClient
+	subscriptionId := iothubClient.From(meta).ResourceClient.SubscriptionID
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id := parse.NewSharedAccessPolicyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("iothub_name").(string), d.Get("name").(string))

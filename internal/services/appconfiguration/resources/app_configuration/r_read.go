@@ -24,15 +24,16 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2024-05-01/replicas"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	appconfigurationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceAppConfigurationRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).AppConfiguration.ConfigurationStoresClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := appconfigurationClient.From(meta).ConfigurationStoresClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := configurationstores.ParseConfigurationStoreID(d.Id())
@@ -102,7 +103,7 @@ func resourceAppConfigurationRead(d *pluginsdk.ResourceData, meta any) error {
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 
-		replicasClient := meta.(*clients.Client).AppConfiguration.ReplicasClient
+		replicasClient := appconfigurationClient.From(meta).ReplicasClient
 		resp, err := replicasClient.ListByConfigurationStoreComplete(ctx, replicas.NewConfigurationStoreID(id.SubscriptionId, id.ResourceGroupName, id.ConfigurationStoreName))
 		if err != nil {
 			return fmt.Errorf("retrieving replicas for %s: %+v", *id, err)

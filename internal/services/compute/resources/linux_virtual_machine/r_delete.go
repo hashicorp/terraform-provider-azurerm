@@ -15,9 +15,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	computeClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/custompoller"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -25,8 +27,8 @@ import (
 )
 
 func resourceLinuxVirtualMachineDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Compute.VirtualMachinesClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := computeClient.From(meta).VirtualMachinesClient
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := virtualmachines.ParseVirtualMachineID(d.Id())
@@ -52,7 +54,7 @@ func resourceLinuxVirtualMachineDelete(d *pluginsdk.ResourceData, meta any) erro
 	// as such we default this to `nil` which matches the previous behaviour (where this isn't sent) and
 	// conditionally set this if required
 	var forceDeletion *bool = nil
-	if meta.(*clients.Client).Features.VirtualMachine.SkipShutdownAndForceDelete {
+	if features.From(meta).VirtualMachine.SkipShutdownAndForceDelete {
 		forceDeletion = pointer.To(true)
 	}
 	deleteOptions := virtualmachines.DefaultDeleteOperationOptions()
@@ -61,9 +63,9 @@ func resourceLinuxVirtualMachineDelete(d *pluginsdk.ResourceData, meta any) erro
 		return fmt.Errorf("deleting Linux %s: %+v", id, err)
 	}
 
-	deleteOSDisk := meta.(*clients.Client).Features.VirtualMachine.DeleteOSDiskOnDeletion
+	deleteOSDisk := features.From(meta).VirtualMachine.DeleteOSDiskOnDeletion
 	if deleteOSDisk {
-		disksClient := meta.(*clients.Client).Compute.DisksClient
+		disksClient := computeClient.From(meta).DisksClient
 		managedDiskId := ""
 		if props := existing.Model.Properties; props != nil && props.StorageProfile != nil && props.StorageProfile.OsDisk != nil {
 			if disk := props.StorageProfile.OsDisk.ManagedDisk; disk != nil && disk.Id != nil {
@@ -86,7 +88,7 @@ func resourceLinuxVirtualMachineDelete(d *pluginsdk.ResourceData, meta any) erro
 	} else {
 		log.Printf("[DEBUG] Skipping Deleting OS Disk from Linux %s", id)
 		// Wait for the Disk to be no longer `Attached` so we know it's released and free to be attached to any subsequent VM etc
-		disksClient := meta.(*clients.Client).Compute.DisksClient
+		disksClient := computeClient.From(meta).DisksClient
 		managedDiskId := ""
 		if props := existing.Model.Properties; props != nil && props.StorageProfile != nil && props.StorageProfile.OsDisk != nil {
 			if disk := props.StorageProfile.OsDisk.ManagedDisk; disk != nil && disk.Id != nil {

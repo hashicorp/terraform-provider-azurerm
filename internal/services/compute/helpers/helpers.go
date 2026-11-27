@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
 	"github.com/hashicorp/go-version"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/client"
 )
 
 func ExpandIDsToSubResources(input []any) *[]virtualmachinescalesets.SubResource {
@@ -96,11 +96,11 @@ func SortSharedImageVersions(values []galleryimageversions.GalleryImageVersion) 
 	return values, nil
 }
 
-func ResourceManagedDiskUpdateWithVmShutDown(ctx context.Context, clients *clients.Client, id *commonids.ManagedDiskId, virtualMachineId *virtualmachines.VirtualMachineId, diskUpdate disks.DiskUpdate, shouldDetach bool) error {
+func ResourceManagedDiskUpdateWithVmShutDown(ctx context.Context, clients any, id *commonids.ManagedDiskId, virtualMachineId *virtualmachines.VirtualMachineId, diskUpdate disks.DiskUpdate, shouldDetach bool) error {
 	expandedDisk := virtualmachines.DataDisk{}
 	shouldShutDown := true
-	diskClient := clients.Compute.DisksClient
-	virtualMachinesClient := clients.Compute.VirtualMachinesClient
+	diskClient := client.From(clients).DisksClient
+	virtualMachinesClient := client.From(clients).VirtualMachinesClient
 
 	vm, err := virtualMachinesClient.Get(ctx, *virtualMachineId, virtualmachines.DefaultGetOperationOptions())
 	if err != nil {

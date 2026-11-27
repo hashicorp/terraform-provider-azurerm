@@ -13,16 +13,19 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/failovergroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/servers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	mssqlClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/client"
 )
 
 func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MSSQL.FailoverGroupsClient
-			serversClient := metadata.Client.MSSQL.ServersClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := mssqlClient.From(metadata.Client).FailoverGroupsClient
+			serversClient := mssqlClient.From(metadata.Client).ServersClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			var model MsSqlFailoverGroupModel
 			if err := metadata.Decode(&model); err != nil {
@@ -40,7 +43,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			id := failovergroups.NewFailoverGroupID(subscriptionId, serverId.ResourceGroupName, serverId.ServerName, model.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {

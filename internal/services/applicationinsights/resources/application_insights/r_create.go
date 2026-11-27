@@ -17,22 +17,25 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	applicationinsightsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/client"
+	monitorClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceApplicationInsightsCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).AppInsights.ComponentsClient
-	ruleClient := meta.(*clients.Client).Monitor.SmartDetectorAlertRulesClient
-	billingClient := meta.(*clients.Client).AppInsights.BillingClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	client := applicationinsightsClient.From(meta).ComponentsClient
+	ruleClient := monitorClient.From(meta).SmartDetectorAlertRulesClient
+	billingClient := applicationinsightsClient.From(meta).BillingClient
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
 	defer cancel()
 
 	id := componentsapis.NewComponentID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.ComponentsGet(ctx, id)
 		if !response.WasNotFound(existing.HttpResponse) {
 			if err != nil {
@@ -140,7 +143,7 @@ func resourceApplicationInsightsCreate(d *pluginsdk.ResourceData, meta any) erro
 	// Azure creates a rule and action group when creating this resource that are very noisy
 	// We would like to delete them but deleting them just causes them to be recreated after a few minutes.
 	// Instead, we'll opt to disable them here
-	if meta.(*clients.Client).Features.ApplicationInsights.DisableGeneratedRule {
+	if features.From(meta).ApplicationInsights.DisableGeneratedRule {
 		// TODO: replace this with a StateWait func
 		if err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
 			time.Sleep(30 * time.Second)

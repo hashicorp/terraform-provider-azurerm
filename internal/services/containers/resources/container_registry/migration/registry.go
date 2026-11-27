@@ -9,7 +9,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	clientsAccount "github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -44,15 +45,15 @@ func (RegistryV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 
 		storageAccountId := ""
 		if v, ok := rawState["storage_account"]; ok {
-			subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-			ctx, cancel := context.WithTimeout(meta.(*clients.Client).StopContext, time.Minute*5)
+			subscriptionId := clientsAccount.From(meta).SubscriptionId
+			ctx, cancel := context.WithTimeout(clientsAccount.StopContext(meta), time.Minute*5)
 			defer cancel()
 
 			raw := v.(*pluginsdk.Set).List()
 			rawVals := raw[0].(map[string]any)
 			storageAccountName := rawVals["name"].(string)
 
-			account, err := meta.(*clients.Client).Storage.FindAccount(ctx, subscriptionId, storageAccountName)
+			account, err := client.From(meta).FindAccount(ctx, subscriptionId, storageAccountName)
 			if err != nil {
 				return nil, fmt.Errorf("finding Storage Account %q: %+v", storageAccountName, err)
 			}

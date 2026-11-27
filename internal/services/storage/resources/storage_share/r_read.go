@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/fileshares"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	clientsAccount "github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
@@ -22,8 +22,8 @@ import (
 )
 
 func resourceStorageShareRead(d *pluginsdk.ResourceData, meta any) error {
-	sharesClient := meta.(*clients.Client).Storage.ResourceManager.FileShares
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	sharesClient := client.From(meta).ResourceManager.FileShares
+	ctx, cancel := timeouts.ForRead(clientsAccount.StopContext(meta), d)
 	defer cancel()
 
 	id, err := fileshares.ParseShareID(d.Id())
@@ -60,7 +60,7 @@ func resourceStorageShareRead(d *pluginsdk.ResourceData, meta any) error {
 	}
 
 	// TODO - The following section for `url` will need to be updated to go-azure-sdk when the Giovanni Deprecation process has been completed
-	account, err := meta.(*clients.Client).Storage.GetAccount(ctx, commonids.NewStorageAccountID(id.SubscriptionId, id.ResourceGroupName, id.StorageAccountName))
+	account, err := client.From(meta).GetAccount(ctx, commonids.NewStorageAccountID(id.SubscriptionId, id.ResourceGroupName, id.StorageAccountName))
 	if err != nil {
 		return fmt.Errorf("retrieving Account for Share %q: %v", id, err)
 	}
@@ -72,7 +72,7 @@ func resourceStorageShareRead(d *pluginsdk.ResourceData, meta any) error {
 	}
 
 	// Parse the file endpoint as a data plane account ID
-	accountId, err := accounts.ParseAccountID(*endpoint, meta.(*clients.Client).Storage.StorageDomainSuffix)
+	accountId, err := accounts.ParseAccountID(*endpoint, client.From(meta).StorageDomainSuffix)
 	if err != nil {
 		return fmt.Errorf("parsing Account ID: %v", err)
 	}

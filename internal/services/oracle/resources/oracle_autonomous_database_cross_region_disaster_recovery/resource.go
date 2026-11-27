@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/autonomousdatabases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -31,7 +32,7 @@ func (r Resource) CustomImporter() sdk.ResourceRunFunc {
 			return err
 		}
 
-		resp, err := metadata.Client.Oracle.OracleClient.AutonomousDatabases.Get(ctx, *id)
+		resp, err := client.From(metadata.Client).OracleClient.AutonomousDatabases.Get(ctx, *id)
 		if err != nil {
 			return fmt.Errorf("retrieving %s: %+v", id, err)
 		}

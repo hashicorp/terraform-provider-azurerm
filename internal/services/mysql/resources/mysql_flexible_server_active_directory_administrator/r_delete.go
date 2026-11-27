@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/azureadadministrators"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	mysqlClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/parse"
 )
 
@@ -17,7 +18,7 @@ func (r Resource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MySQL.AzureADAdministratorsClient
+			client := mysqlClient.From(metadata.Client).AzureADAdministratorsClient
 
 			id, err := parse.FlexibleServerAzureActiveDirectoryAdministratorID(metadata.ResourceData.Id())
 			if err != nil {

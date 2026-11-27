@@ -11,7 +11,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	keyvaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
@@ -19,9 +21,9 @@ import (
 func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			vaultClient := metadata.Client.KeyVault
-			client := metadata.Client.KeyVault.ManagementClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			vaultClient := keyvaultClient.From(metadata.Client)
+			client := keyvaultClient.From(metadata.Client).ManagementClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			id, err := parse.CertificateContactsID(metadata.ResourceData.Id())
 			if err != nil {

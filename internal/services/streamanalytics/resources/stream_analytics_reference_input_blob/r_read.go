@@ -10,15 +10,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/inputs"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	clientsAccount "github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	streamanalyticsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceStreamAnalyticsReferenceInputBlobRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).StreamAnalytics.InputsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	client := streamanalyticsClient.From(meta).InputsClient
+	ctx, cancel := timeouts.ForCreateUpdate(clientsAccount.StopContext(meta), d)
 	defer cancel()
 
 	id, err := inputs.ParseInputID(d.Id())

@@ -16,14 +16,15 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2026-03-18/domains"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	communicationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/communication/client"
 )
 
 func (Resource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Communication.ServiceClient
-			domainClient := metadata.Client.Communication.DomainClient
+			client := communicationClient.From(metadata.Client).ServiceClient
+			domainClient := communicationClient.From(metadata.Client).DomainClient
 
 			var model EmailDomainAssociationResourceModel
 

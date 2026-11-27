@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/namespaces"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	eventhubClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -33,7 +33,7 @@ func RegisterResource() *pluginsdk.Resource {
 			_, err := namespaces.ParseNamespaceID(id)
 			return err
 		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta any) ([]*pluginsdk.ResourceData, error) {
-			client := meta.(*clients.Client).Eventhub.NamespacesClient
+			client := eventhubClient.From(meta).NamespacesClient
 
 			var cancel context.CancelFunc
 			ctx, cancel = timeouts.ForRead(ctx, d)

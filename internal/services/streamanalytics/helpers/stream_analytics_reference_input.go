@@ -9,7 +9,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/inputs"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	streamanalyticsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -20,7 +20,7 @@ func ImportStreamAnalyticsReferenceInput(expectType string) pluginsdk.ImporterFu
 			return nil, err
 		}
 
-		client := meta.(*clients.Client).StreamAnalytics.InputsClient
+		client := streamanalyticsClient.From(meta).InputsClient
 		resp, err := client.Get(ctx, *id)
 		if err != nil {
 			return nil, fmt.Errorf("retrieving %s: %+v", *id, err)

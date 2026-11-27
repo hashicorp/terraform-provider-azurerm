@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2024-05-01/configurationstores"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	appconfigurationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/jackofallops/kermit/sdk/appconfiguration/1.0/appconfiguration"
@@ -25,7 +26,7 @@ func (k Resource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
 			}
 
-			client, err := metadata.Client.AppConfiguration.DataPlaneClientWithEndpoint(nestedItemId.ConfigurationStoreEndpoint)
+			client, err := appconfigurationClient.From(metadata.Client).DataPlaneClientWithEndpoint(nestedItemId.ConfigurationStoreEndpoint)
 			if err != nil {
 				return err
 			}
@@ -50,7 +51,7 @@ func (k Resource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Client.AppConfiguration.AddToCache(*configurationStoreId, nestedItemId.ConfigurationStoreEndpoint)
+			appconfigurationClient.From(metadata.Client).AddToCache(*configurationStoreId, nestedItemId.ConfigurationStoreEndpoint)
 
 			// Remove the lock, if any. We will put it back again if the model says so.
 			if _, err = client.DeleteLock(ctx, nestedItemId.Key, nestedItemId.Label, "", ""); err != nil {

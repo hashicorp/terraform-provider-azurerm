@@ -12,13 +12,14 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networkmanagers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	networkmanagerClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/networkmanager/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/networkmanager/parse"
 )
 
 func (r Resource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.NetworkManager.NetworkManagers
+			client := networkmanagerClient.From(metadata.Client).NetworkManagers
 			id, err := parse.NetworkManagerDeploymentID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -44,7 +45,7 @@ func (r Resource) Delete() sdk.ResourceFunc {
 				return errors.New("internal-error: context had no deadline")
 			}
 
-			statusClient := metadata.Client.NetworkManager.NetworkManagers
+			statusClient := networkmanagerClient.From(metadata.Client).NetworkManagers
 			if err = resourceManagerDeploymentWaitForDeleted(ctx, statusClient, id, time.Until(deadline)); err != nil {
 				return err
 			}

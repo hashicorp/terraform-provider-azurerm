@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	keyvaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -31,7 +32,7 @@ func (r ListResource) Metadata(_ context.Context, _ resource.MetadataRequest, re
 }
 
 func (r ListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
-	client := metadata.Client.KeyVault.VaultsClient
+	client := keyvaultClient.From(metadata.Client).VaultsClient
 
 	var data sdk.DefaultListModel
 	diags := request.Config.Get(ctx, &data)
@@ -89,7 +90,7 @@ func (r ListResource) List(ctx context.Context, request list.ListRequest, stream
 			rd := RegisterResource().Data(&terraform.InstanceState{})
 			rd.SetId(id.ID())
 
-			if err := resourceKeyVaultFlatten(ctx, metadata.Client.KeyVault.ManagementClient, rd, id, &vault, request.IncludeResource); err != nil {
+			if err := resourceKeyVaultFlatten(ctx, keyvaultClient.From(metadata.Client).ManagementClient, rd, id, &vault, request.IncludeResource); err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", keyVaultResourceName), err)
 				return
 			}

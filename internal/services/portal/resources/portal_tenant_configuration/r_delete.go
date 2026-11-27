@@ -6,15 +6,16 @@ package portal_tenant_configuration
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	portalClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/portal/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/portal/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourcePortalTenantConfigurationDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Portal.TenantConfigurationsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := portalClient.From(meta).TenantConfigurationsClient
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := parse.PortalTenantConfigurationID(d.Id())

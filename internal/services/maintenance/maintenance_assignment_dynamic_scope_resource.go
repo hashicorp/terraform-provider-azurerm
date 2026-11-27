@@ -12,7 +12,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/configurationassignments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/maintenanceconfigurations"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	maintenanceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -158,7 +161,7 @@ func (r MaintenanceDynamicScopeResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Maintenance.ConfigurationAssignmentsClient
+			client := maintenanceClient.From(metadata.Client).ConfigurationAssignmentsClient
 
 			var model MaintenanceDynamicScopeModel
 			if err := metadata.Decode(&model); err != nil {
@@ -170,9 +173,9 @@ func (r MaintenanceDynamicScopeResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			id := configurationassignments.NewConfigurationAssignmentID(metadata.Client.Account.SubscriptionId, model.Name)
+			id := configurationassignments.NewConfigurationAssignmentID(account.From(metadata.Client).SubscriptionId, model.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.ForSubscriptionsGet(ctx, id)
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {
@@ -239,7 +242,7 @@ func (MaintenanceDynamicScopeResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Maintenance.ConfigurationAssignmentsClient
+			client := maintenanceClient.From(metadata.Client).ConfigurationAssignmentsClient
 
 			var state MaintenanceDynamicScopeModel
 			id, err := configurationassignments.ParseConfigurationAssignmentID(metadata.ResourceData.Id())
@@ -301,7 +304,7 @@ func (MaintenanceDynamicScopeResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Maintenance.ConfigurationAssignmentsClient
+			client := maintenanceClient.From(metadata.Client).ConfigurationAssignmentsClient
 
 			id, err := configurationassignments.ParseConfigurationAssignmentID(metadata.ResourceData.Id())
 			if err != nil {
@@ -373,7 +376,7 @@ func (MaintenanceDynamicScopeResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Maintenance.ConfigurationAssignmentsClient
+			client := maintenanceClient.From(metadata.Client).ConfigurationAssignmentsClient
 
 			id, err := configurationassignments.ParseConfigurationAssignmentID(metadata.ResourceData.Id())
 			if err != nil {

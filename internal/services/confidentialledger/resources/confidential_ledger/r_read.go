@@ -12,14 +12,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/confidentialledger/2022-05-13/confidentialledger"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	confidentialledgerClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/confidentialledger/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceConfidentialLedgerRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).ConfidentialLedger.ConfidentialLedgerClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := confidentialledgerClient.From(meta).ConfidentialLedgerClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := confidentialledger.ParseLedgerID(d.Id())

@@ -12,7 +12,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstanceadministrators"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstanceazureadonlyauthentications"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	mssqlmanagedinstanceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/parse"
 )
 
@@ -20,8 +22,8 @@ func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MSSQLManagedInstance.ManagedInstanceAdministratorsClient
-			aadAuthOnlyClient := metadata.Client.MSSQLManagedInstance.ManagedInstanceAzureADOnlyAuthenticationsClient
+			client := mssqlmanagedinstanceClient.From(metadata.Client).ManagedInstanceAdministratorsClient
+			aadAuthOnlyClient := mssqlmanagedinstanceClient.From(metadata.Client).ManagedInstanceAzureADOnlyAuthenticationsClient
 
 			var model MsSqlManagedInstanceActiveDirectoryAdministratorModel
 			if err := metadata.Decode(&model); err != nil {
@@ -36,7 +38,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 			id := parse.NewManagedInstanceAzureActiveDirectoryAdministratorID(managedInstanceId.SubscriptionId,
 				managedInstanceId.ResourceGroupName, managedInstanceId.ManagedInstanceName, string(managedinstanceadministrators.ManagedInstanceAdministratorTypeActiveDirectory))
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, *managedInstanceId)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)

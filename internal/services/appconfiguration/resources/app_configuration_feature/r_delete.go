@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	appconfigurationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/parse"
 	"github.com/jackofallops/kermit/sdk/appconfiguration/1.0/appconfiguration"
 )
@@ -21,7 +22,7 @@ func (k Resource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
 			}
 
-			client, err := metadata.Client.AppConfiguration.DataPlaneClientWithEndpoint(nestedItemId.ConfigurationStoreEndpoint)
+			client, err := appconfigurationClient.From(metadata.Client).DataPlaneClientWithEndpoint(nestedItemId.ConfigurationStoreEndpoint)
 			if err != nil {
 				return err
 			}

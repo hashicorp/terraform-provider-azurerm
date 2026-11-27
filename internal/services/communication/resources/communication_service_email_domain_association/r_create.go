@@ -14,16 +14,18 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2026-03-18/communicationservices"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2026-03-18/domains"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	communicationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/communication/client"
 )
 
 func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Communication.ServiceClient
-			domainClient := metadata.Client.Communication.DomainClient
+			client := communicationClient.From(metadata.Client).ServiceClient
+			domainClient := communicationClient.From(metadata.Client).DomainClient
 
 			var model EmailDomainAssociationResourceModel
 
@@ -89,7 +91,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 				if strings.EqualFold(eMailServiceDomainId.ID(), tmpID.ID()) {
 					exists = true
-					if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+					if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 						return metadata.ResourceRequiresImport(r.ResourceType(), id)
 					}
 				}

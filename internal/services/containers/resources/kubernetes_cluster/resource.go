@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-07-01/managedclusters"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	containersClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/resources/kubernetes_cluster/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -37,7 +37,7 @@ func RegisterResource() *pluginsdk.Resource {
 				return []*pluginsdk.ResourceData{d}, err
 			}
 
-			client := meta.(*clients.Client).Containers.KubernetesClustersClient
+			client := containersClient.From(meta).KubernetesClustersClient
 			resp, err := client.Get(ctx, *resourceId)
 			if err != nil || resp.Model == nil {
 				return []*pluginsdk.ResourceData{d}, fmt.Errorf("retrieving %s: %+v", *resourceId, err)

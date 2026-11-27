@@ -9,7 +9,9 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationfabrics"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	recoveryservicesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/client"
 )
 
 func (r Resource) Create() sdk.ResourceFunc {
@@ -21,8 +23,8 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %s", err)
 			}
 
-			client := metadata.Client.RecoveryServices.FabricClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := recoveryservicesClient.From(metadata.Client).FabricClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			vaultId, err := replicationfabrics.ParseVaultID(metaModel.RecoveryVaultId)
 			if err != nil {

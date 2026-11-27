@@ -10,8 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2023-12-01-preview/alertrules"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	sentinelClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -22,7 +22,7 @@ func ImportSentinelAlertRule(expectKind alertrules.AlertRuleKind) pluginsdk.Impo
 			return nil, err
 		}
 
-		client := meta.(*clients.Client).Sentinel.AlertRulesClient
+		client := sentinelClient.From(meta).AlertRulesClient
 		resp, err := client.Get(ctx, *id)
 		if err != nil {
 			return nil, fmt.Errorf("retrieving Sentinel Alert Rule %q: %+v", id, err)
@@ -42,7 +42,7 @@ func ImportSentinelAlertRuleForTypedSdk(expectKind alertrules.AlertRuleKind) sdk
 			return err
 		}
 
-		client := metadata.Client.Sentinel.AlertRulesClient
+		client := sentinelClient.From(metadata.Client).AlertRulesClient
 		resp, err := client.Get(ctx, *id)
 		if err != nil {
 			return fmt.Errorf("retrieving Sentinel Alert Rule %q: %+v", id, err)

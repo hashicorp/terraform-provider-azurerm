@@ -21,8 +21,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/fileservices"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/storageaccountmigrations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/storageaccounts"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	clientsAccount "github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	storageClient2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -43,11 +44,11 @@ func resourceStorageAccountFlatten(ctx context.Context, d *pluginsdk.ResourceDat
 		return nil
 	}
 
-	storageClient := meta.(*clients.Client).Storage.ResourceManager
+	storageClient := storageClient2.From(meta).ResourceManager
 	client := storageClient.StorageAccounts
-	storageDomainSuffix, ok := meta.(*clients.Client).Account.Environment.Storage.DomainSuffix()
+	storageDomainSuffix, ok := clientsAccount.From(meta).Environment.Storage.DomainSuffix()
 	if !ok {
-		return fmt.Errorf("could not determine Storage domain suffix for environment %q", meta.(*clients.Client).Account.Environment.Name)
+		return fmt.Errorf("could not determine Storage domain suffix for environment %q", clientsAccount.From(meta).Environment.Name)
 	}
 
 	listKeysOpts := storageaccounts.DefaultListKeysOperationOptions()

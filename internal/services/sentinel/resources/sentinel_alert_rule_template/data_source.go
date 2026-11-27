@@ -11,7 +11,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/alertruletemplates"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	sentinelClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -147,9 +148,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 }
 
 func dataSourceSentinelAlertRuleTemplateRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Sentinel.AlertRuleTemplatesClient
+	client := sentinelClient.From(meta).AlertRuleTemplatesClient
 
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	name := d.Get("name").(string)
@@ -177,7 +178,7 @@ func dataSourceSentinelAlertRuleTemplateRead(d *pluginsdk.ResourceData, meta any
 		name = *realName
 	}
 
-	id := alertruletemplates.NewAlertRuleTemplateID(meta.(*clients.Client).Account.SubscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, name)
+	id := alertruletemplates.NewAlertRuleTemplateID(account.From(meta).SubscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, name)
 	d.SetId(id.ID())
 
 	switch template := resp.(type) {

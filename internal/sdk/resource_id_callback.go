@@ -7,17 +7,17 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 func setIDCallback(client any, id resourceids.ResourceId, d *pluginsdk.ResourceData, supportsIdentity bool, identityType pluginsdk.ResourceTypeForIdentity) func() error {
-	c, ok := client.(*clients.Client)
+	c, ok := client.(features.Provider)
 	if !ok {
-		panic(fmt.Sprintf("internal-error: expected `*clients.Client` but got %T", client))
+		panic(fmt.Sprintf("internal-error: expected `features.Provider` (`*clients.Client`) but got %T", client))
 	}
 
-	if c.Features.PersistIDOnCreateBeforePollingForCompletion {
+	if c.UserFeatures().PersistIDOnCreateBeforePollingForCompletion {
 		return func() error {
 			d.SetId(id.ID())
 			if supportsIdentity {

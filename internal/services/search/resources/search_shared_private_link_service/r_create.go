@@ -12,8 +12,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/services"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/sharedprivatelinkresources"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	searchClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/search/client"
 )
 
 func (r Resource) Create() sdk.ResourceFunc {
@@ -24,8 +27,8 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.Search.SearchSharedPrivateLinkResourceClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := searchClient.From(metadata.Client).SearchSharedPrivateLinkResourceClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			searchServiceId, err := services.ParseSearchServiceID(model.SearchServiceId)
 			if err != nil {
@@ -37,7 +40,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			id := sharedprivatelinkresources.NewSharedPrivateLinkResourceID(subscriptionId, searchServiceId.ResourceGroupName, searchServiceId.SearchServiceName, model.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id, sharedprivatelinkresources.GetOperationOptions{})
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing shared private link resource %s: %+v", id, err)

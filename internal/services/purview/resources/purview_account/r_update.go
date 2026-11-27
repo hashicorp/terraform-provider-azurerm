@@ -10,14 +10,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/purview/2021-12-01/account"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	clientsAccount "github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	purviewClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/purview/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourcePurviewAccountUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Purview.AccountsClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	client := purviewClient.From(meta).AccountsClient
+	ctx, cancel := timeouts.ForUpdate(clientsAccount.StopContext(meta), d)
 	defer cancel()
 
 	id, err := account.ParseAccountID(d.Id())

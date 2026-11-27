@@ -9,15 +9,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/eventhubs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/namespaces"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	eventhubClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceEventHubUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Eventhub.EventHubsClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	client := eventhubClient.From(meta).EventHubsClient
+	subscriptionId := account.From(meta).SubscriptionId
+	ctx, cancel := timeouts.ForCreateUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := eventhubs.ParseEventhubID(d.Id())
@@ -31,7 +32,7 @@ func resourceEventHubUpdate(d *pluginsdk.ResourceData, meta any) error {
 			return errors.New("`partition_count` cannot be decreased")
 		}
 
-		client := meta.(*clients.Client).Eventhub.NamespacesClient
+		client := eventhubClient.From(meta).NamespacesClient
 		namespaceId := namespaces.NewNamespaceID(subscriptionId, id.ResourceGroupName, id.NamespaceName)
 		resp, err := client.Get(ctx, namespaceId)
 		if err != nil {

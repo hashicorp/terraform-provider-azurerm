@@ -14,7 +14,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/hybridconnections"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	appserviceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 )
 
@@ -24,7 +26,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			var appHybridConn WebAppHybridConnectionModel
 
-			client := metadata.Client.AppService.WebAppsClient
+			client := appserviceClient.From(metadata.Client).WebAppsClient
 
 			if err := metadata.Decode(&appHybridConn); err != nil {
 				return err
@@ -40,7 +42,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			id := webapps.NewRelayID(appId.SubscriptionId, appId.ResourceGroupName, appId.SiteName, relayId.NamespaceName, relayId.HybridConnectionName)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.GetHybridConnection(ctx, id)
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {

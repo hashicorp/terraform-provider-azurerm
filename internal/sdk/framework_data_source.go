@@ -9,12 +9,11 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 type DataSourceMetadata struct {
-	Client *clients.Client
+	Client ClientProvider
 
 	SubscriptionId string
 
@@ -29,15 +28,17 @@ func (r *DataSourceMetadata) Defaults(req datasource.ConfigureRequest, resp *dat
 		return
 	}
 
-	c, ok := req.ProviderData.(*clients.Client)
+	c, ok := req.ProviderData.(ClientProvider)
 	if !ok {
 		resp.Diagnostics.AddError("Client Provider Data Error", fmt.Sprintf("invalid provider data supplied, got %+v", req.ProviderData))
 		return
 	}
 
 	r.Client = c
-	r.SubscriptionId = c.Account.SubscriptionId
-	r.Features = c.Features
+	if acc := c.ClientAccount(); acc != nil {
+		r.SubscriptionId = acc.SubscriptionId
+	}
+	r.Features = c.UserFeatures()
 
 	r.TimeoutRead = 5 * time.Minute
 }

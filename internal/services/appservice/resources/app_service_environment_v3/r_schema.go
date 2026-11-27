@@ -12,6 +12,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/appserviceenvironments"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/preflight"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
@@ -199,7 +201,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 			}
 
 			// Only run preflight validation when it's enabled and the diff contains changes (or this is a new resource).
-			if metadata.Client.Features.EnhancedValidation.PreflightEnabled {
+			if features.From(metadata.Client).EnhancedValidation.PreflightEnabled {
 				if len(rd.GetChangedKeysPrefix("")) > 0 || rd.Id() == "" {
 					var model AppServiceEnvironmentV3Model
 					if err := metadata.DecodeDiff(&model); err != nil {
@@ -212,7 +214,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 					}
 
 					req := expandCreateForAppServiceEnvironmentV3(model, vnetLoc)
-					id := commonids.NewAppServiceEnvironmentID(metadata.Client.Account.SubscriptionId, model.ResourceGroup, model.Name)
+					id := commonids.NewAppServiceEnvironmentID(account.From(metadata.Client).SubscriptionId, model.ResourceGroup, model.Name)
 
 					preflightValidate, err := preflight.NewValidationRequest(pointer.To(vnetLoc), pointer.To(id), "2023-01-01", req)
 					if err != nil {

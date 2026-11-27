@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	mysqlClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -52,7 +53,7 @@ func (r ListResource) ListResourceConfigSchema(_ context.Context, _ list.ListRes
 }
 
 func (r ListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
-	client := metadata.Client.MySQL.FlexibleServers.Databases
+	client := mysqlClient.From(metadata.Client).FlexibleServers.Databases
 
 	var data MysqlFlexibleDatabaseListModel
 	diags := request.Config.Get(ctx, &data)

@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/iotcentral/2021-11-01-preview/apps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	iotcentralClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/parse"
 	"github.com/jackofallops/kermit/sdk/iotcentral/2022-10-31-preview/iotcentral"
 )
@@ -17,7 +18,7 @@ import (
 func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.IoTCentral
+			client := iotcentralClient.From(metadata.Client)
 			var state IotCentralOrganizationModel
 			if err := metadata.Decode(&state); err != nil {
 				return err

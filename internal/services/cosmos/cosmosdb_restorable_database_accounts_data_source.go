@@ -12,7 +12,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/restorables"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	cosmosClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -105,13 +106,13 @@ func dataSourceCosmosDbRestorableDatabaseAccounts() *pluginsdk.Resource {
 }
 
 func dataSourceCosmosDbRestorableDatabaseAccountsRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cosmos.RestorablesClient
+	client := cosmosClient.From(meta).RestorablesClient
 
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	locationName := d.Get("location").(string)
-	id := restorables.NewRestorableDatabaseAccountID(meta.(*clients.Client).Account.SubscriptionId, locationName, "read")
+	id := restorables.NewRestorableDatabaseAccountID(account.From(meta).SubscriptionId, locationName, "read")
 
 	locationID := restorables.NewLocationID(id.SubscriptionId, location.Normalize(locationName))
 	resp, err := client.RestorableDatabaseAccountsListByLocation(ctx, locationID)

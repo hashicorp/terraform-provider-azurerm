@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/validate"
@@ -78,7 +79,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 
 			tenantName := rd.Get("strata_cloud_manager_tenant_name").(string)
 
-			if err := validate.ValidateStrataCloudManagerTenantNameExists(ctx, metadata.Client, metadata.Client.Account.SubscriptionId, tenantName); err != nil {
+			if err := validate.ValidateStrataCloudManagerTenantNameExists(ctx, metadata.Client, account.From(metadata.Client).SubscriptionId, tenantName); err != nil {
 				return fmt.Errorf("validating strata_cloud_manager_tenant_name: %+v", err)
 			}
 

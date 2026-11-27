@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-04-01/workbooksapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	applicationinsightsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/client"
 )
 
 //go:generate go run ../../../../tools/generator-tests resourceidentity -resource-name application_insights_workbook -test-name basicForResourceIdentity
@@ -21,7 +22,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AppInsights.WorkbookClient
+			client := applicationinsightsClient.From(metadata.Client).WorkbookClient
 
 			id, err := workbooksapis.ParseWorkbookID(metadata.ResourceData.Id())
 			if err != nil {

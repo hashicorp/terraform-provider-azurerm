@@ -12,25 +12,28 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/hybridrunbookworker"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	automationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/client"
 )
 
 func (m Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Automation.HybridRunbookWorker
+			client := automationClient.From(metadata.Client).HybridRunbookWorker
 
 			var model HybridRunbookWorkerModel
 			if err := metadata.Decode(&model); err != nil {
 				return err
 			}
 
-			subscriptionID := metadata.Client.Account.SubscriptionId
+			subscriptionID := account.From(metadata.Client).SubscriptionId
 			id := hybridrunbookworker.NewHybridRunbookWorkerID(subscriptionID, model.ResourceGroupName,
 				model.AutomationAccountName, model.WorkerGroupName, model.WorkerId)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if !response.WasNotFound(existing.HttpResponse) {
 					if err != nil {

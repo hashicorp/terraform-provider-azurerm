@@ -9,7 +9,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/consumption/2019-10-01/budgets"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	consumptionClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -246,8 +247,8 @@ func RegisterDataSource() *pluginsdk.Resource {
 }
 
 func resourceArmConsumptionBudgetResourceGroupDataSourceRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Consumption.BudgetsClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := consumptionClient.From(meta).BudgetsClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id := budgets.NewScopedBudgetID(d.Get("resource_group_id").(string), d.Get("name").(string))

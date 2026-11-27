@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	recoveryservicesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/client"
 )
 
 func (r Resource) Update() sdk.ResourceFunc {
@@ -26,7 +27,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.RecoveryServices.ReplicationPoliciesClient
+			client := recoveryservicesClient.From(metadata.Client).ReplicationPoliciesClient
 
 			parameters := replicationpolicies.UpdatePolicyInput{
 				Properties: &replicationpolicies.UpdatePolicyInputProperties{

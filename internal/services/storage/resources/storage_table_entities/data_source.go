@@ -108,7 +108,7 @@ func (k DataSource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			storageClient := metadata.Client.Storage
+			storageClient := storageAccountHelper.From(metadata.Client)
 
 			var tableName string
 			var accountName string

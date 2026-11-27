@@ -14,7 +14,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/managednetwork"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	machinelearningClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -109,8 +112,8 @@ func (r WorkspaceNetworkOutboundRulePrivateEndpoint) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MachineLearning.ManagedNetwork
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := machinelearningClient.From(metadata.Client).ManagedNetwork
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			var model machineLearningWorkspaceOutboundRulePrivateEndpointModel
 			if err := metadata.Decode(&model); err != nil {
@@ -123,7 +126,7 @@ func (r WorkspaceNetworkOutboundRulePrivateEndpoint) Create() sdk.ResourceFunc {
 			}
 			id := managednetwork.NewOutboundRuleID(subscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, model.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.SettingsRuleGet(ctx, id)
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {
@@ -183,7 +186,7 @@ func (r WorkspaceNetworkOutboundRulePrivateEndpoint) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MachineLearning.ManagedNetwork
+			client := machinelearningClient.From(metadata.Client).ManagedNetwork
 
 			id, err := managednetwork.ParseOutboundRuleID(metadata.ResourceData.Id())
 			if err != nil {
@@ -222,7 +225,7 @@ func (r WorkspaceNetworkOutboundRulePrivateEndpoint) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MachineLearning.ManagedNetwork
+			client := machinelearningClient.From(metadata.Client).ManagedNetwork
 
 			id, err := managednetwork.ParseOutboundRuleID(metadata.ResourceData.Id())
 			if err != nil {

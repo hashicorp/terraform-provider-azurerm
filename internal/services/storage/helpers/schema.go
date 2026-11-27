@@ -8,7 +8,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -25,7 +25,7 @@ func ImporterValidatingStorageResourceId(validateFunc StorageIDValidationFunc) *
 func ImporterValidatingStorageResourceIdThen(validateFunc StorageIDValidationFunc, thenFunc pluginsdk.ImporterFunc) *schema.ResourceImporter {
 	return &schema.ResourceImporter{
 		StateContext: func(ctx context.Context, d *pluginsdk.ResourceData, meta any) ([]*pluginsdk.ResourceData, error) {
-			storageDomainSuffix := meta.(*clients.Client).Storage.StorageDomainSuffix
+			storageDomainSuffix := client.From(meta).StorageDomainSuffix
 			log.Printf("[DEBUG] Importing Storage Resource - parsing %q using domain suffix %q", d.Id(), storageDomainSuffix)
 			if err := validateFunc(d.Id(), storageDomainSuffix); err != nil {
 				return []*pluginsdk.ResourceData{d}, err

@@ -9,14 +9,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-07-01/maintenanceconfigurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-07-01/managedclusters"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	containersClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceKubernetesClusterDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Containers.KubernetesClustersClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	client := containersClient.From(meta).KubernetesClustersClient
+	ctx, cancel := timeouts.ForDelete(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := commonids.ParseKubernetesClusterID(d.Id())
@@ -25,7 +26,7 @@ func resourceKubernetesClusterDelete(d *pluginsdk.ResourceData, meta any) error 
 	}
 
 	if _, ok := d.GetOk("maintenance_window"); ok {
-		client := meta.(*clients.Client).Containers.MaintenanceConfigurationsClient
+		client := containersClient.From(meta).MaintenanceConfigurationsClient
 		maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "default")
 		if _, err := client.Delete(ctx, maintenanceId); err != nil {
 			return fmt.Errorf("deleting Maintenance Configuration for %s: %+v", *id, err)

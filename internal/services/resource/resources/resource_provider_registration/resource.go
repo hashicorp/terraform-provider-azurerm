@@ -12,8 +12,10 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-09-01/providers"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
+	clientsAccount "github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	resourceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -34,8 +36,8 @@ func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 
 func (r Resource) CustomImporter() sdk.ResourceRunFunc {
 	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-		client := metadata.Client.Resource.ResourceProvidersClient
-		account := metadata.Client.Account
+		client := resourceClient.From(metadata.Client).ResourceProvidersClient
+		account := clientsAccount.From(metadata.Client)
 
 		id, err := providers.ParseSubscriptionProviderID(metadata.ResourceData.Id())
 		if err != nil {

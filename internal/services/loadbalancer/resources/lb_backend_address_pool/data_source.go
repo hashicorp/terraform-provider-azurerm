@@ -10,7 +10,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/loadbalancers"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -134,8 +135,8 @@ func RegisterDataSource() *pluginsdk.Resource {
 }
 
 func dataSourceArmLoadBalancerBackendAddressPoolRead(d *pluginsdk.ResourceData, meta any) error {
-	lbClient := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	lbClient := client.From(meta).LoadBalancersClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	name := d.Get("name").(string)

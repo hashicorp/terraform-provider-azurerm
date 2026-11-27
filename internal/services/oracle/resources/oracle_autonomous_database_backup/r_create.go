@@ -12,16 +12,19 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/autonomousdatabasebackups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/autonomousdatabases"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	oracleClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/client"
 )
 
 func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Oracle.OracleClient.AutonomousDatabaseBackups
-			dbClient := metadata.Client.Oracle.OracleClient.AutonomousDatabases
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := oracleClient.From(metadata.Client).OracleClient.AutonomousDatabaseBackups
+			dbClient := oracleClient.From(metadata.Client).OracleClient.AutonomousDatabases
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			var model AutonomousDatabaseBackupResourceModel
 			if err := metadata.Decode(&model); err != nil {
@@ -47,7 +50,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				model.Name,
 			)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existingBackup, err := getBackupFromOCI(ctx, client, dbId, id)
 				if err != nil {
 					return fmt.Errorf("checking for existing backup: %+v", err)

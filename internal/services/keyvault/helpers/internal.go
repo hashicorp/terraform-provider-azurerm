@@ -16,7 +16,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	keyvaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -142,8 +143,8 @@ func KeyVaultChildItemRefreshFunc(ctx context.Context, secretUri string) plugins
 }
 
 func NestedItemResourceImporter(ctx context.Context, d *pluginsdk.ResourceData, meta any) ([]*pluginsdk.ResourceData, error) {
-	keyVaultsClient := meta.(*clients.Client).KeyVault
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	keyVaultsClient := keyvaultClient.From(meta)
+	subscriptionId := account.From(meta).SubscriptionId
 	id, err := keyvault.ParseNestedItemID(d.Id(), keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
 	if err != nil {
 		return []*pluginsdk.ResourceData{d}, fmt.Errorf("parsing ID %q for Key Vault Child import: %v", d.Id(), err)

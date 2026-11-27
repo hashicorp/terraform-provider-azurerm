@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/hybridrunbookworker"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	automationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/client"
 )
 
 func (m Resource) Delete() sdk.ResourceFunc {
@@ -20,7 +21,7 @@ func (m Resource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			client := meta.Client.Automation.HybridRunbookWorker
+			client := automationClient.From(meta.Client).HybridRunbookWorker
 			if _, err = client.Delete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %v", id, err)
 			}

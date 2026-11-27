@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/afddomains"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/routes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2025-03-01/webapplicationfirewallpolicies"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	cdnClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -192,7 +192,7 @@ func SliceRemoveString(input []any, value string) []any {
 }
 
 func GetRouteProperties(ctx context.Context, meta any, id *routes.RouteId, resourceName string) ([]any, *routes.RouteProperties, error) {
-	client := meta.(*clients.Client).Cdn.FrontDoorRoutesClient
+	client := cdnClient.From(meta).FrontDoorRoutesClient
 
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
@@ -246,7 +246,7 @@ func RemoveCustomDomainAssociationFromRoutes(ctx context.Context, meta any, rout
 }
 
 func UpdateRouteAssociations(ctx context.Context, meta any, routeId *routes.RouteId, customDomains []any, props *routes.RouteProperties, customDomainID *afddomains.CustomDomainId) error {
-	client := meta.(*clients.Client).Cdn.FrontDoorRoutesClient
+	client := cdnClient.From(meta).FrontDoorRoutesClient
 
 	updateParams := routes.RouteUpdateParameters{
 		Properties: &routes.RouteUpdatePropertiesParameters{

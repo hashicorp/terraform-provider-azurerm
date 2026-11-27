@@ -17,8 +17,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	appserviceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 )
 
@@ -26,14 +29,14 @@ func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AppService.WebAppsClient
-			resourcesClient := metadata.Client.AppService.ResourceProvidersClient
-			servicePlanClient := metadata.Client.AppService.ServicePlanClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := appserviceClient.From(metadata.Client).WebAppsClient
+			resourcesClient := appserviceClient.From(metadata.Client).ResourceProvidersClient
+			servicePlanClient := appserviceClient.From(metadata.Client).ServicePlanClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
-			storageDomainSuffix, ok := metadata.Client.Account.Environment.Storage.DomainSuffix()
+			storageDomainSuffix, ok := account.From(metadata.Client).Environment.Storage.DomainSuffix()
 			if !ok {
-				return fmt.Errorf("could not determine Storage domain suffix for environment %q", metadata.Client.Account.Environment.Name)
+				return fmt.Errorf("could not determine Storage domain suffix for environment %q", account.From(metadata.Client).Environment.Name)
 			}
 
 			var functionAppFlexConsumption FunctionAppFlexConsumptionModel
@@ -70,7 +73,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("the sku name is %s which is not valid for a flex consumption function app", *planSKU)
 			}
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)

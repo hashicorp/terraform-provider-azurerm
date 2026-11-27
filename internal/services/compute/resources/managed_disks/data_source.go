@@ -16,7 +16,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	computeClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -259,7 +261,7 @@ func (m DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Compute.DisksClient
+			client := computeClient.From(metadata.Client).DisksClient
 
 			state := ManagedDisksDataSourceModel{}
 
@@ -267,7 +269,7 @@ func (m DataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-			id := commonids.NewResourceGroupID(metadata.Client.Account.SubscriptionId, state.ResourceGroupName)
+			id := commonids.NewResourceGroupID(account.From(metadata.Client).SubscriptionId, state.ResourceGroupName)
 
 			resp, err := client.ListByResourceGroup(ctx, id)
 			if err != nil {

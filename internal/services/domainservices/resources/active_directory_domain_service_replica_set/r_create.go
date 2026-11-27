@@ -14,8 +14,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	domainservicesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/domainservices/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/domainservices/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/domainservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -23,8 +25,8 @@ import (
 )
 
 func resourceActiveDirectoryDomainServiceReplicaSetCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).DomainServices.DomainServicesClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	client := domainservicesClient.From(meta).DomainServicesClient
+	ctx, cancel := timeouts.ForCreateUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	domainServiceId, err := parse.DomainServiceID(d.Get("domain_service_id").(string))
@@ -72,7 +74,7 @@ func resourceActiveDirectoryDomainServiceReplicaSetCreate(d *pluginsdk.ResourceD
 		// We assume that two replica sets cannot coexist in the same subnet
 		if strings.EqualFold(subnetId, *r.SubnetId) {
 			exists = true
-			if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				// Generate an ID here since we only know it once we know the ReplicaSetID
 				id := parse.NewDomainServiceReplicaSetID(domainServiceId.SubscriptionId, domainServiceId.ResourceGroup, domainServiceId.Name, *r.ReplicaSetId)
 				return tf.ImportAsExistsError("azurerm_active_directory_domain_service_replica_set", id.ID())

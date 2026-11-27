@@ -12,7 +12,7 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/armdisasterrecoveries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/namespaces"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -82,7 +82,7 @@ func AuthorizationRuleCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDi
 }
 
 func WaitForPairedNamespaceReplication(ctx context.Context, meta any, id namespaces.NamespaceId, timeout time.Duration) error {
-	namespaceClient := meta.(*clients.Client).ServiceBus.NamespacesClient
+	namespaceClient := client.From(meta).NamespacesClient
 	resp, err := namespaceClient.Get(ctx, id)
 
 	if model := resp.Model; model != nil {
@@ -91,7 +91,7 @@ func WaitForPairedNamespaceReplication(ctx context.Context, meta any, id namespa
 		}
 	}
 
-	disasterRecoveryClient := meta.(*clients.Client).ServiceBus.ArmDisasterRecoveriesClient
+	disasterRecoveryClient := client.From(meta).ArmDisasterRecoveriesClient
 	disasterRecoveryNamespaceId := armdisasterrecoveries.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
 	disasterRecoveryResponse, err := disasterRecoveryClient.DisasterRecoveryConfigsList(ctx, disasterRecoveryNamespaceId)
 

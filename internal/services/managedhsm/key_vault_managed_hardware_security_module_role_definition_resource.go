@@ -14,9 +14,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roledefinitions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/managedhsms"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	managedhsmClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
@@ -172,10 +175,10 @@ func (r KeyVaultMHSMRoleDefinitionResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ManagedHSMs.DataPlaneRoleDefinitionsClient
-			domainSuffix, ok := metadata.Client.Account.Environment.ManagedHSM.DomainSuffix()
+			client := managedhsmClient.From(metadata.Client).DataPlaneRoleDefinitionsClient
+			domainSuffix, ok := account.From(metadata.Client).Environment.ManagedHSM.DomainSuffix()
 			if !ok {
-				return fmt.Errorf("could not determine Managed HSM domain suffix for environment %q", metadata.Client.Account.Environment.Name)
+				return fmt.Errorf("could not determine Managed HSM domain suffix for environment %q", account.From(metadata.Client).Environment.Name)
 			}
 
 			var config KeyVaultMHSMRoleDefinitionModel
@@ -191,7 +194,7 @@ func (r KeyVaultMHSMRoleDefinitionResource) Create() sdk.ResourceFunc {
 				if err != nil {
 					return err
 				}
-				baseUri, err := metadata.Client.ManagedHSMs.BaseUriForManagedHSM(ctx, *managedHsmId)
+				baseUri, err := managedhsmClient.From(metadata.Client).BaseUriForManagedHSM(ctx, *managedHsmId)
 				if err != nil {
 					return fmt.Errorf("determining the Data Plane Endpoint for %s: %+v", *managedHsmId, err)
 				}
@@ -212,7 +215,7 @@ func (r KeyVaultMHSMRoleDefinitionResource) Create() sdk.ResourceFunc {
 			scope := keyvault.RoleScopeGlobal
 			id := parse.NewManagedHSMDataPlaneRoleDefinitionID(endpoint.ManagedHSMName, endpoint.DomainSuffix, string(scope), config.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id.BaseURI(), id.Scope, id.ManagedHSMName)
 				if !response.WasNotFound(existing.Response.Response) {
 					if err != nil {
@@ -261,10 +264,10 @@ func (r KeyVaultMHSMRoleDefinitionResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ManagedHSMs.DataPlaneRoleDefinitionsClient
-			domainSuffix, ok := metadata.Client.Account.Environment.ManagedHSM.DomainSuffix()
+			client := managedhsmClient.From(metadata.Client).DataPlaneRoleDefinitionsClient
+			domainSuffix, ok := account.From(metadata.Client).Environment.ManagedHSM.DomainSuffix()
 			if !ok {
-				return fmt.Errorf("could not determine Managed HSM domain suffix for environment %q", metadata.Client.Account.Environment.Name)
+				return fmt.Errorf("could not determine Managed HSM domain suffix for environment %q", account.From(metadata.Client).Environment.Name)
 			}
 
 			id, err := parse.ManagedHSMDataPlaneRoleDefinitionID(metadata.ResourceData.Id(), domainSuffix)
@@ -272,8 +275,8 @@ func (r KeyVaultMHSMRoleDefinitionResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			subscriptionId := commonids.NewSubscriptionID(metadata.Client.Account.SubscriptionId)
-			managedHsmId, err := metadata.Client.ManagedHSMs.ManagedHSMIDFromBaseUrl(ctx, subscriptionId, id.BaseURI(), domainSuffix)
+			subscriptionId := commonids.NewSubscriptionID(account.From(metadata.Client).SubscriptionId)
+			managedHsmId, err := managedhsmClient.From(metadata.Client).ManagedHSMIDFromBaseUrl(ctx, subscriptionId, id.BaseURI(), domainSuffix)
 			if err != nil {
 				return fmt.Errorf("determining the Managed HSM ID from the Base URI %q: %+v", id.BaseURI(), err)
 			}
@@ -322,10 +325,10 @@ func (r KeyVaultMHSMRoleDefinitionResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: time.Minute * 10,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) (err error) {
-			client := metadata.Client.ManagedHSMs.DataPlaneRoleDefinitionsClient
-			domainSuffix, ok := metadata.Client.Account.Environment.ManagedHSM.DomainSuffix()
+			client := managedhsmClient.From(metadata.Client).DataPlaneRoleDefinitionsClient
+			domainSuffix, ok := account.From(metadata.Client).Environment.ManagedHSM.DomainSuffix()
 			if !ok {
-				return fmt.Errorf("could not determine Managed HSM domain suffix for environment %q", metadata.Client.Account.Environment.Name)
+				return fmt.Errorf("could not determine Managed HSM domain suffix for environment %q", account.From(metadata.Client).Environment.Name)
 			}
 
 			id, err := parse.ManagedHSMDataPlaneRoleDefinitionID(metadata.ResourceData.Id(), domainSuffix)
@@ -333,8 +336,8 @@ func (r KeyVaultMHSMRoleDefinitionResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			subscriptionId := commonids.NewSubscriptionID(metadata.Client.Account.SubscriptionId)
-			managedHsmId, err := metadata.Client.ManagedHSMs.ManagedHSMIDFromBaseUrl(ctx, subscriptionId, id.BaseURI(), domainSuffix)
+			subscriptionId := commonids.NewSubscriptionID(account.From(metadata.Client).SubscriptionId)
+			managedHsmId, err := managedhsmClient.From(metadata.Client).ManagedHSMIDFromBaseUrl(ctx, subscriptionId, id.BaseURI(), domainSuffix)
 			if err != nil {
 				return fmt.Errorf("determining the Managed HSM ID from the Base URI %q: %+v", id.BaseURI(), err)
 			}
@@ -381,10 +384,10 @@ func (r KeyVaultMHSMRoleDefinitionResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ManagedHSMs.DataPlaneRoleDefinitionsClient
-			domainSuffix, ok := metadata.Client.Account.Environment.ManagedHSM.DomainSuffix()
+			client := managedhsmClient.From(metadata.Client).DataPlaneRoleDefinitionsClient
+			domainSuffix, ok := account.From(metadata.Client).Environment.ManagedHSM.DomainSuffix()
 			if !ok {
-				return fmt.Errorf("could not determine Managed HSM domain suffix for environment %q", metadata.Client.Account.Environment.Name)
+				return fmt.Errorf("could not determine Managed HSM domain suffix for environment %q", account.From(metadata.Client).Environment.Name)
 			}
 
 			id, err := parse.ManagedHSMDataPlaneRoleDefinitionID(metadata.ResourceData.Id(), domainSuffix)
@@ -392,8 +395,8 @@ func (r KeyVaultMHSMRoleDefinitionResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			subscriptionId := commonids.NewSubscriptionID(metadata.Client.Account.SubscriptionId)
-			managedHsmId, err := metadata.Client.ManagedHSMs.ManagedHSMIDFromBaseUrl(ctx, subscriptionId, id.BaseURI(), domainSuffix)
+			subscriptionId := commonids.NewSubscriptionID(account.From(metadata.Client).SubscriptionId)
+			managedHsmId, err := managedhsmClient.From(metadata.Client).ManagedHSMIDFromBaseUrl(ctx, subscriptionId, id.BaseURI(), domainSuffix)
 			if err != nil {
 				return fmt.Errorf("determining the Managed HSM ID from the Base URI %q: %+v", id.BaseURI(), err)
 			}

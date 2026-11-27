@@ -8,7 +8,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -22,7 +22,7 @@ func (WorkspaceV0ToV1) Schema() map[string]*pluginsdk.Schema {
 
 func (WorkspaceV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
-		subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+		subscriptionId := account.From(meta).SubscriptionId
 
 		log.Printf("[DEBUG] Migrating IDs to correct casing for Log Analytics Workspace")
 		name := rawState["name"].(string)

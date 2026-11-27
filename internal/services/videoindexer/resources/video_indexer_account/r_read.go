@@ -11,13 +11,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/videoindexer/2025-04-01/accounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	videoindexerClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/videoindexer/client"
 )
 
 func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.VideoIndexer.AccountClient
+			client := videoindexerClient.From(metadata.Client).AccountClient
 			id, err := accounts.ParseAccountID(metadata.ResourceData.Id())
 			if err != nil {
 				return err

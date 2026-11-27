@@ -11,16 +11,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstanceencryptionprotectors"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstancekeys"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	mssqlmanagedinstanceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceMsSqlManagedInstanceTransparentDataEncryptionCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).MSSQLManagedInstance.ManagedInstanceEncryptionProtectorClient
-	managedInstanceKeysClient := meta.(*clients.Client).MSSQLManagedInstance.ManagedInstanceKeysClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	client := mssqlmanagedinstanceClient.From(meta).ManagedInstanceEncryptionProtectorClient
+	managedInstanceKeysClient := mssqlmanagedinstanceClient.From(meta).ManagedInstanceKeysClient
+	ctx, cancel := timeouts.ForCreateUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	managedInstanceId, err := commonids.ParseSqlManagedInstanceID(d.Get("managed_instance_id").(string))

@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/cloudvmclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	oracleClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/client"
 )
 
 func (Resource) Read() sdk.ResourceFunc {
@@ -24,7 +25,7 @@ func (Resource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.Oracle.OracleClient.CloudVMClusters
+			client := oracleClient.From(metadata.Client).OracleClient.CloudVMClusters
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {

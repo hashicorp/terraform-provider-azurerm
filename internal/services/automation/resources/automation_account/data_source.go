@@ -15,7 +15,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2019-06-01/agentregistrationinformation"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/automationaccount"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	automationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -145,11 +146,11 @@ func RegisterDataSource() *pluginsdk.Resource {
 }
 
 func dataSourceAutomationAccountRead(d *pluginsdk.ResourceData, meta any) error {
-	iclient := meta.(*clients.Client).Automation.AgentRegistrationInfoClient
-	client := meta.(*clients.Client).Automation.AutomationAccount
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	iclient := automationClient.From(meta).AgentRegistrationInfoClient
+	client := automationClient.From(meta).AutomationAccount
+	subscriptionId := account.From(meta).SubscriptionId
 
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id := automationaccount.NewAutomationAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))

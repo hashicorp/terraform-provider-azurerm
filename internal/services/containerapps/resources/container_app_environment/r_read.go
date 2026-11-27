@@ -17,14 +17,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/managedenvironments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	containerappsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/client"
+	loganalyticsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/client"
 )
 
 func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ContainerApps.ManagedEnvironmentClient
+			client := containerappsClient.From(metadata.Client).ManagedEnvironmentClient
 			id, err := managedenvironments.ParseManagedEnvironmentID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -121,9 +124,9 @@ const (
 )
 
 func findWorkspaceResourceIDFromCustomerID(ctx context.Context, meta sdk.ResourceMetaData, customerID string) (*workspaces.WorkspaceId, error) {
-	client := meta.Client.LogAnalytics.WorkspaceClient
+	client := loganalyticsClient.From(meta.Client).WorkspaceClient
 
-	subscriptionId := commonids.NewSubscriptionID(meta.Client.Account.SubscriptionId)
+	subscriptionId := commonids.NewSubscriptionID(account.From(meta.Client).SubscriptionId)
 
 	list, err := client.List(ctx, subscriptionId)
 	if err != nil {
@@ -153,7 +156,7 @@ func findWorkspaceResourceIDFromCustomerID(ctx context.Context, meta sdk.Resourc
 }
 
 func getSharedKeyForWorkspace(ctx context.Context, meta sdk.ResourceMetaData, workspaceID string) (*string, *string, error) {
-	logAnalyticsClient := meta.Client.LogAnalytics.SharedKeyWorkspacesClient
+	logAnalyticsClient := loganalyticsClient.From(meta.Client).SharedKeyWorkspacesClient
 
 	logAnalyticsId, err := workspaces.ParseWorkspaceID(workspaceID)
 	if err != nil {

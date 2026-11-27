@@ -10,7 +10,9 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/firewallrules"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	cosmosClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -90,7 +92,7 @@ func (r CosmosDbPostgreSQLFirewallRuleResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.Cosmos.FirewallRulesClient
+			client := cosmosClient.From(metadata.Client).FirewallRulesClient
 			clusterId, err := firewallrules.ParseServerGroupsv2ID(model.ClusterId)
 			if err != nil {
 				return err
@@ -98,7 +100,7 @@ func (r CosmosDbPostgreSQLFirewallRuleResource) Create() sdk.ResourceFunc {
 
 			id := firewallrules.NewFirewallRuleID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.ServerGroupsv2Name, model.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -130,7 +132,7 @@ func (r CosmosDbPostgreSQLFirewallRuleResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Cosmos.FirewallRulesClient
+			client := cosmosClient.From(metadata.Client).FirewallRulesClient
 
 			id, err := firewallrules.ParseFirewallRuleID(metadata.ResourceData.Id())
 			if err != nil {
@@ -173,7 +175,7 @@ func (r CosmosDbPostgreSQLFirewallRuleResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Cosmos.FirewallRulesClient
+			client := cosmosClient.From(metadata.Client).FirewallRulesClient
 
 			id, err := firewallrules.ParseFirewallRuleID(metadata.ResourceData.Id())
 			if err != nil {
@@ -212,7 +214,7 @@ func (r CosmosDbPostgreSQLFirewallRuleResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Cosmos.FirewallRulesClient
+			client := cosmosClient.From(metadata.Client).FirewallRulesClient
 
 			id, err := firewallrules.ParseFirewallRuleID(metadata.ResourceData.Id())
 			if err != nil {

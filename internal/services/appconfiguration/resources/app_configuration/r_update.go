@@ -14,14 +14,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2024-05-01/configurationstores"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2024-05-01/replicas"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	appconfigurationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceAppConfigurationUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).AppConfiguration.ConfigurationStoresClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	client := appconfigurationClient.From(meta).ConfigurationStoresClient
+	ctx, cancel := timeouts.ForUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := configurationstores.ParseConfigurationStoreID(d.Id())
@@ -134,8 +135,8 @@ func resourceAppConfigurationUpdate(d *pluginsdk.ResourceData, meta any) error {
 	}
 
 	if d.HasChange("replica") {
-		replicaClient := meta.(*clients.Client).AppConfiguration.ReplicasClient
-		operationsClient := meta.(*clients.Client).AppConfiguration.OperationsClient
+		replicaClient := appconfigurationClient.From(meta).ReplicasClient
+		operationsClient := appconfigurationClient.From(meta).OperationsClient
 
 		// check if a replica has been removed from config and if so, delete it
 		deleteReplicaIds := make([]replicas.ReplicaId, 0)

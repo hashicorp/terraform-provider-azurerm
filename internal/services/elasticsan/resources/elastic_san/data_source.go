@@ -15,7 +15,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/elasticsan/2023-01-01/elasticsans"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	elasticsanClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/elasticsan/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elasticsan/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -141,8 +143,8 @@ func (r DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ElasticSan.ElasticSans
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := elasticsanClient.From(metadata.Client).ElasticSans
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			var state ElasticSANDataSourceModel
 			if err := metadata.Decode(&state); err != nil {

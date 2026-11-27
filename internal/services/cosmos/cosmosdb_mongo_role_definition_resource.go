@@ -12,8 +12,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2025-10-15/mongorbacs"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	cosmosClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -140,7 +142,7 @@ func (r CosmosDbMongoRoleDefinitionResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.Cosmos.MongoRBACClient
+			client := cosmosClient.From(metadata.Client).MongoRBACClient
 			databaseId, err := cosmosdb.ParseMongodbDatabaseID(model.CosmosMongoDatabaseId)
 			if err != nil {
 				return err
@@ -152,7 +154,7 @@ func (r CosmosDbMongoRoleDefinitionResource) Create() sdk.ResourceFunc {
 			locks.ByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
 			defer locks.UnlockByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.MongoDBResourcesGetMongoRoleDefinition(ctx, id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -188,7 +190,7 @@ func (r CosmosDbMongoRoleDefinitionResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Cosmos.MongoRBACClient
+			client := cosmosClient.From(metadata.Client).MongoRBACClient
 
 			id, err := mongorbacs.ParseMongodbRoleDefinitionID(metadata.ResourceData.Id())
 			if err != nil {
@@ -242,7 +244,7 @@ func (r CosmosDbMongoRoleDefinitionResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Cosmos.MongoRBACClient
+			client := cosmosClient.From(metadata.Client).MongoRBACClient
 
 			id, err := mongorbacs.ParseMongodbRoleDefinitionID(metadata.ResourceData.Id())
 			if err != nil {
@@ -280,7 +282,7 @@ func (r CosmosDbMongoRoleDefinitionResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Cosmos.MongoRBACClient
+			client := cosmosClient.From(metadata.Client).MongoRBACClient
 
 			id, err := mongorbacs.ParseMongodbRoleDefinitionID(metadata.ResourceData.Id())
 			if err != nil {

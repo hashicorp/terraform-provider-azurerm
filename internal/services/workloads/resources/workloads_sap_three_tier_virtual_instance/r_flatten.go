@@ -12,12 +12,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapvirtualinstances"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 func (Resource) flatten(metadata sdk.ResourceMetaData, id *sapvirtualinstances.SapVirtualInstanceId, model *sapvirtualinstances.SAPVirtualInstance) error {
-	subscriptionId := metadata.Client.Account.SubscriptionId
+	subscriptionId := account.From(metadata.Client).SubscriptionId
 
 	state := WorkloadsSAPThreeTierVirtualInstanceModel{
 		Name:              id.SapVirtualInstanceName,

@@ -13,7 +13,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/profiles"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/rulesets"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	cdnClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -238,14 +240,14 @@ func (DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Cdn.FrontDoorRuleSetsClient
+			client := cdnClient.From(metadata.Client).FrontDoorRuleSetsClient
 
 			var state CdnFrontDoorBatchRuleSetDataSourceModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			id := rulesets.NewRuleSetID(metadata.Client.Account.SubscriptionId, state.ResourceGroupName, state.ProfileName, state.Name)
+			id := rulesets.NewRuleSetID(account.From(metadata.Client).SubscriptionId, state.ResourceGroupName, state.ProfileName, state.Name)
 
 			resp, err := client.Get(ctx, id)
 			if err != nil {

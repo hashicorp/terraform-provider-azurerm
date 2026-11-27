@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	keyvaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	kv "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
@@ -91,7 +92,7 @@ func (e DataSource) Description() string {
 func (DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.KeyVault.ManagementClient
+			client := keyvaultClient.From(metadata.Client).ManagementClient
 
 			var model EncryptedValueDataSourceModel
 			if err := metadata.Decode(&model); err != nil {

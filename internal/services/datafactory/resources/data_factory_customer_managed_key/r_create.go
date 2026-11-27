@@ -13,14 +13,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	datafactoryClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/client"
 )
 
 func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DataFactory.Factories
+			client := datafactoryClient.From(metadata.Client).Factories
 
 			var customerManagedKey DataFactoryCustomerManagedKeyModel
 			if err := metadata.Decode(&customerManagedKey); err != nil {
@@ -49,7 +51,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 			}
 
 			payload := dataFactory.Model
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				if payload.Properties.Encryption != nil {
 					return tf.ImportAsExistsError("azurerm_data_factory_customer_managed_key", id.ID())
 				}

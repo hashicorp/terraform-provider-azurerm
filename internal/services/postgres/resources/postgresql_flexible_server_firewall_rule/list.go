@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	postgresClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -50,7 +51,7 @@ func (ListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResou
 }
 
 func (ListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
-	client := metadata.Client.Postgres.FlexibleServerFirewallRuleClient
+	client := postgresClient.From(metadata.Client).FlexibleServerFirewallRuleClient
 
 	var data PostgresqlFlexibleServerFirewallRuleListModel
 	diags := request.Config.Get(ctx, &data)

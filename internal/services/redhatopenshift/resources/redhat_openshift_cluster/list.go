@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	redhatopenshiftClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/redhatopenshift/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -29,7 +30,7 @@ func (ListResource) ResourceFunc() *pluginsdk.Resource {
 }
 
 func (r ListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
-	client := metadata.Client.RedHatOpenShift.OpenShiftClustersClient
+	client := redhatopenshiftClient.From(metadata.Client).OpenShiftClustersClient
 
 	var data sdk.DefaultListModel
 	if diags := request.Config.Get(ctx, &data); diags.HasError() {

@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-11-01/rediscacheaccesspolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	redisClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/client"
 )
 
 func (r Resource) Delete() sdk.ResourceFunc {
@@ -21,7 +22,7 @@ func (r Resource) Delete() sdk.ResourceFunc {
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding %+v", err)
 			}
-			client := metadata.Client.Redis.CacheAccessPoliciesClient
+			client := redisClient.From(metadata.Client).CacheAccessPoliciesClient
 			id, err := rediscacheaccesspolicies.ParseAccessPolicyID(metadata.ResourceData.Id())
 			if err != nil {
 				return fmt.Errorf("while parsing resource ID: %+v", err)

@@ -19,8 +19,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/managedhsms"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	managedhsmClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
@@ -186,10 +189,10 @@ func (r KeyVaultMHSMKeyResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ManagedHSMs.DataPlaneKeysClient
-			domainSuffix, ok := metadata.Client.Account.Environment.ManagedHSM.DomainSuffix()
+			client := managedhsmClient.From(metadata.Client).DataPlaneKeysClient
+			domainSuffix, ok := account.From(metadata.Client).Environment.ManagedHSM.DomainSuffix()
 			if !ok {
-				return fmt.Errorf("could not determine Managed HSM domain suffix for environment %q", metadata.Client.Account.Environment.Name)
+				return fmt.Errorf("could not determine Managed HSM domain suffix for environment %q", account.From(metadata.Client).Environment.Name)
 			}
 
 			var config KeyVaultMHSMKeyResourceSchema
@@ -201,7 +204,7 @@ func (r KeyVaultMHSMKeyResource) Create() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			baseUri, err := metadata.Client.ManagedHSMs.BaseUriForManagedHSM(ctx, *managedHsmId)
+			baseUri, err := managedhsmClient.From(metadata.Client).BaseUriForManagedHSM(ctx, *managedHsmId)
 			if err != nil {
 				return fmt.Errorf("determining the Data Plane Endpoint for %s: %+v", *managedHsmId, err)
 			}
@@ -218,7 +221,7 @@ func (r KeyVaultMHSMKeyResource) Create() sdk.ResourceFunc {
 			locks.ByName(managedHsmId.ID(), "azurerm_key_vault_managed_hardware_security_module")
 			defer locks.UnlockByName(managedHsmId.ID(), "azurerm_key_vault_managed_hardware_security_module")
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.GetKey(ctx, endpoint.BaseURI(), id.KeyName, "")
 				if err != nil {
 					if !response.WasNotFound(existing.Response.Response) {
@@ -265,7 +268,7 @@ func (r KeyVaultMHSMKeyResource) Create() sdk.ResourceFunc {
 			}
 
 			if resp, err := client.CreateKey(ctx, endpoint.BaseURI(), config.Name, parameters); err != nil {
-				if metadata.Client.Features.KeyVault.RecoverSoftDeletedHSMKeys && response.WasConflict(resp.Response.Response) {
+				if features.From(metadata.Client).KeyVault.RecoverSoftDeletedHSMKeys && response.WasConflict(resp.Response.Response) {
 					recoveredKey, err := client.RecoverDeletedKey(ctx, endpoint.BaseURI(), config.Name)
 					if err != nil {
 						return err
@@ -302,10 +305,10 @@ func (r KeyVaultMHSMKeyResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ManagedHSMs.DataPlaneKeysClient
-			domainSuffix, ok := metadata.Client.Account.Environment.ManagedHSM.DomainSuffix()
+			client := managedhsmClient.From(metadata.Client).DataPlaneKeysClient
+			domainSuffix, ok := account.From(metadata.Client).Environment.ManagedHSM.DomainSuffix()
 			if !ok {
-				return fmt.Errorf("could not determine Managed HSM domain suffix for environment %q", metadata.Client.Account.Environment.Name)
+				return fmt.Errorf("could not determine Managed HSM domain suffix for environment %q", account.From(metadata.Client).Environment.Name)
 			}
 
 			schema := KeyVaultMHSMKeyResourceSchema{}
@@ -315,8 +318,8 @@ func (r KeyVaultMHSMKeyResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			subscriptionId := commonids.NewSubscriptionID(metadata.Client.Account.SubscriptionId)
-			resourceManagerId, err := metadata.Client.ManagedHSMs.ManagedHSMIDFromBaseUrl(ctx, subscriptionId, id.BaseUri(), domainSuffix)
+			subscriptionId := commonids.NewSubscriptionID(account.From(metadata.Client).SubscriptionId)
+			resourceManagerId, err := managedhsmClient.From(metadata.Client).ManagedHSMIDFromBaseUrl(ctx, subscriptionId, id.BaseUri(), domainSuffix)
 			if err != nil {
 				return fmt.Errorf("determining Resource Manager ID for %q: %+v", id, err)
 			}
@@ -368,10 +371,10 @@ func (r KeyVaultMHSMKeyResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ManagedHSMs.DataPlaneRoleAssignmentsClient
-			domainSuffix, ok := metadata.Client.Account.Environment.ManagedHSM.DomainSuffix()
+			client := managedhsmClient.From(metadata.Client).DataPlaneRoleAssignmentsClient
+			domainSuffix, ok := account.From(metadata.Client).Environment.ManagedHSM.DomainSuffix()
 			if !ok {
-				return fmt.Errorf("could not determine Managed HSM domain suffix for environment %q", metadata.Client.Account.Environment.Name)
+				return fmt.Errorf("could not determine Managed HSM domain suffix for environment %q", account.From(metadata.Client).Environment.Name)
 			}
 
 			var config KeyVaultMHSMKeyResourceSchema
@@ -384,8 +387,8 @@ func (r KeyVaultMHSMKeyResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			subscriptionId := commonids.NewSubscriptionID(metadata.Client.Account.SubscriptionId)
-			resourceManagerId, err := metadata.Client.ManagedHSMs.ManagedHSMIDFromBaseUrl(ctx, subscriptionId, id.BaseUri(), domainSuffix)
+			subscriptionId := commonids.NewSubscriptionID(account.From(metadata.Client).SubscriptionId)
+			resourceManagerId, err := managedhsmClient.From(metadata.Client).ManagedHSMIDFromBaseUrl(ctx, subscriptionId, id.BaseUri(), domainSuffix)
 			if err != nil {
 				return fmt.Errorf("determining Resource Manager ID for %q: %+v", id, err)
 			}
@@ -421,7 +424,7 @@ func (r KeyVaultMHSMKeyResource) Update() sdk.ResourceFunc {
 			// may be routed to a stale replica, so we poll until the read-back `updated` timestamp matches
 			// the write response to ensure consistency before the framework performs its read
 			if resp.Attributes != nil && resp.Attributes.Updated != nil {
-				pollerType := custompollers.NewKeyUpdatePoller(metadata.Client.ManagedHSMs.DataPlaneKeysClient, id.BaseUri(), config.Name, *resp.Attributes.Updated)
+				pollerType := custompollers.NewKeyUpdatePoller(managedhsmClient.From(metadata.Client).DataPlaneKeysClient, id.BaseUri(), config.Name, *resp.Attributes.Updated)
 				poller := pollers.NewPoller(pollerType, 5*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 				if err := poller.PollUntilDone(ctx); err != nil {
 					return fmt.Errorf("waiting for key %q update to propagate: %+v", config.Name, err)
@@ -464,12 +467,12 @@ func (r KeyVaultMHSMKeyResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ManagedHSMs.DataPlaneKeysClient
-			hsmClient := metadata.Client.ManagedHSMs.ManagedHsmClient
+			client := managedhsmClient.From(metadata.Client).DataPlaneKeysClient
+			hsmClient := managedhsmClient.From(metadata.Client).ManagedHsmClient
 
-			domainSuffix, ok := metadata.Client.Account.Environment.ManagedHSM.DomainSuffix()
+			domainSuffix, ok := account.From(metadata.Client).Environment.ManagedHSM.DomainSuffix()
 			if !ok {
-				return fmt.Errorf("could not determine Managed HSM domain suffix for environment %q", metadata.Client.Account.Environment.Name)
+				return fmt.Errorf("could not determine Managed HSM domain suffix for environment %q", account.From(metadata.Client).Environment.Name)
 			}
 
 			id, err := parse.ManagedHSMDataPlaneVersionlessKeyID(metadata.ResourceData.Id(), domainSuffix)
@@ -477,8 +480,8 @@ func (r KeyVaultMHSMKeyResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			subscriptionId := commonids.NewSubscriptionID(metadata.Client.Account.SubscriptionId)
-			resourceManagerId, err := metadata.Client.ManagedHSMs.ManagedHSMIDFromBaseUrl(ctx, subscriptionId, id.BaseUri(), domainSuffix)
+			subscriptionId := commonids.NewSubscriptionID(account.From(metadata.Client).SubscriptionId)
+			resourceManagerId, err := managedhsmClient.From(metadata.Client).ManagedHSMIDFromBaseUrl(ctx, subscriptionId, id.BaseUri(), domainSuffix)
 			if err != nil {
 				return fmt.Errorf("determining Resource Manager ID for %q: %+v", id, err)
 			}
@@ -491,7 +494,7 @@ func (r KeyVaultMHSMKeyResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", resourceManagerId, err)
 			}
 
-			shouldPurge := metadata.Client.Features.KeyVault.PurgeSoftDeletedHSMKeysOnDestroy
+			shouldPurge := features.From(metadata.Client).KeyVault.PurgeSoftDeletedHSMKeysOnDestroy
 			if shouldPurge && managedHSM.Model != nil && managedHSM.Model.Properties != nil && pointer.From(managedHSM.Model.Properties.EnablePurgeProtection) {
 				log.Printf("[DEBUG] cannot purge key %q because Managed HSM %q has purge protection enabled", id.KeyName, id.ManagedHSMName)
 				shouldPurge = false

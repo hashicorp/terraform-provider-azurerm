@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2024-05-01/configurationstores"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	appconfigurationClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/jackofallops/kermit/sdk/appconfiguration/1.0/appconfiguration"
@@ -141,7 +142,7 @@ func (k DataSource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			configurationStoreEndpoint, err := metadata.Client.AppConfiguration.EndpointForConfigurationStore(ctx, *configurationStoreId)
+			configurationStoreEndpoint, err := appconfigurationClient.From(metadata.Client).EndpointForConfigurationStore(ctx, *configurationStoreId)
 			if err != nil {
 				return fmt.Errorf("retrieving Endpoint for feature %q in %q: %s", model.Key, *configurationStoreId, err)
 			}
@@ -150,7 +151,7 @@ func (k DataSource) Read() sdk.ResourceFunc {
 			// Link: "</kv?somepath...>; rel=next;"
 			// whereas the client expects a complete URI to be present and therefore fails to fetch all results if
 			// store contains more than 100 entries
-			client, err := metadata.Client.AppConfiguration.LinkWorkaroundDataPlaneClientWithEndpoint(*configurationStoreEndpoint)
+			client, err := appconfigurationClient.From(metadata.Client).LinkWorkaroundDataPlaneClientWithEndpoint(*configurationStoreEndpoint)
 			if err != nil {
 				return err
 			}

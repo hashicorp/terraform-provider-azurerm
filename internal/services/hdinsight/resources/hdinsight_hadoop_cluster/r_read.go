@@ -14,7 +14,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/applications"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -22,10 +23,10 @@ import (
 )
 
 func resourceHDInsightHadoopClusterRead(d *pluginsdk.ResourceData, meta any) error {
-	clustersClient := meta.(*clients.Client).HDInsight.Clusters
-	configurationsClient := meta.(*clients.Client).HDInsight.Configurations
-	extensionsClient := meta.(*clients.Client).HDInsight.Extensions
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	clustersClient := client.From(meta).Clusters
+	configurationsClient := client.From(meta).Configurations
+	extensionsClient := client.From(meta).Extensions
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := commonids.ParseHDInsightClusterID(d.Id())
@@ -60,7 +61,7 @@ func resourceHDInsightHadoopClusterRead(d *pluginsdk.ResourceData, meta any) err
 		return fmt.Errorf("retrieving Gateway Configuration for Hadoop %s: %+v", id, err)
 	}
 
-	applicationsClient := meta.(*clients.Client).HDInsight.Applications
+	applicationsClient := client.From(meta).Applications
 	applicationId := applications.NewApplicationID(id.SubscriptionId, id.ResourceGroupName, id.ClusterName, id.ClusterName) // 2 id.ClusterName's are intentional
 	edgeNode, err := applicationsClient.Get(ctx, applicationId)
 	if err != nil {

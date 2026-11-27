@@ -26,26 +26,29 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/transparentdataencryptions"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	mssqlClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/client"
+	resourceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).MSSQL.DatabasesClient
-	serversClient := meta.(*clients.Client).MSSQL.ServersClient
-	elasticPoolClient := meta.(*clients.Client).MSSQL.ElasticPoolsClient
-	databaseSecurityAlertPoliciesClient := meta.(*clients.Client).MSSQL.DatabaseSecurityAlertPoliciesClient
-	longTermRetentionClient := meta.(*clients.Client).MSSQL.LongTermRetentionPoliciesClient
-	shortTermRetentionClient := meta.(*clients.Client).MSSQL.BackupShortTermRetentionPoliciesClient
-	geoBackupPoliciesClient := meta.(*clients.Client).MSSQL.GeoBackupPoliciesClient
-	replicationLinksClient := meta.(*clients.Client).MSSQL.ReplicationLinksClient
-	resourcesClient := meta.(*clients.Client).Resource.ResourcesClient
-	transparentEncryptionClient := meta.(*clients.Client).MSSQL.TransparentDataEncryptionsClient
+	client := mssqlClient.From(meta).DatabasesClient
+	serversClient := mssqlClient.From(meta).ServersClient
+	elasticPoolClient := mssqlClient.From(meta).ElasticPoolsClient
+	databaseSecurityAlertPoliciesClient := mssqlClient.From(meta).DatabaseSecurityAlertPoliciesClient
+	longTermRetentionClient := mssqlClient.From(meta).LongTermRetentionPoliciesClient
+	shortTermRetentionClient := mssqlClient.From(meta).BackupShortTermRetentionPoliciesClient
+	geoBackupPoliciesClient := mssqlClient.From(meta).GeoBackupPoliciesClient
+	replicationLinksClient := mssqlClient.From(meta).ReplicationLinksClient
+	resourcesClient := resourceClient.From(meta).ResourcesClient
+	transparentEncryptionClient := mssqlClient.From(meta).TransparentDataEncryptionsClient
 
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreateUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	if strings.HasPrefix(d.Get("sku_name").(string), "GP_S_") && d.Get("license_type").(string) != "" {
@@ -61,7 +64,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta any) error {
 
 	id := commonids.NewSqlDatabaseID(serverId.SubscriptionId, serverId.ResourceGroupName, serverId.ServerName, name)
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+	if !features.From(meta).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		if existing, err := client.Get(ctx, id, databases.DefaultGetOperationOptions()); err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)

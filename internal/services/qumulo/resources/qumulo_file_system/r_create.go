@@ -12,15 +12,18 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/qumulostorage/2026-04-16/filesystems"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	qumuloClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/qumulo/client"
 )
 
 func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Qumulo.FileSystemsClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := qumuloClient.From(metadata.Client).FileSystemsClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			var config FileSystemResourceSchema
 			if err := metadata.Decode(&config); err != nil {
@@ -29,7 +32,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			id := filesystems.NewFileSystemID(subscriptionId, config.ResourceGroupName, config.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)

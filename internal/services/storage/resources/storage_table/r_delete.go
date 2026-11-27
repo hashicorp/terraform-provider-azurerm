@@ -8,16 +8,16 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
+	clientsAccount "github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	storageClient2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceStorageTableDelete(d *pluginsdk.ResourceData, meta any) error {
-	storageClient := meta.(*clients.Client).Storage
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	storageClient := storageClient2.From(meta)
+	ctx, cancel := timeouts.ForDelete(clientsAccount.StopContext(meta), d)
 	defer cancel()
 
 	rmId, err := parse.StorageTableResourceManagerID(d.Id())
@@ -25,9 +25,9 @@ func resourceStorageTableDelete(d *pluginsdk.ResourceData, meta any) error {
 		return err
 	}
 
-	var account *client.AccountDetails
-	if meta.(*clients.Client).Storage.StorageUseAzureAD {
-		account = &client.AccountDetails{
+	var account *storageClient2.AccountDetails
+	if storageClient2.From(meta).StorageUseAzureAD {
+		account = &storageClient2.AccountDetails{
 			StorageAccountId: commonids.NewStorageAccountID(rmId.SubscriptionId, rmId.ResourceGroup, rmId.StorageAccountName),
 		}
 	} else {

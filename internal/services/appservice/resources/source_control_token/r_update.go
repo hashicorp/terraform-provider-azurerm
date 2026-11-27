@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	appserviceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/client"
 )
 
 func (r Resource) Update() sdk.ResourceFunc {
@@ -28,7 +29,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.AppService.ResourceProvidersClient
+			client := appserviceClient.From(metadata.Client).ResourceProvidersClient
 
 			sourceControlOAuth := resourceproviders.SourceControl{
 				Properties: &resourceproviders.SourceControlProperties{

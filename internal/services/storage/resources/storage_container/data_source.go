@@ -9,7 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	clientsAccount "github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -74,8 +74,8 @@ func RegisterDataSource() *pluginsdk.Resource {
 }
 
 func dataSourceStorageContainerRead(d *pluginsdk.ResourceData, meta any) error {
-	containerClient := meta.(*clients.Client).Storage.ResourceManager.BlobContainers
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	containerClient := client.From(meta).ResourceManager.BlobContainers
+	ctx, cancel := timeouts.ForRead(clientsAccount.StopContext(meta), d)
 	defer cancel()
 
 	containerName := d.Get("name").(string)
@@ -109,7 +109,7 @@ func dataSourceStorageContainerRead(d *pluginsdk.ResourceData, meta any) error {
 		}
 	}
 
-	account, err := meta.(*clients.Client).Storage.GetAccount(ctx, commonids.NewStorageAccountID(id.SubscriptionId, id.ResourceGroupName, id.StorageAccountName))
+	account, err := client.From(meta).GetAccount(ctx, commonids.NewStorageAccountID(id.SubscriptionId, id.ResourceGroupName, id.StorageAccountName))
 	if err != nil {
 		return fmt.Errorf("retrieving Account for Container %q: %v", id, err)
 	}
@@ -121,7 +121,7 @@ func dataSourceStorageContainerRead(d *pluginsdk.ResourceData, meta any) error {
 	}
 
 	// Parse the blob endpoint as a data plane account ID
-	accountDpId, err := accounts.ParseAccountID(*endpoint, meta.(*clients.Client).Storage.StorageDomainSuffix)
+	accountDpId, err := accounts.ParseAccountID(*endpoint, client.From(meta).StorageDomainSuffix)
 	if err != nil {
 		return fmt.Errorf("parsing Account ID: %v", err)
 	}

@@ -13,7 +13,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/advisor/2023-01-01/getrecommendations"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	advisorClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/advisor/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -135,11 +136,11 @@ func RegisterDataSource() *pluginsdk.Resource {
 }
 
 func dataSourceAdvisorRecommendationsRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Advisor.RecommendationsClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := advisorClient.From(meta).RecommendationsClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
-	id := commonids.NewSubscriptionID(meta.(*clients.Client).Account.SubscriptionId)
+	id := commonids.NewSubscriptionID(account.From(meta).SubscriptionId)
 
 	filterList := make([]string, 0)
 	if categories := expandAzureRmAdvisorRecommendationsMapString("Category", d.Get("filter_by_category").(*pluginsdk.Set).List()); categories != "" {

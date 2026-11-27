@@ -12,14 +12,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/profiles"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/securitypolicies"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	cdnClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceCdnFrontdoorSecurityPolicyUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cdn.FrontDoorSecurityPoliciesClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	client := cdnClient.From(meta).FrontDoorSecurityPoliciesClient
+	ctx, cancel := timeouts.ForUpdate(account.StopContext(meta), d)
 	defer cancel()
 
 	// NOTE: The profile id is used to retrieve properties from the related profile that must match in this security policy
@@ -38,7 +39,7 @@ func resourceCdnFrontdoorSecurityPolicyUpdate(d *pluginsdk.ResourceData, meta an
 		}
 	}
 
-	profileClient := meta.(*clients.Client).Cdn.FrontDoorProfilesClient
+	profileClient := cdnClient.From(meta).FrontDoorProfilesClient
 	resp, err := profileClient.Get(ctx, pointer.From(profileId))
 	if err != nil {
 		return fmt.Errorf("unable to retrieve the `sku_name` from %s: %+v", pointer.From(profileId), err)

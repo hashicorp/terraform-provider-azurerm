@@ -12,7 +12,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -136,7 +135,7 @@ func (rw *ResourceWrapper) Resource() (*schema.Resource, error) {
 
 	if v, ok := rw.resource.(ResourceWithCustomizeDiff); ok {
 		resource.CustomizeDiff = func(ctx context.Context, d *schema.ResourceDiff, meta any) error {
-			client := meta.(*clients.Client)
+			client := meta.(ClientProvider)
 			ctx, cancel := context.WithTimeout(ctx, v.CustomizeDiff().Timeout)
 			defer cancel()
 			metaData := ResourceMetaData{

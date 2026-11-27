@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicefabricmanagedcluster/2024-04-01/managedcluster"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicefabricmanagedcluster/2024-04-01/nodetype"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	servicefabricmanagedClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabricmanaged/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -24,8 +25,8 @@ import (
 func (k Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			clusterClient := metadata.Client.ServiceFabricManaged.ManagedClusterClient
-			nodeTypeClient := metadata.Client.ServiceFabricManaged.NodeTypeClient
+			clusterClient := servicefabricmanagedClient.From(metadata.Client).ManagedClusterClient
+			nodeTypeClient := servicefabricmanagedClient.From(metadata.Client).NodeTypeClient
 
 			id, err := managedcluster.ParseManagedClusterID(metadata.ResourceData.Id())
 			if err != nil {

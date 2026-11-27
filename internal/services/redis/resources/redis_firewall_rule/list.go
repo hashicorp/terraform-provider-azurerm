@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	redisClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -52,7 +53,7 @@ func (r ListResource) ListResourceConfigSchema(_ context.Context, _ list.ListRes
 }
 
 func (ListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
-	client := metadata.Client.Redis.FirewallRulesClient
+	client := redisClient.From(metadata.Client).FirewallRulesClient
 
 	var data RedisFirewallRuleListModel
 	diags := request.Config.Get(ctx, &data)

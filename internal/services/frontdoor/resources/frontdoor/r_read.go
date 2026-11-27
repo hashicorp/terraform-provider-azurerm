@@ -11,15 +11,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2020-05-01/frontdoors"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	frontdoorClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceFrontDoorRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Frontdoor.FrontDoorsClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	client := frontdoorClient.From(meta).FrontDoorsClient
+	ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
 	defer cancel()
 
 	id, err := frontdoors.ParseFrontDoorIDInsensitively(d.Id())
@@ -67,7 +68,7 @@ func resourceFrontDoorRead(d *pluginsdk.ResourceData, meta any) error {
 
 			// Need to call frontEndEndpointClient here to get the frontEndEndpoint information from that client
 			// because the information is hidden from the main frontDoorClient "by design"...
-			frontEndEndpointsClient := meta.(*clients.Client).Frontdoor.FrontDoorsClient
+			frontEndEndpointsClient := frontdoorClient.From(meta).FrontDoorsClient
 			frontEndEndpointInfo, err := retrieveFrontEndEndpointInformation(ctx, frontEndEndpointsClient, *id, props.FrontendEndpoints)
 			if err != nil {
 				return fmt.Errorf("retrieving FrontEnd Endpoint Information: %+v", err)

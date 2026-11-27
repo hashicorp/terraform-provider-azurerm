@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/customipprefixes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/client"
 )
 
 func (r Resource) Delete() sdk.ResourceFunc {
@@ -17,7 +18,7 @@ func (r Resource) Delete() sdk.ResourceFunc {
 		Timeout: 17 * time.Hour,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			r.client = metadata.Client.Network.CustomIPPrefixes
+			r.client = client.From(metadata.Client).CustomIPPrefixes
 
 			id, err := customipprefixes.ParseCustomIPPrefixID(metadata.ResourceData.Id())
 			if err != nil {

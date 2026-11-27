@@ -17,7 +17,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	appserviceClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 )
 
@@ -29,11 +32,11 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.AppService.WebAppsClient
-			resourceProvidersClient := metadata.Client.AppService.ResourceProvidersClient
-			servicePlanClient := metadata.Client.AppService.ServicePlanClient
-			aseClient := metadata.Client.AppService.AppServiceEnvironmentClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := appserviceClient.From(metadata.Client).WebAppsClient
+			resourceProvidersClient := appserviceClient.From(metadata.Client).ResourceProvidersClient
+			servicePlanClient := appserviceClient.From(metadata.Client).ServicePlanClient
+			aseClient := appserviceClient.From(metadata.Client).AppServiceEnvironmentClient
+			subscriptionId := account.From(metadata.Client).SubscriptionId
 
 			baseId := commonids.NewAppServiceID(subscriptionId, webApp.ResourceGroup, webApp.Name)
 			id, err := commonids.ParseWebAppID(baseId.ID())
@@ -41,7 +44,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, *id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing Windows %s: %+v", id, err)

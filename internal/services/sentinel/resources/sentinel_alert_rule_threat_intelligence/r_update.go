@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2023-12-01-preview/alertrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	sentinelClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/helpers"
 )
 
@@ -22,7 +23,7 @@ func (a Resource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-			client := metadata.Client.Sentinel.AlertRulesClient
+			client := sentinelClient.From(metadata.Client).AlertRulesClient
 
 			id, err := alertrules.ParseAlertRuleID(metadata.ResourceData.Id())
 			if err != nil {

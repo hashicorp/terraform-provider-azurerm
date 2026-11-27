@@ -21,8 +21,11 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/horizondb/2026-10-01-preview/passwordauthentications"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/horizondb/2026-10-01-preview/pools"
 	"github.com/hashicorp/go-cty/cty"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	horizondbClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/horizondb/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -315,14 +318,14 @@ func (r HorizondbClusterResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			id := clusters.NewClusterID(metadata.Client.Account.SubscriptionId, state.ResourceGroupName, state.Name)
+			id := clusters.NewClusterID(account.From(metadata.Client).SubscriptionId, state.ResourceGroupName, state.Name)
 			// Pool changes also put the cluster into Updating, so serialize mutations using the cluster ID.
 			lockId := strings.ToLower(id.ID())
 			locks.ByID(lockId)
 			defer locks.UnlockByID(lockId)
 
-			client := metadata.Client.HorizonDB.ClustersClient
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			client := horizondbClient.From(metadata.Client).ClustersClient
+			if !features.From(metadata.Client).SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -396,7 +399,7 @@ func (r HorizondbClusterResource) Read() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			resp, err := metadata.Client.HorizonDB.ClustersClient.Get(ctx, *id)
+			resp, err := horizondbClient.From(metadata.Client).ClustersClient.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(*id)
@@ -409,7 +412,7 @@ func (r HorizondbClusterResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			login, err := readHorizondbClusterAdministratorLogin(ctx, metadata.Client.HorizonDB.PasswordAuthenticationsClient, *id)
+			login, err := readHorizondbClusterAdministratorLogin(ctx, horizondbClient.From(metadata.Client).PasswordAuthenticationsClient, *id)
 			if err != nil {
 				return err
 			}
@@ -437,7 +440,7 @@ func (HorizondbClusterResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChanges("identity", "tags", "backup_retention_in_days", "public_network_access") {
-				client := metadata.Client.HorizonDB.ClustersClient
+				client := horizondbClient.From(metadata.Client).ClustersClient
 				existing, err := client.Get(ctx, *id)
 				if err != nil {
 					return fmt.Errorf("retrieving %s: %+v", id, err)
@@ -532,7 +535,7 @@ func (HorizondbClusterResource) Update() sdk.ResourceFunc {
 						AdministratorLoginPassword: pointer.To(password),
 					},
 				}
-				if err := metadata.Client.HorizonDB.PasswordAuthenticationsClient.UpdateThenPoll(ctx, authenticationId, payload); err != nil {
+				if err := horizondbClient.From(metadata.Client).PasswordAuthenticationsClient.UpdateThenPoll(ctx, authenticationId, payload); err != nil {
 					return fmt.Errorf("updating password authentication for %s: %+v", id, err)
 				}
 			}
@@ -553,7 +556,7 @@ func (HorizondbClusterResource) Delete() sdk.ResourceFunc {
 			locks.ByID(lockId)
 			defer locks.UnlockByID(lockId)
 
-			if err := metadata.Client.HorizonDB.ClustersClient.DeleteThenPoll(ctx, *id); err != nil {
+			if err := horizondbClient.From(metadata.Client).ClustersClient.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 			return nil
@@ -693,7 +696,7 @@ func createHorizondbClusterPool(ctx context.Context, metadata sdk.ResourceMetaDa
 		},
 	}
 
-	if err := metadata.Client.HorizonDB.PoolsClient.CreateOrReplaceThenPoll(ctx, id, payload); err != nil {
+	if err := horizondbClient.From(metadata.Client).PoolsClient.CreateOrReplaceThenPoll(ctx, id, payload); err != nil {
 		return fmt.Errorf("creating or replacing %s: %+v", id, err)
 	}
 
@@ -703,7 +706,7 @@ func createHorizondbClusterPool(ctx context.Context, metadata sdk.ResourceMetaDa
 func updateHorizondbClusterPool(ctx context.Context, metadata sdk.ResourceMetaData, clusterId clusters.ClusterId, state HorizondbClusterPool) error {
 	id := pools.NewPoolID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.ClusterName, state.Name)
 
-	client := metadata.Client.HorizonDB.PoolsClient
+	client := horizondbClient.From(metadata.Client).PoolsClient
 	existing, err := client.Get(ctx, id)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
@@ -765,7 +768,7 @@ func readHorizondbClusterPool(ctx context.Context, metadata sdk.ResourceMetaData
 		return nil, err
 	}
 
-	result, err := metadata.Client.HorizonDB.PoolsClient.Get(ctx, *poolId)
+	result, err := horizondbClient.From(metadata.Client).PoolsClient.Get(ctx, *poolId)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving designated read/write pool %s: %+v", poolId, err)
 	}
@@ -824,7 +827,7 @@ func createHorizondbClusterPasswordAuthentication(ctx context.Context, metadata 
 
 	payload := passwordauthentications.PasswordAuthentication{Properties: &properties}
 
-	if err := metadata.Client.HorizonDB.PasswordAuthenticationsClient.CreateOrReplaceThenPoll(ctx, authenticationId, payload); err != nil {
+	if err := horizondbClient.From(metadata.Client).PasswordAuthenticationsClient.CreateOrReplaceThenPoll(ctx, authenticationId, payload); err != nil {
 		return fmt.Errorf("configuring password authentication for %s: %+v", id, err)
 	}
 	return nil

@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	sentinelmetadata "github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/metadata"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	sentinelClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -22,7 +23,7 @@ func (a Resource) Update() sdk.ResourceFunc {
 			if err := metadata.Decode(&plan); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
-			client := metadata.Client.Sentinel.MetadataClient
+			client := sentinelClient.From(metadata.Client).MetadataClient
 			id, err := sentinelmetadata.ParseMetadataID(metadata.ResourceData.Id())
 			if err != nil {
 				return fmt.Errorf("parsing %q: %+v", metadata.ResourceData.Id(), err)

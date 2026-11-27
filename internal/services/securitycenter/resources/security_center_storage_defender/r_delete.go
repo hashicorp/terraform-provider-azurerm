@@ -12,13 +12,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2025-06-01/defenderforstorage"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	securitycenterClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/client"
 )
 
 func (s Resource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.SecurityCenter.DefenderForStorageClient
+			client := securitycenterClient.From(metadata.Client).DefenderForStorageClient
 
 			id, err := commonids.ParseScopeID(metadata.ResourceData.Id())
 			if err != nil {
