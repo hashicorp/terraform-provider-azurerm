@@ -394,7 +394,7 @@ resource "azurerm_oracle_autonomous_database" "test" {
   db_version                       = "19c"
   character_set                    = "AL32UTF8"
   national_character_set           = "AL16UTF16"
-  allowed_ips                      = ["140.204.126.129", "140.204.124.130"]
+  allowed_ips                      = ["140.204.126.129", "140.204.124.0/24"]
 }
 `, a.basicTemplate(data), data.RandomInteger, data.Locations.Primary)
 }
