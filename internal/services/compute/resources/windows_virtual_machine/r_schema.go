@@ -41,12 +41,27 @@ func windowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 			Sensitive:        true,
 			ValidateFunc:     validate.WindowsAdminPassword,
 			DiffSuppressFunc: helpers.AdminPasswordDiffSuppressFunc,
-			RequiredWith: []string{
-				"admin_username",
-			},
 			ConflictsWith: []string{
 				"os_managed_disk_id",
+				"admin_password_wo",
 			},
+		},
+
+		"admin_password_wo": {
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			WriteOnly:     true,
+			RequiredWith:  []string{"admin_password_wo_version"},
+			ConflictsWith: []string{"admin_password", "os_managed_disk_id"},
+			ValidateFunc:  validate.WindowsAdminPassword,
+		},
+
+		"admin_password_wo_version": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			ForceNew:     true,
+			RequiredWith: []string{"admin_password_wo"},
+			ValidateFunc: validation.IntAtLeast(1),
 		},
 
 		"admin_username": {
@@ -55,9 +70,6 @@ func windowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.WindowsAdminUsername,
-			RequiredWith: []string{
-				"admin_password",
-			},
 			ExactlyOneOf: []string{
 				"admin_username",
 				"os_managed_disk_id",
