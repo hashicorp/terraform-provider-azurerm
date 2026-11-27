@@ -61,6 +61,12 @@ func dataProtectionBackupVaultSchema() map[string]*pluginsdk.Schema {
 			Optional:    true,
 		},
 
+		"cross_subscription_restore": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice(backupvaultresources.PossibleValuesForCrossSubscriptionRestoreState(), false),
+		},
+
 		"retention_duration_in_days": {
 			Description:  "The soft delete retention duration for this Backup Vault.",
 			Type:         pluginsdk.TypeFloat,
