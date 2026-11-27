@@ -88,3 +88,37 @@ func flattenLegacySystemAndUserAssignedMap(input *identity.LegacySystemAndUserAs
 	}
 	return output
 }
+
+func flattenCsrfAlwaysCheck(input *managedgrafanas.Security) bool {
+	if input == nil || input.CsrfAlwaysCheck == nil {
+		return false
+	}
+	return *input.CsrfAlwaysCheck
+}
+
+func flattenSnapshotExternalEnabled(input *managedgrafanas.Snapshots) bool {
+	if input == nil || input.ExternalEnabled == nil {
+		return false
+	}
+	return pointer.From(input.ExternalEnabled)
+}
+
+func flattenUnifiedAlertingScreenshotsCaptureEnabled(input *managedgrafanas.UnifiedAlertingScreenshots) bool {
+	if input == nil || input.CaptureEnabled == nil {
+		return false
+	}
+	return pointer.From(input.CaptureEnabled)
+}
+
+func flattenUsersConfigurationModel(input *managedgrafanas.Users) []UsersConfigurationModel {
+	if input == nil {
+		return []UsersConfigurationModel{}
+	}
+
+	return []UsersConfigurationModel{
+		{
+			EditorsCanAdmin: pointer.From(input.EditorsCanAdmin),
+			ViewersCanEdit:  pointer.From(input.ViewersCanEdit),
+		},
+	}
+}
