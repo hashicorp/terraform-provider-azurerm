@@ -27,7 +27,7 @@ resource "azurerm_postgresql_flexible_server" "example" {
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
   storage_mb             = 32768
-  version                = "12"
+  version                = "16"
   sku_name               = "GP_Standard_D4s_v3"
   zone                   = "2"
 }
@@ -95,6 +95,10 @@ The following arguments are supported:
 
 * `backup_policy_id` - (Required) The ID of the Backup Policy.
 
+* `backup_solution_type` - (Optional) The backup solution type for the PostgreSQL Flexible Server. Possible values are `LogicalBackup` and `PhysicalBackup`.
+
+-> **Note:** Migrating `backup_solution_type` from `LogicalBackup` to `PhysicalBackup` is a one-way in-place update. Changing `backup_solution_type` from `PhysicalBackup` back to `LogicalBackup` forces a new resource to be created. `PhysicalBackup` requires PostgreSQL version 15 or later and a `GeneralPurpose` or `MemoryOptimized` SKU tier.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
@@ -124,4 +128,4 @@ terraform import azurerm_data_protection_backup_instance_postgresql_flexible_ser
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DataProtection` - 2025-07-01
+* `Microsoft.DataProtection` - 2026-07-01

@@ -9,7 +9,9 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupinstanceresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2026-07-01/backupinstanceresources"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -81,12 +83,57 @@ func TestAccDataProtectionBackupInstancePostgreSQLFlexibleServer_update(t *testi
 	})
 }
 
+func TestAccDataProtectionBackupInstancePostgreSQLFlexibleServer_physicalBackup(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_postgresql_flexible_server", "test")
+	r := DataProtectionBackupInstancePostgresqlFlexibleServerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.physicalBackup(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("backup_solution_type").HasValue("PhysicalBackup"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccDataProtectionBackupInstancePostgreSQLFlexibleServer_migrateToPhysicalBackup(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_postgresql_flexible_server", "test")
+	r := DataProtectionBackupInstancePostgresqlFlexibleServerResource{}
+
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("backup_solution_type").HasValue("LogicalBackup"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.physicalBackup(data),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionUpdate),
+				},
+			},
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("backup_solution_type").HasValue("PhysicalBackup"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r DataProtectionBackupInstancePostgresqlFlexibleServerResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := backupinstanceresources.ParseBackupInstanceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.DataProtection.BackupInstanceClient.BackupInstancesGet(ctx, *id)
+	resp, err := client.DataProtection.BackupInstanceClient20260701.BackupInstancesGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
@@ -107,7 +154,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
   storage_mb             = 32768
-  version                = "12"
+  version                = "16"
   sku_name               = "GP_Standard_D4s_v3"
   zone                   = "2"
 }
@@ -217,4 +264,23 @@ resource "azurerm_data_protection_backup_instance_postgresql_flexible_server" "t
   backup_policy_id = azurerm_data_protection_backup_policy_postgresql_flexible_server.test2.id
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r DataProtectionBackupInstancePostgresqlFlexibleServerResource) physicalBackup(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_data_protection_backup_instance_postgresql_flexible_server" "test" {
+  name                 = "acctest-dbi-%d"
+  location             = azurerm_resource_group.test.location
+  vault_id             = azurerm_data_protection_backup_vault.test.id
+  server_id            = azurerm_postgresql_flexible_server.test.id
+  backup_policy_id     = azurerm_data_protection_backup_policy_postgresql_flexible_server.test.id
+  backup_solution_type = "PhysicalBackup"
+}
+`, r.template(data), data.RandomInteger)
 }

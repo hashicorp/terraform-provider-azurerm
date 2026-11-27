@@ -5,7 +5,7 @@ package data_protection_backup_instance_postgresql_flexible_server
 
 import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupinstanceresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2026-07-01/backupinstanceresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -15,8 +15,10 @@ import (
 type Resource struct{}
 
 var (
-	_ sdk.Resource             = Resource{}
-	_ sdk.ResourceWithIdentity = Resource{}
+	_ sdk.Resource                  = Resource{}
+	_ sdk.ResourceWithIdentity      = Resource{}
+	_ sdk.ResourceWithUpdate        = Resource{}
+	_ sdk.ResourceWithCustomizeDiff = Resource{}
 )
 
 func (r Resource) Identity() resourceids.ResourceId {

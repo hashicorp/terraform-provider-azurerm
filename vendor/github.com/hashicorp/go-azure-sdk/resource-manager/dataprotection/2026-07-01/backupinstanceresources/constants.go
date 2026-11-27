@@ -50,6 +50,47 @@ func parseAKSVolumeTypes(input string) (*AKSVolumeTypes, error) {
 	return &out, nil
 }
 
+type BackupSolutionType string
+
+const (
+	BackupSolutionTypeLogicalBackup  BackupSolutionType = "LogicalBackup"
+	BackupSolutionTypePhysicalBackup BackupSolutionType = "PhysicalBackup"
+)
+
+func PossibleValuesForBackupSolutionType() []string {
+	return []string{
+		string(BackupSolutionTypeLogicalBackup),
+		string(BackupSolutionTypePhysicalBackup),
+	}
+}
+
+func (s *BackupSolutionType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseBackupSolutionType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseBackupSolutionType(input string) (*BackupSolutionType, error) {
+	vals := map[string]BackupSolutionType{
+		"logicalbackup":  BackupSolutionTypeLogicalBackup,
+		"physicalbackup": BackupSolutionTypePhysicalBackup,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := BackupSolutionType(input)
+	return &out, nil
+}
+
 type BlobBackupPatternType string
 
 const (

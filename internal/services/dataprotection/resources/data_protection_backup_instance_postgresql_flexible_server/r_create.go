@@ -5,18 +5,20 @@ package data_protection_backup_instance_postgresql_flexible_server
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupinstanceresources"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupvaultresources"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/basebackuppolicyresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2026-07-01/backupinstanceresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2026-07-01/backupvaultresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2026-07-01/basebackuppolicyresources"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/servers"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -29,7 +31,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.DataProtection.BackupInstanceClient
+			client := metadata.Client.DataProtection.BackupInstanceClient20260701
 
 			vaultId, err := backupvaultresources.ParseBackupVaultID(model.VaultId)
 			if err != nil {
@@ -82,10 +84,24 @@ func (r Resource) Create() sdk.ResourceFunc {
 						ResourceUri:      pointer.To(serverId.ID()),
 					},
 					FriendlyName: pointer.To(id.BackupInstanceName),
+					ObjectType:   "BackupInstance",
 					PolicyInfo: backupinstanceresources.PolicyInfo{
 						PolicyId: policyId.ID(),
+						PolicyParameters: &backupinstanceresources.PolicyParameters{
+							BackupDatasourceParametersList: &[]backupinstanceresources.BackupDatasourceParameters{
+								backupinstanceresources.PostgreSqlFlexibleServerBackupDatasourceParameters{
+									BackupSolutionType: pointer.ToEnum[backupinstanceresources.BackupSolutionType](model.BackupSolutionType),
+								},
+							},
+						},
 					},
 				},
+			}
+
+			if !features.SixPointOh() {
+				if model.BackupSolutionType == "" {
+					parameters.Properties.PolicyInfo.PolicyParameters = nil
+				}
 			}
 
 			if err := client.BackupInstancesCreateOrUpdateCallbackThenPoll(ctx, id, parameters, backupinstanceresources.DefaultBackupInstancesCreateOrUpdateOperationOptions(), metadata.SetIDAndIdentityCallback(&id)); err != nil {
@@ -98,23 +114,14 @@ func (r Resource) Create() sdk.ResourceFunc {
 			}
 
 			// Service will continue to configure the protection after the resource is created and `provisioningState` returns `Succeeded`. At this time, service doesn't allow to change the resource until it is configured completely
-			deadline, ok := ctx.Deadline()
-			if !ok {
-				return errors.New("internal-error: context had no deadline")
+			pollerType := custompollers.NewDataProtectionBackupInstance20260701Poller(client, id, backupinstanceresources.CurrentProtectionStateProtectionConfigured, []backupinstanceresources.CurrentProtectionState{
+				backupinstanceresources.CurrentProtectionStateConfiguringProtection,
+			})
+			poller := pollers.NewPoller(pollerType, 1*time.Minute, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return fmt.Errorf("waiting for %s to become available: %+v", id, err)
 			}
 
-			stateConf := &pluginsdk.StateChangeConf{
-				Delay:        5 * time.Second,
-				Pending:      []string{string(backupinstanceresources.CurrentProtectionStateConfiguringProtection)},
-				Target:       []string{string(backupinstanceresources.CurrentProtectionStateProtectionConfigured)},
-				Refresh:      dataProtectionBackupInstancePostgreSQLFlexibleServerStateRefreshFunc(ctx, client, id),
-				PollInterval: 1 * time.Minute,
-				Timeout:      time.Until(deadline),
-			}
-
-			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-				return fmt.Errorf("waiting for %s to become available: %s", id, err)
-			}
 			return nil
 		},
 	}

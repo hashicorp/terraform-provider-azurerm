@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2026-06-01/backupinstances` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2026-07-01/backupinstances` Documentation
 
-The `backupinstances` SDK allows for interaction with Azure Resource Manager `dataprotection` (API Version `2026-06-01`).
+The `backupinstances` SDK allows for interaction with Azure Resource Manager `dataprotection` (API Version `2026-07-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2026-06-01/backupinstances"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2026-07-01/backupinstances"
 ```
 
 

@@ -141,6 +141,47 @@ func parseBCDRSecurityLevel(input string) (*BCDRSecurityLevel, error) {
 	return &out, nil
 }
 
+type BackupSolutionType string
+
+const (
+	BackupSolutionTypeLogicalBackup  BackupSolutionType = "LogicalBackup"
+	BackupSolutionTypePhysicalBackup BackupSolutionType = "PhysicalBackup"
+)
+
+func PossibleValuesForBackupSolutionType() []string {
+	return []string{
+		string(BackupSolutionTypeLogicalBackup),
+		string(BackupSolutionTypePhysicalBackup),
+	}
+}
+
+func (s *BackupSolutionType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseBackupSolutionType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseBackupSolutionType(input string) (*BackupSolutionType, error) {
+	vals := map[string]BackupSolutionType{
+		"logicalbackup":  BackupSolutionTypeLogicalBackup,
+		"physicalbackup": BackupSolutionTypePhysicalBackup,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := BackupSolutionType(input)
+	return &out, nil
+}
+
 type BlobBackupPatternType string
 
 const (
@@ -587,6 +628,47 @@ func parseImmutabilityState(input string) (*ImmutabilityState, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := ImmutabilityState(input)
+	return &out, nil
+}
+
+type ImmutabilityType string
+
+const (
+	ImmutabilityTypeAsPerPolicy ImmutabilityType = "AsPerPolicy"
+	ImmutabilityTypeTimeBased   ImmutabilityType = "TimeBased"
+)
+
+func PossibleValuesForImmutabilityType() []string {
+	return []string{
+		string(ImmutabilityTypeAsPerPolicy),
+		string(ImmutabilityTypeTimeBased),
+	}
+}
+
+func (s *ImmutabilityType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseImmutabilityType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseImmutabilityType(input string) (*ImmutabilityType, error) {
+	vals := map[string]ImmutabilityType{
+		"asperpolicy": ImmutabilityTypeAsPerPolicy,
+		"timebased":   ImmutabilityTypeTimeBased,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := ImmutabilityType(input)
 	return &out, nil
 }
 
