@@ -37,6 +37,18 @@ func resourceFirewallRead(d *pluginsdk.ResourceData, meta any) error {
 	return resourceFirewallSetFlatten(d, id, read.Model)
 }
 
+func validateFirewallAutoscaleConfiguration(skuTier string, configs []any) error {
+	if len(configs) == 0 {
+		return nil
+	}
+
+	if skuTier == string(azurefirewalls.AzureFirewallSkuTierBasic) {
+		return fmt.Errorf("`autoscale_configuration` cannot be configured when `sku_tier` is set to `Basic`")
+	}
+
+	return nil
+}
+
 func validateFirewallIPConfigurationSettings(configs []any) error {
 	if len(configs) == 0 {
 		return nil

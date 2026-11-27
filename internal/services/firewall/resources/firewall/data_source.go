@@ -53,6 +53,23 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Computed:    true,
 			},
 
+			"autoscale_configuration": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"min_capacity": {
+							Type:     pluginsdk.TypeInt,
+							Computed: true,
+						},
+						"max_capacity": {
+							Type:     pluginsdk.TypeInt,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"firewall_policy_id": {
 				Description: "The ID of the Firewall Policy applied to the Azure Firewall.",
 				Type:        pluginsdk.TypeString,
@@ -226,6 +243,10 @@ func firewallDataSourceRead(d *pluginsdk.ResourceData, meta any) error {
 
 			if policy := props.FirewallPolicy; policy != nil {
 				d.Set("firewall_policy_id", policy.Id)
+			}
+
+			if err := d.Set("autoscale_configuration", flattenFirewallAutoscaleConfiguration(props.AutoscaleConfiguration)); err != nil {
+				return fmt.Errorf("setting `autoscale_configuration`: %+v", err)
 			}
 
 			if sku := props.Sku; sku != nil {

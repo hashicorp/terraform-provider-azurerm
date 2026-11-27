@@ -52,6 +52,10 @@ func resourceFirewallSetFlatten(d *pluginsdk.ResourceData, id *azurefirewalls.Az
 				return fmt.Errorf("setting `private_ip_ranges`: %+v", err)
 			}
 
+			if err := d.Set("autoscale_configuration", flattenFirewallAutoscaleConfiguration(props.AutoscaleConfiguration)); err != nil {
+				return fmt.Errorf("setting `autoscale_configuration`: %+v", err)
+			}
+
 			firewallPolicyId := ""
 			if props.FirewallPolicy != nil && props.FirewallPolicy.Id != nil {
 				firewallPolicyId = *props.FirewallPolicy.Id
@@ -145,6 +149,19 @@ func flattenFirewallPrivateIpRange(input *map[string]string) []any {
 		rangeSlice = strings.Split(attrs["Network.SNAT.PrivateRanges"], ",")
 	}
 	return pluginsdk.FlattenSlice(&rangeSlice)
+}
+
+func flattenFirewallAutoscaleConfiguration(input *azurefirewalls.AzureFirewallAutoscaleConfiguration) []any {
+	if input == nil {
+		return []any{}
+	}
+
+	return []any{
+		map[string]any{
+			"min_capacity": int(pointer.From(input.MinCapacity)),
+			"max_capacity": int(pointer.From(input.MaxCapacity)),
+		},
+	}
 }
 
 func flattenFirewallVirtualHubSetting(props *azurefirewalls.AzureFirewallPropertiesFormat) []any {

@@ -91,6 +91,27 @@ func expandFirewallPrivateIpRange(input []any) map[string]string {
 	}
 }
 
+func expandFirewallAutoscaleConfiguration(input []any) *azurefirewalls.AzureFirewallAutoscaleConfiguration {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]any)
+
+	output := azurefirewalls.AzureFirewallAutoscaleConfiguration{}
+
+	// the API uses `null` to reset a value back to the service default, so only send the values which have been configured
+	if minCapacity := v["min_capacity"].(int); minCapacity != 0 {
+		output.MinCapacity = pointer.To(int64(minCapacity))
+	}
+
+	if maxCapacity := v["max_capacity"].(int); maxCapacity != 0 {
+		output.MaxCapacity = pointer.To(int64(maxCapacity))
+	}
+
+	return &output
+}
+
 func expandFirewallVirtualHubSetting(existing *azurefirewalls.AzureFirewall, input []any) (vhub *azurefirewalls.SubResource, ipAddresses *azurefirewalls.HubIPAddresses, ok bool) {
 	if len(input) == 0 {
 		return nil, nil, false

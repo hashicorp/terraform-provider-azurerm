@@ -48,6 +48,10 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 		return fmt.Errorf("validating %s: %+v", id, err)
 	}
 
+	if err := validateFirewallAutoscaleConfiguration(d.Get("sku_tier").(string), d.Get("autoscale_configuration").([]any)); err != nil {
+		return fmt.Errorf("validating %s: %+v", id, err)
+	}
+
 	location := location.Normalize(d.Get("location").(string))
 	t := d.Get("tags").(map[string]any)
 	i := d.Get("ip_configuration").([]any)
@@ -105,6 +109,8 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	if policyId := d.Get("firewall_policy_id").(string); policyId != "" {
 		parameters.Properties.FirewallPolicy = &azurefirewalls.SubResource{Id: &policyId}
 	}
+
+	parameters.Properties.AutoscaleConfiguration = expandFirewallAutoscaleConfiguration(d.Get("autoscale_configuration").([]any))
 
 	vhub, hubIpAddresses, ok := expandFirewallVirtualHubSetting(existing.Model, d.Get("virtual_hub").([]any))
 	if ok {

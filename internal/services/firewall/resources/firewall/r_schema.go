@@ -45,6 +45,28 @@ func firewallSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice(azurefirewalls.PossibleValuesForAzureFirewallSkuTier(), false),
 		},
 
+		"autoscale_configuration": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"min_capacity": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						ValidateFunc: validation.IntAtLeast(2),
+						AtLeastOneOf: []string{"autoscale_configuration.0.min_capacity", "autoscale_configuration.0.max_capacity"},
+					},
+					"max_capacity": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						ValidateFunc: validation.IntAtLeast(2),
+						AtLeastOneOf: []string{"autoscale_configuration.0.min_capacity", "autoscale_configuration.0.max_capacity"},
+					},
+				},
+			},
+		},
+
 		"firewall_policy_id": {
 			Description:  "The ID of the Firewall Policy applied to this Firewall.",
 			Type:         pluginsdk.TypeString,
