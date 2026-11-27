@@ -10,6 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -114,6 +116,119 @@ func testAccKeyVaultHSMKey_softDeleteRecovery(t *testing.T) {
 	})
 }
 
+func testAccKeyVaultMHSMKey_releasePolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_hardware_security_module_key", "test")
+	r := KeyVaultMHSMKeyTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.releasePolicy(data, "1.0", false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("release_policy.0.immutable").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func testAccKeyVaultMHSMKey_releasePolicyUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_hardware_security_module_key", "test")
+	r := KeyVaultMHSMKeyTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.releasePolicy(data, "1.0", false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.releasePolicy(data, "2.0", false),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionUpdate),
+				},
+			},
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func testAccKeyVaultMHSMKey_releasePolicyImmutable(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_hardware_security_module_key", "test")
+	r := KeyVaultMHSMKeyTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.releasePolicy(data, "1.0", false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			// marking the policy as immutable is an in-place update
+			Config: r.releasePolicy(data, "1.0", true),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionUpdate),
+				},
+			},
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("release_policy.0.immutable").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			// an immutable policy can't be changed, so changing it recreates the key
+			Config: r.releasePolicy(data, "2.0", true),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func testAccKeyVaultMHSMKey_releasePolicyRemoved(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_hardware_security_module_key", "test")
+	r := KeyVaultMHSMKeyTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.releasePolicy(data, "1.0", false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.releasePolicyRemoved(data),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("release_policy.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r KeyVaultMHSMKeyTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	domainSuffix, ok := clients.Account.Environment.ManagedHSM.DomainSuffix()
 	if !ok {
@@ -211,6 +326,70 @@ resource "azurerm_key_vault_managed_hardware_security_module_key" "test" {
 
   not_before_date = "2020-01-02T01:02:03Z"
   expiration_date = "2021-01-02T01:02:03Z"
+
+  depends_on = [
+    azurerm_key_vault_managed_hardware_security_module_role_assignment.test,
+    azurerm_key_vault_managed_hardware_security_module_role_assignment.test1
+  ]
+}
+`, r.template(data), data.RandomString)
+}
+
+func (r KeyVaultMHSMKeyTestResource) releasePolicy(data acceptance.TestData, claimVersion string, immutable bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_key_vault_managed_hardware_security_module_key" "test" {
+  name           = "acctestHSMK-%[2]s"
+  managed_hsm_id = azurerm_key_vault_managed_hardware_security_module.test.id
+  key_type       = "RSA-HSM"
+  key_size       = 2048
+  key_opts       = ["sign", "verify"]
+
+  release_policy {
+    json = jsonencode({
+      version = "1.0.0"
+      anyOf = [
+        {
+          authority = "https://sharedeus2.eus2.attest.azure.net/"
+          allOf = [
+            {
+              claim  = "sdk-version"
+              equals = "%[3]s"
+            }
+          ]
+        }
+      ]
+    })
+    immutable = %[4]t
+  }
+
+  depends_on = [
+    azurerm_key_vault_managed_hardware_security_module_role_assignment.test,
+    azurerm_key_vault_managed_hardware_security_module_role_assignment.test1
+  ]
+}
+`, r.template(data), data.RandomString, claimVersion, immutable)
+}
+
+func (r KeyVaultMHSMKeyTestResource) releasePolicyRemoved(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_key_vault_managed_hardware_security_module_key" "test" {
+  name           = "acctestHSMK-%[2]s"
+  managed_hsm_id = azurerm_key_vault_managed_hardware_security_module.test.id
+  key_type       = "RSA-HSM"
+  key_size       = 2048
+  key_opts       = ["sign", "verify"]
 
   depends_on = [
     azurerm_key_vault_managed_hardware_security_module_role_assignment.test,

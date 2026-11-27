@@ -43,12 +43,16 @@ func TestAccKeyVaultManagedHardwareSecurityModule_sequential(t *testing.T) {
 			"basic": testAccDataSourceKeyVaultManagedHardwareSecurityModuleRoleDefinition_basic,
 		},
 		"keys": {
-			"basic":              testAccKeyVaultMHSMKey_basic,
-			"complete":           testAccKeyVaultMHSMKey_complete,
-			"purge":              testAccKeyVaultHSMKey_purge,
-			"softDeleteRecovery": testAccKeyVaultHSMKey_softDeleteRecovery,
-			"rotationPolicy":     testAccMHSMKeyRotationPolicy_all,
-			"data_source":        testAccKeyVaultMHSMKeyDataSource_basic,
+			"basic":                  testAccKeyVaultMHSMKey_basic,
+			"complete":               testAccKeyVaultMHSMKey_complete,
+			"purge":                  testAccKeyVaultHSMKey_purge,
+			"softDeleteRecovery":     testAccKeyVaultHSMKey_softDeleteRecovery,
+			"rotationPolicy":         testAccMHSMKeyRotationPolicy_all,
+			"data_source":            testAccKeyVaultMHSMKeyDataSource_basic,
+			"releasePolicy":          testAccKeyVaultMHSMKey_releasePolicy,
+			"releasePolicyUpdate":    testAccKeyVaultMHSMKey_releasePolicyUpdate,
+			"releasePolicyRemoved":   testAccKeyVaultMHSMKey_releasePolicyRemoved,
+			"releasePolicyImmutable": testAccKeyVaultMHSMKey_releasePolicyImmutable,
 		},
 	})
 }
