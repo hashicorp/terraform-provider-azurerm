@@ -549,6 +549,12 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"custom_domain_verification_id": {
+			Type:      pluginsdk.TypeString,
+			Computed:  true,
+			Sensitive: true,
+		},
+
 		"portal_url": {
 			Description: "The URL for the Publisher Portal associated with this API Management service.",
 			Type:        pluginsdk.TypeString,

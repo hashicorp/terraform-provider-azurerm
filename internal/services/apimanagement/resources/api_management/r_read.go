@@ -11,6 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -182,6 +183,14 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta any) error
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return err
 		}
+	}
+
+	domainOwnershipResp, err := client.GetDomainOwnershipIdentifier(ctx, commonids.NewSubscriptionID(id.SubscriptionId))
+	if err != nil {
+		return fmt.Errorf("retrieving Domain Ownership Identifier for %s: %+v", *id, err)
+	}
+	if domainOwnershipResp.Model != nil {
+		d.Set("custom_domain_verification_id", pointer.From(domainOwnershipResp.Model.DomainOwnershipIdentifier))
 	}
 
 	return nil
