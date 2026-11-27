@@ -33,7 +33,7 @@ func redisLinkedServerSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"server_role": {
-			Description:  "The role of the linked Redis Cache (e.g. \"Secondary\").",
+			Description:  "The role of the linked Redis Cache (e.g. `Secondary`).",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

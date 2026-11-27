@@ -115,7 +115,7 @@ func GetDeploymentScriptArguments(kind DeploymentScriptKind) map[string]*plugins
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"container_group_name": {
-						Description:  "Container Group name, if not specified then the name will get auto-generated. For more information, please refer to the [Container Configuration](https://learn.microsoft.com/rest/api/resources/deployment-scripts/create?tabs=HTTP#containerconfiguration) documentation.",
+						Description:  "Container Group name, if not specified then the name will get auto-generated. For more information, refer to the [Container Configuration](https://learn.microsoft.com/rest/api/resources/deployment-scripts/create?tabs=HTTP#containerconfiguration) documentation.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,

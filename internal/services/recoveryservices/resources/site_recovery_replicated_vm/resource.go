@@ -12,7 +12,7 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Description: "Manages a VM replicated using Azure Site Recovery (Azure to Azure only). A replicated VM keeps a copiously updated image of the VM in another region in order to be able to start the VM in that region in case of a disaster.",
+		Description: "Manages a VM replicated using Azure Site Recovery (Azure to Azure only). A replicated VM keeps a copiously updated image of the VM in another region to be able to start the VM in that region in case of a disaster.",
 		Create:      resourceSiteRecoveryReplicatedItemCreate,
 		Read:        resourceSiteRecoveryReplicatedItemRead,
 		Update:      resourceSiteRecoveryReplicatedItemUpdate,

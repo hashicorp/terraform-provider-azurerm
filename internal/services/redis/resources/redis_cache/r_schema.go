@@ -151,7 +151,7 @@ func redisCacheSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"rdb_backup_enabled": {
-						Description: "Is Backup Enabled? Only supported on Premium SKUs.",
+						Description: "Whether Backup is Enabled. Only supported on Premium SKUs.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 					},
@@ -177,7 +177,7 @@ func redisCacheSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"notify_keyspace_events": {
-						Description: "Keyspace notifications allows clients to subscribe to Pub/Sub channels in order to receive events affecting the Redis data set in some way. [Reference](https://redis.io/topics/notifications#configuration).",
+						Description: "Keyspace notifications allows clients to subscribe to Pub/Sub channels to receive events affecting the Redis data set in some way. [Reference](https://redis.io/topics/notifications#configuration).",
 						Type:        pluginsdk.TypeString,
 						Optional:    true,
 					},
@@ -239,7 +239,7 @@ func redisCacheSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"start_hour_utc": {
-						Description:  "The Start Hour for maintenance in UTC - possible values range from `0 - 23`.",
+						Description:  "The Start Hour for maintenance in UTC.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						ValidateFunc: validation.IntBetween(0, 23),
@@ -295,7 +295,7 @@ func redisCacheSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"public_network_access_enabled": {
-			Description: "Whether or not public network access is allowed for this Redis Cache. `true` means this resource could be accessed by both public and Private Endpoint. `false` means only Private Endpoint access is allowed.",
+			Description: "Whether public network access is allowed for this Redis Cache. `true` means this resource could be accessed by both public and Private Endpoint. `false` means only Private Endpoint access is allowed.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
@@ -350,7 +350,7 @@ func redisCacheSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"access_keys_authentication_enabled": {
-			Description: "Whether access key authentication is enabled? `active_directory_authentication_enabled` must be set to `true` to disable access key authentication.",
+			Description: "Whether access key authentication is enabled. `active_directory_authentication_enabled` must be set to `true` to disable access key authentication.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,

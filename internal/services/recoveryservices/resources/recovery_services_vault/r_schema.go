@@ -46,7 +46,7 @@ func recoveryServicesVaultSchema() map[string]*pluginsdk.Schema {
 						Required:    true,
 					},
 					"use_system_assigned_identity": {
-						Description: "Indicate that System Assigned Identity should be used or not.",
+						Description: "Indicate that System Assigned Identity should be used.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
@@ -64,7 +64,7 @@ func recoveryServicesVaultSchema() map[string]*pluginsdk.Schema {
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"public_network_access_enabled": {
-			Description: "Is it enabled to access the vault from public networks?",
+			Description: "Whether it is enabled to access the vault from public networks.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
@@ -101,7 +101,7 @@ func recoveryServicesVaultSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"cross_region_restore_enabled": {
-			Description: "Is cross region restore enabled for this Vault? Can only be `true`, when `storage_mode_type` is `GeoRedundant`.",
+			Description: "Whether cross region restore is enabled for this Vault. Can only be `true`, when `storage_mode_type` is `GeoRedundant`.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,

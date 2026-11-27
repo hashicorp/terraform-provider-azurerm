@@ -61,7 +61,7 @@ func (r DataSource) ResourceType() string {
 }
 
 func (r DataSource) Description() string {
-	return "Get information about an Azure Site Recovery Plan within a Recovery Services Vault. A recovery plan gathers machines into recovery groups for the purpose of failover."
+	return "Get information about an Azure Site Recovery Plan within a Recovery Services Vault. A recovery plan gathers machines into recovery groups for failover."
 }
 
 func (r DataSource) ModelObject() any {

@@ -32,7 +32,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"registered": {
-						Description: "Should this feature be Registered or Unregistered?",
+						Description: "Whether this feature should be Registered or Unregistered.",
 						Type:        pluginsdk.TypeBool,
 						Required:    true,
 					},

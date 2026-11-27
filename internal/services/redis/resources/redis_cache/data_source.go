@@ -128,7 +128,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 						},
 
 						"rdb_backup_enabled": {
-							Description: "Is Backup Enabled? Only supported on Premium SKUs.",
+							Description: "Whether Backup is Enabled. Only supported on Premium SKUs.",
 							Type:        pluginsdk.TypeBool,
 							Computed:    true,
 						},

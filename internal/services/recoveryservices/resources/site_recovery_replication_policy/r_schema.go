@@ -38,7 +38,7 @@ func siteRecoveryReplicationPolicySchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.IntBetween(0, 365*24*60),
 		},
 		"application_consistent_snapshot_frequency_in_minutes": {
-			Description:  "The frequency(in minutes) at which to create application consistent recovery points.",
+			Description:  "The frequency (in minutes) at which to create application consistent recovery points.",
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ValidateFunc: validation.IntBetween(0, 365*24*60),

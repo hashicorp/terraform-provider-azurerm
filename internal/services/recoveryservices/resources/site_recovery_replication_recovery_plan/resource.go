@@ -18,7 +18,7 @@ func (r Resource) ResourceType() string {
 }
 
 func (r Resource) Description() string {
-	return "Manages a Site Recovery Replication Recovery Plan within a Recovery Services Vault. A recovery plan gathers machines into recovery groups for the purpose of failover."
+	return "Manages a Site Recovery Replication Recovery Plan within a Recovery Services Vault. A recovery plan gathers machines into recovery groups for failover."
 }
 
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
