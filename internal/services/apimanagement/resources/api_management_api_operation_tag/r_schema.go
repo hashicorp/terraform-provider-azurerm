@@ -27,12 +27,5 @@ func apiManagementApiOperationTagSchema() map[string]*pluginsdk.Schema {
 			ForceNew:     true,
 			ValidateFunc: validate.ApiManagementChildName,
 		},
-
-		"display_name": {
-			Description:  "The display name of the API Management API Operation Tag.",
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
 	}
 }

@@ -7,15 +7,16 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apioperationtag"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 func RegisterResource() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Description: "Manages an API Management API Operation Tag.",
-		Create:      resourceApiManagementApiOperationTagCreateUpdate,
+		Create:      resourceApiManagementApiOperationTagCreate,
 		Read:        resourceApiManagementApiOperationTagRead,
-		Update:      resourceApiManagementApiOperationTagCreateUpdate,
 		Delete:      resourceApiManagementApiOperationTagDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -26,10 +27,26 @@ func RegisterResource() *pluginsdk.Resource {
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: apiManagementApiOperationTagSchema(),
 	}
+
+	if !features.SixPointOh() {
+		resource.Update = resourceApiManagementApiOperationTagUpdate
+		resource.Timeouts.Update = pluginsdk.DefaultTimeout(30 * time.Minute)
+
+		resource.Schema["display_name"] = &pluginsdk.Schema{
+			Description: "The display name of the API Management API Operation Tag.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			// NOTE: O+C when omitted the existing tag is assigned as is, so its display name is read back from Azure
+			Computed:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+			Deprecated:   "`display_name` has been deprecated in favour of the `azurerm_api_management_tag` resource and will be removed in v6.0 of the AzureRM Provider",
+		}
+	}
+
+	return resource
 }
