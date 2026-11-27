@@ -4,7 +4,9 @@
 package validate
 
 import (
+	"fmt"
 	"regexp"
+	"strings"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -27,6 +29,29 @@ func KubernetesDNSPrefix(i any, k string) (warnings []string, errors []error) {
 		regexp.MustCompile(`^[a-zA-Z\d]$|^[a-zA-Z\d][-a-zA-Z\d]{0,52}[a-zA-Z\d]$`),
 		"must begin and end with a letter or number, contain only letters, numbers, and hyphens and be between 1 and 54 characters in length",
 	)(i, k)
+}
+
+func KubernetesNodeTaint(i interface{}, k string) (warnings []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
+	}
+
+	parts := strings.Split(v, ":")
+	if len(parts) != 2 {
+		errors = append(errors, fmt.Errorf("%q must be in the format `key[=value]:effect`, got %q", k, v))
+		return
+	}
+	if parts[0] == "" {
+		errors = append(errors, fmt.Errorf("the key portion of %q cannot be empty, got %q", k, v))
+	}
+	switch parts[1] {
+	case "NoSchedule", "PreferNoSchedule", "NoExecute":
+	default:
+		errors = append(errors, fmt.Errorf("the effect of %q must be one of `NoSchedule`, `PreferNoSchedule` or `NoExecute`, got %q", k, parts[1]))
+	}
+
+	return
 }
 
 func KubernetesGitRepositoryUrl() pluginsdk.SchemaValidateFunc {
