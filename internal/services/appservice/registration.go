@@ -61,6 +61,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 		static_web_app.DataSource{},
 		windows_function_app.DataSource{},
 		windows_web_app.DataSource{},
+		FunctionAppFunctionKeysDataSource{},
 	}
 }
 
@@ -106,7 +107,9 @@ func (r Registration) FrameworkDataSources() []sdk.FrameworkWrappedDataSource {
 }
 
 func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource {
-	return []func() ephemeral.EphemeralResource{}
+	return []func() ephemeral.EphemeralResource{
+		NewFunctionAppFunctionKeysEphemeralResource,
+	}
 }
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
