@@ -173,7 +173,7 @@ func resourceVirtualMachineDeleteVhd(ctx context.Context, storageClient *intStor
 	uri := *vhd.Uri
 	id, err := blobs.ParseBlobID(uri, storageClient.StorageDomainSuffix)
 	if err != nil {
-		return fmt.Errorf("parsing %q: %s", uri, err)
+		return err
 	}
 
 	account, err := storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
@@ -296,7 +296,7 @@ func resourceVirtualMachineGetManagedDiskInfo(d *pluginsdk.ResourceData, disk *v
 	diskId := *disk.Id
 	id, err := commonids.ParseManagedDiskIDInsensitively(diskId)
 	if err != nil {
-		return nil, fmt.Errorf("parsing Disk ID %q: %+v", diskId, err)
+		return nil, err
 	}
 
 	diskResp, err := client.Get(ctx, *id)

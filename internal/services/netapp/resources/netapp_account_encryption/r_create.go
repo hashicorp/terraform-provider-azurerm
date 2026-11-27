@@ -40,7 +40,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			accountID, err := netappaccounts.ParseNetAppAccountID(model.NetAppAccountID)
 			if err != nil {
-				return fmt.Errorf("error parsing account id %s: %+v", model.NetAppAccountID, err)
+				return err
 			}
 
 			locks.ByID(accountID.ID())
@@ -94,7 +94,7 @@ func expandEncryption(ctx context.Context, input string, keyVaultsClient *keyVau
 
 	keyId, err := keyvault.ParseNestedItemID(input, keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
 	if err != nil {
-		return nil, fmt.Errorf("parsing `key_vault_key_id` %q: %+v", input, err)
+		return nil, err
 	}
 
 	var keyVaultResourceID string

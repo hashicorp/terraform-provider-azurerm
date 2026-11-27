@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type NetworkSecurityPerimeterAccessRuleTestResource struct{}
+type NetworkSecurityPerimeterAccessRuleResource struct{}
 
 func TestAccNetworkSecurityPerimeterAccessRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_perimeter_access_rule", "test")
-	r := NetworkSecurityPerimeterAccessRuleTestResource{}
+	r := NetworkSecurityPerimeterAccessRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccNetworkSecurityPerimeterAccessRule_basic(t *testing.T) {
 
 func TestAccNetworkSecurityPerimeterAccessRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_perimeter_access_rule", "test")
-	r := NetworkSecurityPerimeterAccessRuleTestResource{}
+	r := NetworkSecurityPerimeterAccessRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccNetworkSecurityPerimeterAccessRule_requiresImport(t *testing.T) {
 
 func TestAccNetworkSecurityPerimeterAccessRule_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_perimeter_access_rule", "test")
-	r := NetworkSecurityPerimeterAccessRuleTestResource{}
+	r := NetworkSecurityPerimeterAccessRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -65,7 +65,7 @@ func TestAccNetworkSecurityPerimeterAccessRule_complete(t *testing.T) {
 
 func TestAccNetworkSecurityPerimeterAccessRule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_perimeter_access_rule", "test")
-	r := NetworkSecurityPerimeterAccessRuleTestResource{}
+	r := NetworkSecurityPerimeterAccessRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -88,7 +88,7 @@ func TestAccNetworkSecurityPerimeterAccessRule_update(t *testing.T) {
 
 func TestAccNetworkSecurityPerimeterAccessRule_subscriptionIds(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_perimeter_access_rule", "test")
-	r := NetworkSecurityPerimeterAccessRuleTestResource{}
+	r := NetworkSecurityPerimeterAccessRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -104,7 +104,7 @@ func TestAccNetworkSecurityPerimeterAccessRule_subscriptionIds(t *testing.T) {
 
 func TestAccNetworkSecurityPerimeterAccessRule_fdqns(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_perimeter_access_rule", "test")
-	r := NetworkSecurityPerimeterAccessRuleTestResource{}
+	r := NetworkSecurityPerimeterAccessRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -120,7 +120,7 @@ func TestAccNetworkSecurityPerimeterAccessRule_fdqns(t *testing.T) {
 
 func TestAccNetworkSecurityPerimeterAccessRule_serviceTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_perimeter_access_rule", "test")
-	r := NetworkSecurityPerimeterAccessRuleTestResource{}
+	r := NetworkSecurityPerimeterAccessRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -134,7 +134,7 @@ func TestAccNetworkSecurityPerimeterAccessRule_serviceTags(t *testing.T) {
 	})
 }
 
-func (NetworkSecurityPerimeterAccessRuleTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (NetworkSecurityPerimeterAccessRuleResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := networksecurityperimeteraccessrules.ParseAccessRuleID(state.ID)
 	if err != nil {
 		return nil, err
@@ -148,7 +148,7 @@ func (NetworkSecurityPerimeterAccessRuleTestResource) Exists(ctx context.Context
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (NetworkSecurityPerimeterAccessRuleTestResource) basic(data acceptance.TestData) string {
+func (NetworkSecurityPerimeterAccessRuleResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -182,7 +182,7 @@ resource "azurerm_network_security_perimeter_access_rule" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (r NetworkSecurityPerimeterAccessRuleTestResource) requiresImport(data acceptance.TestData) string {
+func (r NetworkSecurityPerimeterAccessRuleResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -196,7 +196,7 @@ resource "azurerm_network_security_perimeter_access_rule" "import" {
 `, r.basic(data))
 }
 
-func (NetworkSecurityPerimeterAccessRuleTestResource) complete(data acceptance.TestData) string {
+func (NetworkSecurityPerimeterAccessRuleResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -231,7 +231,7 @@ resource "azurerm_network_security_perimeter_access_rule" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (NetworkSecurityPerimeterAccessRuleTestResource) fqdns(data acceptance.TestData) string {
+func (NetworkSecurityPerimeterAccessRuleResource) fqdns(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -268,7 +268,7 @@ resource "azurerm_network_security_perimeter_access_rule" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (NetworkSecurityPerimeterAccessRuleTestResource) serviceTags(data acceptance.TestData) string {
+func (NetworkSecurityPerimeterAccessRuleResource) serviceTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -304,7 +304,7 @@ resource "azurerm_network_security_perimeter_access_rule" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (NetworkSecurityPerimeterAccessRuleTestResource) subscriptionIds(data acceptance.TestData) string {
+func (NetworkSecurityPerimeterAccessRuleResource) subscriptionIds(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

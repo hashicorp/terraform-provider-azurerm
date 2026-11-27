@@ -43,5 +43,5 @@ data "azurerm_key_vault_managed_hardware_security_module_role_definition" "test"
   managed_hsm_id = azurerm_key_vault_managed_hardware_security_module.test.id
   name           = azurerm_key_vault_managed_hardware_security_module_role_definition.test.name
 }
-`, KeyVaultMHSMRoleDefinitionResource{}.basic(data))
+`, KeyVaultManagedHardwareSecurityModuleRoleDefinitionResource{}.basic(data))
 }

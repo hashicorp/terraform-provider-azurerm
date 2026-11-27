@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ServerDNSAliasResource struct{}
+type MssqlServerDnsAliasResource struct{}
 
 func TestAccServerDNSAlias_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server_dns_alias", "test")
-	r := ServerDNSAliasResource{}
+	r := MssqlServerDnsAliasResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,7 +36,7 @@ func TestAccServerDNSAlias_basic(t *testing.T) {
 
 func TestAccServerDNSAlias_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server_dns_alias", "test")
-	r := ServerDNSAliasResource{}
+	r := MssqlServerDnsAliasResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -49,7 +49,7 @@ func TestAccServerDNSAlias_requiresImport(t *testing.T) {
 	})
 }
 
-func (r ServerDNSAliasResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r MssqlServerDnsAliasResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := serverdnsaliases.ParseDnsAliasID(state.ID)
 	if err != nil {
 		return nil, err
@@ -70,7 +70,7 @@ func (r ServerDNSAliasResource) Exists(ctx context.Context, client *clients.Clie
 
 // Configs
 
-func (r ServerDNSAliasResource) basic(data acceptance.TestData) string {
+func (r MssqlServerDnsAliasResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -97,7 +97,7 @@ resource "azurerm_mssql_server_dns_alias" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ServerDNSAliasResource) requiresImport(data acceptance.TestData) string {
+func (r MssqlServerDnsAliasResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 

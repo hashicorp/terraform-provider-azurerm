@@ -24,7 +24,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 
 			id, err := replicationrecoveryplans.ParseReplicationRecoveryPlanID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("parse Site reocvery replication plan id: %+v", err)
+				return err
 			}
 
 			resp, err := client.Get(ctx, *id)

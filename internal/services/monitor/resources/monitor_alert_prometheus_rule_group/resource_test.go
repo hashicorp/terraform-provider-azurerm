@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type AlertPrometheusRuleGroupTestResource struct{}
+type MonitorAlertPrometheusRuleGroupResource struct{}
 
 func TestAccAlertsManagementPrometheusRuleGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_alert_prometheus_rule_group", "test")
-	r := AlertPrometheusRuleGroupTestResource{}
+	r := MonitorAlertPrometheusRuleGroupResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -35,7 +35,7 @@ func TestAccAlertsManagementPrometheusRuleGroup_basic(t *testing.T) {
 
 func TestAccAlertsManagementPrometheusRuleGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_alert_prometheus_rule_group", "test")
-	r := AlertPrometheusRuleGroupTestResource{}
+	r := MonitorAlertPrometheusRuleGroupResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -49,7 +49,7 @@ func TestAccAlertsManagementPrometheusRuleGroup_requiresImport(t *testing.T) {
 
 func TestAccAlertsManagementPrometheusRuleGroup_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_alert_prometheus_rule_group", "test")
-	r := AlertPrometheusRuleGroupTestResource{}
+	r := MonitorAlertPrometheusRuleGroupResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -63,7 +63,7 @@ func TestAccAlertsManagementPrometheusRuleGroup_complete(t *testing.T) {
 
 func TestAccAlertsManagementPrometheusRuleGroup_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_alert_prometheus_rule_group", "test")
-	r := AlertPrometheusRuleGroupTestResource{}
+	r := MonitorAlertPrometheusRuleGroupResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -89,7 +89,7 @@ func TestAccAlertsManagementPrometheusRuleGroup_update(t *testing.T) {
 	})
 }
 
-func (r AlertPrometheusRuleGroupTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r MonitorAlertPrometheusRuleGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := prometheusrulegroupresources.ParsePrometheusRuleGroupID(state.ID)
 	if err != nil {
 		return nil, err
@@ -106,7 +106,7 @@ func (r AlertPrometheusRuleGroupTestResource) Exists(ctx context.Context, client
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r AlertPrometheusRuleGroupTestResource) template(data acceptance.TestData) string {
+func (r MonitorAlertPrometheusRuleGroupResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctest-rg-%[1]d"
@@ -128,7 +128,7 @@ resource "azurerm_monitor_workspace" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r AlertPrometheusRuleGroupTestResource) basic(data acceptance.TestData) string {
+func (r MonitorAlertPrometheusRuleGroupResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -155,7 +155,7 @@ EOF
 `, template, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r AlertPrometheusRuleGroupTestResource) requiresImport(data acceptance.TestData) string {
+func (r MonitorAlertPrometheusRuleGroupResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -179,7 +179,7 @@ EOF
 `, config)
 }
 
-func (r AlertPrometheusRuleGroupTestResource) complete(data acceptance.TestData) string {
+func (r MonitorAlertPrometheusRuleGroupResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -261,7 +261,7 @@ EOF
 `, template, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r AlertPrometheusRuleGroupTestResource) update(data acceptance.TestData) string {
+func (r MonitorAlertPrometheusRuleGroupResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -379,7 +379,7 @@ EOF
 `, template, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r AlertPrometheusRuleGroupTestResource) updateAlertRule(data acceptance.TestData) string {
+func (r MonitorAlertPrometheusRuleGroupResource) updateAlertRule(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {

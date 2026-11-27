@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type LinkedServiceResource struct{}
+type SynapseLinkedServiceResource struct{}
 
 func TestAccSynapseLinkedService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_linked_service", "test")
-	r := LinkedServiceResource{}
+	r := SynapseLinkedServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccSynapseLinkedService_basic(t *testing.T) {
 
 func TestAccSynapseLinkedService_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_linked_service", "test")
-	r := LinkedServiceResource{}
+	r := SynapseLinkedServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccSynapseLinkedService_requiresImport(t *testing.T) {
 
 func TestAccSynapseLinkedService_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_linked_service", "test")
-	r := LinkedServiceResource{}
+	r := SynapseLinkedServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -65,7 +65,7 @@ func TestAccSynapseLinkedService_complete(t *testing.T) {
 
 func TestAccSynapseLinkedService_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_linked_service", "test")
-	r := LinkedServiceResource{}
+	r := SynapseLinkedServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -94,7 +94,7 @@ func TestAccSynapseLinkedService_update(t *testing.T) {
 
 func TestAccSynapseLinkedService_web(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_linked_service", "test")
-	r := LinkedServiceResource{}
+	r := SynapseLinkedServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -109,7 +109,7 @@ func TestAccSynapseLinkedService_web(t *testing.T) {
 
 func TestAccSynapseLinkedService_search(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_linked_service", "test")
-	r := LinkedServiceResource{}
+	r := SynapseLinkedServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -122,7 +122,7 @@ func TestAccSynapseLinkedService_search(t *testing.T) {
 	})
 }
 
-func (t LinkedServiceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t SynapseLinkedServiceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.LinkedServiceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -146,7 +146,7 @@ func (t LinkedServiceResource) Exists(ctx context.Context, clients *clients.Clie
 	return pointer.To(resp.ID != nil), nil
 }
 
-func (r LinkedServiceResource) basic(data acceptance.TestData) string {
+func (r SynapseLinkedServiceResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -167,7 +167,7 @@ JSON
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LinkedServiceResource) requiresImport(data acceptance.TestData) string {
+func (r SynapseLinkedServiceResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -180,7 +180,7 @@ resource "azurerm_synapse_linked_service" "import" {
 `, r.basic(data))
 }
 
-func (r LinkedServiceResource) complete(data acceptance.TestData) string {
+func (r SynapseLinkedServiceResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -218,7 +218,7 @@ JSON
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LinkedServiceResource) web(data acceptance.TestData) string {
+func (r SynapseLinkedServiceResource) web(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -240,7 +240,7 @@ JSON
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LinkedServiceResource) search(data acceptance.TestData) string {
+func (r SynapseLinkedServiceResource) search(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -272,7 +272,7 @@ JSON
 `, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceResource) template(data acceptance.TestData) string {
+func (SynapseLinkedServiceResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

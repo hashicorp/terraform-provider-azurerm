@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type NetworkSecurityPerimeterAssociationTestResource struct{}
+type NetworkSecurityPerimeterAssociationResource struct{}
 
 func TestAccNetworkSecurityPerimeterAssociation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_perimeter_association", "test")
-	r := NetworkSecurityPerimeterAssociationTestResource{}
+	r := NetworkSecurityPerimeterAssociationResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,7 +36,7 @@ func TestAccNetworkSecurityPerimeterAssociation_basic(t *testing.T) {
 
 func TestAccNetworkSecurityPerimeterAssociation_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_perimeter_association", "test")
-	r := NetworkSecurityPerimeterAssociationTestResource{}
+	r := NetworkSecurityPerimeterAssociationResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -51,7 +51,7 @@ func TestAccNetworkSecurityPerimeterAssociation_requiresImport(t *testing.T) {
 
 func TestAccNetworkSecurityPerimeterAssociation_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_perimeter_association", "test")
-	r := NetworkSecurityPerimeterAssociationTestResource{}
+	r := NetworkSecurityPerimeterAssociationResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -73,7 +73,7 @@ func TestAccNetworkSecurityPerimeterAssociation_update(t *testing.T) {
 
 func TestAccNetworkSecurityPerimeterAssociation_surfacesAsynchronousFailure(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_perimeter_association", "test")
-	r := NetworkSecurityPerimeterAssociationTestResource{}
+	r := NetworkSecurityPerimeterAssociationResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -83,7 +83,7 @@ func TestAccNetworkSecurityPerimeterAssociation_surfacesAsynchronousFailure(t *t
 	})
 }
 
-func (NetworkSecurityPerimeterAssociationTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (NetworkSecurityPerimeterAssociationResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := networksecurityperimeterassociations.ParseResourceAssociationID(state.ID)
 	if err != nil {
 		return nil, err
@@ -97,7 +97,7 @@ func (NetworkSecurityPerimeterAssociationTestResource) Exists(ctx context.Contex
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (NetworkSecurityPerimeterAssociationTestResource) basic(data acceptance.TestData) string {
+func (NetworkSecurityPerimeterAssociationResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -135,7 +135,7 @@ resource "azurerm_network_security_perimeter_association" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (r NetworkSecurityPerimeterAssociationTestResource) requiresImport(data acceptance.TestData) string {
+func (r NetworkSecurityPerimeterAssociationResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -149,7 +149,7 @@ resource "azurerm_network_security_perimeter_association" "import" {
 `, r.basic(data))
 }
 
-func (NetworkSecurityPerimeterAssociationTestResource) complete(data acceptance.TestData) string {
+func (NetworkSecurityPerimeterAssociationResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -187,7 +187,7 @@ resource "azurerm_network_security_perimeter_association" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (NetworkSecurityPerimeterAssociationTestResource) withObjectReplication(data acceptance.TestData) string {
+func (NetworkSecurityPerimeterAssociationResource) withObjectReplication(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

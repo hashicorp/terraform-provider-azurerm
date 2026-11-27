@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type DevCenterProjectEnvironmentTypeTestResource struct{}
+type DevCenterProjectEnvironmentTypeResource struct{}
 
 func TestAccDevCenterProjectEnvironmentType_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_project_environment_type", "test")
-	r := DevCenterProjectEnvironmentTypeTestResource{}
+	r := DevCenterProjectEnvironmentTypeResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccDevCenterProjectEnvironmentType_basic(t *testing.T) {
 
 func TestAccDevCenterProjectEnvironmentType_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_project_environment_type", "test")
-	r := DevCenterProjectEnvironmentTypeTestResource{}
+	r := DevCenterProjectEnvironmentTypeResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccDevCenterProjectEnvironmentType_requiresImport(t *testing.T) {
 
 func TestAccDevCenterProjectEnvironmentType_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_project_environment_type", "test")
-	r := DevCenterProjectEnvironmentTypeTestResource{}
+	r := DevCenterProjectEnvironmentTypeResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -65,7 +65,7 @@ func TestAccDevCenterProjectEnvironmentType_complete(t *testing.T) {
 
 func TestAccDevCenterProjectEnvironmentType_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_project_environment_type", "test")
-	r := DevCenterProjectEnvironmentTypeTestResource{}
+	r := DevCenterProjectEnvironmentTypeResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -99,7 +99,7 @@ func TestAccDevCenterProjectEnvironmentType_update(t *testing.T) {
 	})
 }
 
-func (r DevCenterProjectEnvironmentTypeTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r DevCenterProjectEnvironmentTypeResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := environmenttypes.ParseEnvironmentTypeID(state.ID)
 	if err != nil {
 		return nil, err
@@ -113,7 +113,7 @@ func (r DevCenterProjectEnvironmentTypeTestResource) Exists(ctx context.Context,
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r DevCenterProjectEnvironmentTypeTestResource) basic(data acceptance.TestData) string {
+func (r DevCenterProjectEnvironmentTypeResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -134,7 +134,7 @@ resource "azurerm_dev_center_project_environment_type" "test" {
 `, r.template(data), data.RandomString)
 }
 
-func (r DevCenterProjectEnvironmentTypeTestResource) requiresImport(data acceptance.TestData) string {
+func (r DevCenterProjectEnvironmentTypeResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -151,7 +151,7 @@ resource "azurerm_dev_center_project_environment_type" "import" {
 `, r.basic(data))
 }
 
-func (r DevCenterProjectEnvironmentTypeTestResource) complete(data acceptance.TestData) string {
+func (r DevCenterProjectEnvironmentTypeResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -194,7 +194,7 @@ resource "azurerm_dev_center_project_environment_type" "test" {
 `, r.template(data), data.RandomString, data.RandomString)
 }
 
-func (r DevCenterProjectEnvironmentTypeTestResource) update(data acceptance.TestData) string {
+func (r DevCenterProjectEnvironmentTypeResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -252,7 +252,7 @@ resource "azurerm_dev_center_project_environment_type" "test" {
 `, r.template(data), data.RandomString, data.RandomString, data.RandomString)
 }
 
-func (r DevCenterProjectEnvironmentTypeTestResource) template(data acceptance.TestData) string {
+func (r DevCenterProjectEnvironmentTypeResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 

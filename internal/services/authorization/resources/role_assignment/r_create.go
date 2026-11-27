@@ -32,7 +32,7 @@ func resourceArmRoleAssignmentCreate(d *pluginsdk.ResourceData, meta any) error 
 	scope := d.Get("scope").(string)
 	scopeId, err := commonids.ParseScopeID(scope)
 	if err != nil {
-		return fmt.Errorf("parsing %s: %+v", scopeId, err)
+		return err
 	}
 
 	var roleDefinitionId string

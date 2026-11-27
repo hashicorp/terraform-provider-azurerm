@@ -70,7 +70,7 @@ func (c *Client) ConfigurationStoreIDFromEndpoint(ctx context.Context, subscript
 		endpointUri := *item.Properties.Endpoint
 		configurationStoreId, err := configurationstores.ParseConfigurationStoreIDInsensitively(itemId)
 		if err != nil {
-			return nil, fmt.Errorf("parsing %q: %+v", itemId, err)
+			return nil, err
 		}
 
 		c.AddToCache(*configurationStoreId, endpointUri)

@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type CosmosGremlinGraphResource struct{}
+type CosmosdbGremlinGraphResource struct{}
 
 func TestAccCosmosDbGremlinGraph_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_gremlin_graph", "test")
-	r := CosmosGremlinGraphResource{}
+	r := CosmosdbGremlinGraphResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccCosmosDbGremlinGraph_basic(t *testing.T) {
 
 func TestAccCosmosDbGremlinGraph_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_gremlin_graph", "test")
-	r := CosmosGremlinGraphResource{}
+	r := CosmosdbGremlinGraphResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -53,7 +53,7 @@ func TestAccCosmosDbGremlinGraph_requiresImport(t *testing.T) {
 
 func TestAccCosmosDbGremlinGraph_customConflictResolutionPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_gremlin_graph", "test")
-	r := CosmosGremlinGraphResource{}
+	r := CosmosdbGremlinGraphResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -68,7 +68,7 @@ func TestAccCosmosDbGremlinGraph_customConflictResolutionPolicy(t *testing.T) {
 
 func TestAccCosmosDbGremlinGraph_indexPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_gremlin_graph", "test")
-	r := CosmosGremlinGraphResource{}
+	r := CosmosdbGremlinGraphResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -104,7 +104,7 @@ func TestAccCosmosDbGremlinGraph_indexPolicy(t *testing.T) {
 
 func TestAccCosmosDbGremlinGraph_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_gremlin_graph", "test")
-	r := CosmosGremlinGraphResource{}
+	r := CosmosdbGremlinGraphResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -130,7 +130,7 @@ func TestAccCosmosDbGremlinGraph_update(t *testing.T) {
 
 func TestAccCosmosDbGremlinGraph_autoscale(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_gremlin_graph", "test")
-	r := CosmosGremlinGraphResource{}
+	r := CosmosdbGremlinGraphResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -162,7 +162,7 @@ func TestAccCosmosDbGremlinGraph_autoscale(t *testing.T) {
 
 func TestAccCosmosDbGremlinGraph_partition_key_version(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_gremlin_graph", "test")
-	r := CosmosGremlinGraphResource{}
+	r := CosmosdbGremlinGraphResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -178,7 +178,7 @@ func TestAccCosmosDbGremlinGraph_partition_key_version(t *testing.T) {
 
 func TestAccCosmosDbGremlinGraph_serverless(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_gremlin_graph", "test")
-	r := CosmosGremlinGraphResource{}
+	r := CosmosdbGremlinGraphResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -193,7 +193,7 @@ func TestAccCosmosDbGremlinGraph_serverless(t *testing.T) {
 
 func TestAccCosmosDbGremlinGraph_analyticalStorageTtl(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_gremlin_graph", "test")
-	r := CosmosGremlinGraphResource{}
+	r := CosmosdbGremlinGraphResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -213,7 +213,7 @@ func TestAccCosmosDbGremlinGraph_analyticalStorageTtl(t *testing.T) {
 	})
 }
 
-func (t CosmosGremlinGraphResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t CosmosdbGremlinGraphResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := cosmosdb.ParseGraphID(state.ID)
 	if err != nil {
 		return nil, err
@@ -227,7 +227,7 @@ func (t CosmosGremlinGraphResource) Exists(ctx context.Context, clients *clients
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (CosmosGremlinGraphResource) basic(data acceptance.TestData) string {
+func (CosmosdbGremlinGraphResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -239,10 +239,10 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
   partition_key_path  = "/test"
   throughput          = 400
 }
-`, CosmosGremlinDatabaseResource{}.basic(data), data.RandomInteger)
+`, CosmosdbGremlinDatabaseResource{}.basic(data), data.RandomInteger)
 }
 
-func (r CosmosGremlinGraphResource) requiresImport(data acceptance.TestData) string {
+func (r CosmosdbGremlinGraphResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -256,7 +256,7 @@ resource "azurerm_cosmosdb_gremlin_graph" "import" {
 `, r.basic(data))
 }
 
-func (CosmosGremlinGraphResource) customConflictResolutionPolicy(data acceptance.TestData) string {
+func (CosmosdbGremlinGraphResource) customConflictResolutionPolicy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -280,10 +280,10 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
     conflict_resolution_procedure = "dbs/{0}/colls/{1}/sprocs/{2}"
   }
 }
-`, CosmosGremlinDatabaseResource{}.basic(data), data.RandomInteger)
+`, CosmosdbGremlinDatabaseResource{}.basic(data), data.RandomInteger)
 }
 
-func (CosmosGremlinGraphResource) indexPolicy(data acceptance.TestData) string {
+func (CosmosdbGremlinGraphResource) indexPolicy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -305,10 +305,10 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
     conflict_resolution_path = "/_ts"
   }
 }
-`, CosmosGremlinDatabaseResource{}.basic(data), data.RandomInteger)
+`, CosmosdbGremlinDatabaseResource{}.basic(data), data.RandomInteger)
 }
 
-func (CosmosGremlinGraphResource) indexPolicyCompositeIndex(data acceptance.TestData) string {
+func (CosmosdbGremlinGraphResource) indexPolicyCompositeIndex(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -360,10 +360,10 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
     conflict_resolution_path = "/_ts"
   }
 }
-`, CosmosGremlinDatabaseResource{}.basic(data), data.RandomInteger)
+`, CosmosdbGremlinDatabaseResource{}.basic(data), data.RandomInteger)
 }
 
-func (CosmosGremlinGraphResource) indexPolicySpatialIndex(data acceptance.TestData) string {
+func (CosmosdbGremlinGraphResource) indexPolicySpatialIndex(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -407,10 +407,10 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
     conflict_resolution_path = "/_ts"
   }
 }
-`, CosmosGremlinDatabaseResource{}.basic(data), data.RandomInteger)
+`, CosmosdbGremlinDatabaseResource{}.basic(data), data.RandomInteger)
 }
 
-func (CosmosGremlinGraphResource) update(data acceptance.TestData, throughput int, defaultTTL int) string {
+func (CosmosdbGremlinGraphResource) update(data acceptance.TestData, throughput int, defaultTTL int) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -434,10 +434,10 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
     paths = ["/definition/id1", "/definition/id2"]
   }
 }
-`, CosmosGremlinDatabaseResource{}.basic(data), data.RandomInteger, throughput, defaultTTL)
+`, CosmosdbGremlinDatabaseResource{}.basic(data), data.RandomInteger, throughput, defaultTTL)
 }
 
-func (CosmosGremlinGraphResource) autoscale(data acceptance.TestData, maxThroughput int) string {
+func (CosmosdbGremlinGraphResource) autoscale(data acceptance.TestData, maxThroughput int) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -459,10 +459,10 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
     excluded_paths = ["/\"_etag\"/?"]
   }
 }
-`, CosmosGremlinDatabaseResource{}.basic(data), data.RandomInteger, maxThroughput)
+`, CosmosdbGremlinDatabaseResource{}.basic(data), data.RandomInteger, maxThroughput)
 }
 
-func (CosmosGremlinGraphResource) partition_key_version(data acceptance.TestData, version int) string {
+func (CosmosdbGremlinGraphResource) partition_key_version(data acceptance.TestData, version int) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -474,10 +474,10 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
   partition_key_path    = "/test"
   partition_key_version = %[3]d
 }
-`, CosmosGremlinDatabaseResource{}.basic(data), data.RandomInteger, version)
+`, CosmosdbGremlinDatabaseResource{}.basic(data), data.RandomInteger, version)
 }
 
-func (CosmosGremlinGraphResource) serverless(data acceptance.TestData) string {
+func (CosmosdbGremlinGraphResource) serverless(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -488,10 +488,10 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
   database_name       = azurerm_cosmosdb_gremlin_database.test.name
   partition_key_path  = "/test"
 }
-`, CosmosGremlinDatabaseResource{}.serverless(data), data.RandomInteger)
+`, CosmosdbGremlinDatabaseResource{}.serverless(data), data.RandomInteger)
 }
 
-func (CosmosGremlinGraphResource) analyticalStorageTtl(data acceptance.TestData, analyticalStorageTtl int64) string {
+func (CosmosdbGremlinGraphResource) analyticalStorageTtl(data acceptance.TestData, analyticalStorageTtl int64) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

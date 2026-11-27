@@ -29,7 +29,7 @@ func resourceOperationalinsightsDataExportCreateUpdate(d *pluginsdk.ResourceData
 
 	workspace, err := dataexport.ParseWorkspaceID(d.Get("workspace_resource_id").(string))
 	if err != nil {
-		return fmt.Errorf("%v", err)
+		return err
 	}
 
 	id := dataexport.NewDataExportID(workspace.SubscriptionId, d.Get("resource_group_name").(string), workspace.WorkspaceName, d.Get("name").(string))
@@ -71,14 +71,14 @@ func resourceOperationalinsightsDataExportCreateUpdate(d *pluginsdk.ResourceData
 		if _, err := eventhubs.ValidateNamespaceID(destinationId, "destination_resource_id"); err == nil {
 			eventhubNamespace, err := eventhubs.ParseNamespaceID(destinationId)
 			if err != nil {
-				return fmt.Errorf("parsing destination eventhub namespaces id error: %+v", err)
+				return err
 			}
 
 			parameters.Properties.Destination.ResourceId = eventhubNamespace.ID()
 		} else {
 			eventhubId, err := eventhubs.ParseEventhubID(destinationId)
 			if err != nil {
-				return fmt.Errorf("parsing destination eventhub id error: %+v", err)
+				return err
 			}
 
 			destinationId = namespaces.NewNamespaceID(eventhubId.SubscriptionId, eventhubId.ResourceGroupName, eventhubId.NamespaceName).ID()

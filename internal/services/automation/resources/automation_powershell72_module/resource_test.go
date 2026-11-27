@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type PowerShell72ModuleResource struct{}
+type AutomationPowershell72ModuleResource struct{}
 
 func TestAccAutomationPowerShell72Module_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_powershell72_module", "test")
-	r := PowerShell72ModuleResource{}
+	r := AutomationPowershell72ModuleResource{}
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -30,7 +30,7 @@ func TestAccAutomationPowerShell72Module_regressionTest(t *testing.T) {
 
 func TestAccAutomationPowerShell72Module_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_powershell72_module", "test")
-	r := PowerShell72ModuleResource{}
+	r := AutomationPowershell72ModuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -45,7 +45,7 @@ func TestAccAutomationPowerShell72Module_basic(t *testing.T) {
 
 func TestAccAutomationPowerShell72Module_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_powershell72_module", "test")
-	r := PowerShell72ModuleResource{}
+	r := AutomationPowershell72ModuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -60,7 +60,7 @@ func TestAccAutomationPowerShell72Module_requiresImport(t *testing.T) {
 
 func TestAccAutomationPowerShell72Module_multipleModules(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_powershell72_module", "test")
-	r := PowerShell72ModuleResource{}
+	r := AutomationPowershell72ModuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -75,7 +75,7 @@ func TestAccAutomationPowerShell72Module_multipleModules(t *testing.T) {
 
 func TestAccAutomationPowerShell72Module_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_powershell72_module", "test")
-	r := PowerShell72ModuleResource{}
+	r := AutomationPowershell72ModuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -88,7 +88,7 @@ func TestAccAutomationPowerShell72Module_complete(t *testing.T) {
 	})
 }
 
-func (t PowerShell72ModuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t AutomationPowershell72ModuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := module.ParsePowerShell72ModuleID(state.ID)
 	if err != nil {
 		return nil, err
@@ -102,7 +102,7 @@ func (t PowerShell72ModuleResource) Exists(ctx context.Context, clients *clients
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (PowerShell72ModuleResource) basic(data acceptance.TestData) string {
+func (AutomationPowershell72ModuleResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -131,7 +131,7 @@ resource "azurerm_automation_powershell72_module" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (PowerShell72ModuleResource) multipleModules(data acceptance.TestData) string {
+func (AutomationPowershell72ModuleResource) multipleModules(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -171,8 +171,8 @@ resource "azurerm_automation_powershell72_module" "second" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (PowerShell72ModuleResource) requiresImport(data acceptance.TestData) string {
-	template := PowerShell72ModuleResource{}.basic(data)
+func (AutomationPowershell72ModuleResource) requiresImport(data acceptance.TestData) string {
+	template := AutomationPowershell72ModuleResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -187,7 +187,7 @@ resource "azurerm_automation_powershell72_module" "import" {
 `, template)
 }
 
-func (PowerShell72ModuleResource) complete(data acceptance.TestData) string {
+func (AutomationPowershell72ModuleResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

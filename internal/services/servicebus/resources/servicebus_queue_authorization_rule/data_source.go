@@ -125,7 +125,7 @@ func dataSourceServiceBusQueueAuthorizationRuleRead(d *pluginsdk.ResourceData, m
 	if v, ok := d.Get("queue_id").(string); ok && v != "" {
 		queueId, err := queues.ParseQueueID(v)
 		if err != nil {
-			return fmt.Errorf("parsing topic ID %q: %+v", v, err)
+			return err
 		}
 		rgName = queueId.ResourceGroupName
 		nsName = queueId.NamespaceName

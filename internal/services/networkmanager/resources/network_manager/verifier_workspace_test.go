@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ManagerVerifierWorkspaceResource struct{}
+type NetworkManagerVerifierWorkspaceResource struct{}
 
 func testAccNetworkManagerVerifierWorkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_verifier_workspace", "test")
-	r := ManagerVerifierWorkspaceResource{}
+	r := NetworkManagerVerifierWorkspaceResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func testAccNetworkManagerVerifierWorkspace_basic(t *testing.T) {
 
 func testAccNetworkManagerVerifierWorkspace_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_verifier_workspace", "test")
-	r := ManagerVerifierWorkspaceResource{}
+	r := NetworkManagerVerifierWorkspaceResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -71,7 +71,7 @@ func testAccNetworkManagerVerifierWorkspace_update(t *testing.T) {
 
 func testAccNetworkManagerVerifierWorkspace_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_verifier_workspace", "test")
-	r := ManagerVerifierWorkspaceResource{}
+	r := NetworkManagerVerifierWorkspaceResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -86,7 +86,7 @@ func testAccNetworkManagerVerifierWorkspace_requiresImport(t *testing.T) {
 
 func testAccNetworkManagerVerifierWorkspace_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_verifier_workspace", "test")
-	r := ManagerVerifierWorkspaceResource{}
+	r := NetworkManagerVerifierWorkspaceResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -99,7 +99,7 @@ func testAccNetworkManagerVerifierWorkspace_complete(t *testing.T) {
 	})
 }
 
-func (r ManagerVerifierWorkspaceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r NetworkManagerVerifierWorkspaceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := verifierworkspaces.ParseVerifierWorkspaceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -113,7 +113,7 @@ func (r ManagerVerifierWorkspaceResource) Exists(ctx context.Context, client *cl
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r ManagerVerifierWorkspaceResource) basic(data acceptance.TestData) string {
+func (r NetworkManagerVerifierWorkspaceResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -129,7 +129,7 @@ resource "azurerm_network_manager_verifier_workspace" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ManagerVerifierWorkspaceResource) requiresImport(data acceptance.TestData) string {
+func (r NetworkManagerVerifierWorkspaceResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -141,7 +141,7 @@ resource "azurerm_network_manager_verifier_workspace" "import" {
 `, r.basic(data))
 }
 
-func (r ManagerVerifierWorkspaceResource) update(data acceptance.TestData) string {
+func (r NetworkManagerVerifierWorkspaceResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -162,7 +162,7 @@ resource "azurerm_network_manager_verifier_workspace" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ManagerVerifierWorkspaceResource) complete(data acceptance.TestData) string {
+func (r NetworkManagerVerifierWorkspaceResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -184,7 +184,7 @@ resource "azurerm_network_manager_verifier_workspace" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ManagerVerifierWorkspaceResource) template(data acceptance.TestData) string {
+func (r NetworkManagerVerifierWorkspaceResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-network-manager-vw-%d"

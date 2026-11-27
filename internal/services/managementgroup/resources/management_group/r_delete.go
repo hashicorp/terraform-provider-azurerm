@@ -52,7 +52,7 @@ func resourceManagementGroupDelete(d *pluginsdk.ResourceData, meta any) error {
 
 					subscriptionId, err := commonids.ParseSubscriptionID(*v.Id)
 					if err != nil {
-						return fmt.Errorf("unable to parse child Subscription ID %+v", err)
+						return err
 					}
 					managementGroupSubscriptionId := managementgroups.NewSubscriptionID(id.GroupId, subscriptionId.SubscriptionId)
 

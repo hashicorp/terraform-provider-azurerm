@@ -473,7 +473,7 @@ func flattenContainerGroupSubnets(input *[]containerinstance.ContainerGroupSubne
 
 		id, err := commonids.ParseSubnetIDInsensitively(resourceRef.Id)
 		if err != nil {
-			return nil, fmt.Errorf(`parsing subnet id %q: %v`, resourceRef.Id, err)
+			return nil, err
 		}
 
 		subnetIDs = append(subnetIDs, id.ID())

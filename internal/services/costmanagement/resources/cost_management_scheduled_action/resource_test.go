@@ -19,11 +19,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type CostManagementScheduledAction struct{}
+type CostManagementScheduledActionResource struct{}
 
 func TestAccCostManagementScheduledAction_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cost_management_scheduled_action", "test")
-	r := CostManagementScheduledAction{}
+	r := CostManagementScheduledActionResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -34,7 +34,7 @@ func TestAccCostManagementScheduledAction_regressionTest(t *testing.T) {
 
 func TestAccCostManagementScheduledAction_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cost_management_scheduled_action", "test")
-	r := CostManagementScheduledAction{}
+	r := CostManagementScheduledActionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -49,7 +49,7 @@ func TestAccCostManagementScheduledAction_basic(t *testing.T) {
 
 func TestAccCostManagementScheduledAction_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cost_management_scheduled_action", "test")
-	r := CostManagementScheduledAction{}
+	r := CostManagementScheduledActionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -85,7 +85,7 @@ func TestAccCostManagementScheduledAction_update(t *testing.T) {
 
 func TestAccCostManagementScheduledAction_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cost_management_scheduled_action", "test")
-	r := CostManagementScheduledAction{}
+	r := CostManagementScheduledActionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -103,7 +103,7 @@ func TestAccCostManagementScheduledAction_requiresImport(t *testing.T) {
 
 func TestAccCostManagementScheduledAction_emailAddressSender(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cost_management_scheduled_action", "test")
-	r := CostManagementScheduledAction{}
+	r := CostManagementScheduledActionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -125,7 +125,7 @@ func TestAccCostManagementScheduledAction_emailAddressSender(t *testing.T) {
 
 func TestAccCostManagementScheduledAction_noEmailAddressSenderServicePrincipal(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cost_management_scheduled_action", "test")
-	r := CostManagementScheduledAction{}
+	r := CostManagementScheduledActionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -137,7 +137,7 @@ func TestAccCostManagementScheduledAction_noEmailAddressSenderServicePrincipal(t
 
 func TestAccCostManagementScheduledAction_noEmailAddressSenderUserPrincipal(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cost_management_scheduled_action", "test")
-	r := CostManagementScheduledAction{}
+	r := CostManagementScheduledActionResource{}
 
 	if _, ok := os.LookupEnv("ARM_TEST_AS_USER"); !ok {
 		t.Skip("`ARM_TEST_AS_USER` is not specified")
@@ -154,7 +154,7 @@ func TestAccCostManagementScheduledAction_noEmailAddressSenderUserPrincipal(t *t
 	})
 }
 
-func (t CostManagementScheduledAction) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t CostManagementScheduledActionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := scheduledactionoperationgroup.ParseScopedScheduledActionID(state.ID)
 	if err != nil {
 		return nil, err
@@ -168,7 +168,7 @@ func (t CostManagementScheduledAction) Exists(ctx context.Context, clients *clie
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (CostManagementScheduledAction) daily(data acceptance.TestData) string {
+func (CostManagementScheduledActionResource) daily(data acceptance.TestData) string {
 	start := time.Now().AddDate(0, 0, 1).UTC().Format("2006-01-02T00:00:00Z")
 	end := time.Now().AddDate(0, 0, 2).UTC().Format("2006-01-02T00:00:00Z")
 
@@ -196,7 +196,7 @@ resource "azurerm_cost_management_scheduled_action" "test" {
 `, data.RandomString, data.RandomString, start, end)
 }
 
-func (CostManagementScheduledAction) monthWeekDay(data acceptance.TestData) string {
+func (CostManagementScheduledActionResource) monthWeekDay(data acceptance.TestData) string {
 	start := time.Now().AddDate(0, 0, 1).UTC().Format("2006-01-02T00:00:00Z")
 	end := time.Now().AddDate(0, 0, 2).UTC().Format("2006-01-02T00:00:00Z")
 
@@ -227,7 +227,7 @@ resource "azurerm_cost_management_scheduled_action" "test" {
 `, data.RandomString, data.RandomString, start, end)
 }
 
-func (CostManagementScheduledAction) monthDay(data acceptance.TestData) string {
+func (CostManagementScheduledActionResource) monthDay(data acceptance.TestData) string {
 	start := time.Now().AddDate(0, 0, 1).UTC().Format("2006-01-02T00:00:00Z")
 	end := time.Now().AddDate(0, 0, 2).UTC().Format("2006-01-02T00:00:00Z")
 
@@ -258,7 +258,7 @@ resource "azurerm_cost_management_scheduled_action" "test" {
 `, data.RandomString, data.RandomString, start, end)
 }
 
-func (CostManagementScheduledAction) weekly(data acceptance.TestData) string {
+func (CostManagementScheduledActionResource) weekly(data acceptance.TestData) string {
 	start := time.Now().AddDate(0, 0, 1).UTC().Format("2006-01-02T00:00:00Z")
 	end := time.Now().AddDate(0, 0, 2).UTC().Format("2006-01-02T00:00:00Z")
 
@@ -289,8 +289,8 @@ resource "azurerm_cost_management_scheduled_action" "test" {
 `, data.RandomString, data.RandomString, start, end)
 }
 
-func (CostManagementScheduledAction) requiresImport(data acceptance.TestData) string {
-	template := CostManagementScheduledAction{}.daily(data)
+func (CostManagementScheduledActionResource) requiresImport(data acceptance.TestData) string {
+	template := CostManagementScheduledActionResource{}.daily(data)
 	return fmt.Sprintf(`
 %s
 
@@ -311,7 +311,7 @@ resource "azurerm_cost_management_scheduled_action" "import" {
 `, template)
 }
 
-func (CostManagementScheduledAction) emailAddressSender(data acceptance.TestData, emailAddressSender string) string {
+func (CostManagementScheduledActionResource) emailAddressSender(data acceptance.TestData, emailAddressSender string) string {
 	start := time.Now().AddDate(0, 0, 1).UTC().Format("2006-01-02T00:00:00Z")
 	end := time.Now().AddDate(0, 0, 2).UTC().Format("2006-01-02T00:00:00Z")
 
@@ -339,7 +339,7 @@ resource "azurerm_cost_management_scheduled_action" "test" {
 `, data.RandomString, data.RandomString, emailAddressSender, start, end)
 }
 
-func (CostManagementScheduledAction) noEmailAddressSender(data acceptance.TestData, userPrincipal bool) string {
+func (CostManagementScheduledActionResource) noEmailAddressSender(data acceptance.TestData, userPrincipal bool) string {
 	start := time.Now().AddDate(0, 0, 1).UTC().Format("2006-01-02T00:00:00Z")
 	end := time.Now().AddDate(0, 0, 2).UTC().Format("2006-01-02T00:00:00Z")
 

@@ -47,7 +47,7 @@ func resourceStorageShareFileCreate(d *pluginsdk.ResourceData, meta any) error {
 
 	accountId, err := accounts.ParseAccountID(storageShareId.ID(), storageClient.StorageDomainSuffix)
 	if err != nil {
-		return fmt.Errorf("parsing Account ID: %v", err)
+		return err
 	}
 
 	id := files.NewFileID(*accountId, storageShareId.ShareName, path, fileName)

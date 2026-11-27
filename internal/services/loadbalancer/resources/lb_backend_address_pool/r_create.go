@@ -25,7 +25,7 @@ func resourceArmLoadBalancerBackendAddressPoolCreateUpdate(d *pluginsdk.Resource
 
 	loadBalancerId, err := loadbalancers.ParseLoadBalancerID(d.Get("loadbalancer_id").(string))
 	if err != nil {
-		return fmt.Errorf("parsing Load Balancer Name and Group: %+v", err)
+		return err
 	}
 
 	name := d.Get("name").(string)

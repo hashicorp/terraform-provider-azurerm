@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type NetworkSecurityPerimeterTestResource struct{}
+type NetworkSecurityPerimeterResource struct{}
 
 func TestAccNetworkSecurityPerimeter_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_perimeter", "test")
-	r := NetworkSecurityPerimeterTestResource{}
+	r := NetworkSecurityPerimeterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccNetworkSecurityPerimeter_basic(t *testing.T) {
 
 func TestAccNetworkSecurityPerimeter_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_perimeter", "test")
-	r := NetworkSecurityPerimeterTestResource{}
+	r := NetworkSecurityPerimeterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccNetworkSecurityPerimeter_requiresImport(t *testing.T) {
 
 func TestAccNetworkSecurityPerimeter_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_perimeter", "test")
-	r := NetworkSecurityPerimeterTestResource{}
+	r := NetworkSecurityPerimeterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -65,7 +65,7 @@ func TestAccNetworkSecurityPerimeter_complete(t *testing.T) {
 
 func TestAccNetworkSecurityPerimeter_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_perimeter", "test")
-	r := NetworkSecurityPerimeterTestResource{}
+	r := NetworkSecurityPerimeterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -87,7 +87,7 @@ func TestAccNetworkSecurityPerimeter_update(t *testing.T) {
 	})
 }
 
-func (NetworkSecurityPerimeterTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (NetworkSecurityPerimeterResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := networksecurityperimeters.ParseNetworkSecurityPerimeterID(state.ID)
 	if err != nil {
 		return nil, err
@@ -101,7 +101,7 @@ func (NetworkSecurityPerimeterTestResource) Exists(ctx context.Context, client *
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (NetworkSecurityPerimeterTestResource) basic(data acceptance.TestData) string {
+func (NetworkSecurityPerimeterResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -120,7 +120,7 @@ resource "azurerm_network_security_perimeter" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r NetworkSecurityPerimeterTestResource) requiresImport(data acceptance.TestData) string {
+func (r NetworkSecurityPerimeterResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -132,7 +132,7 @@ resource "azurerm_network_security_perimeter" "import" {
 `, r.basic(data))
 }
 
-func (NetworkSecurityPerimeterTestResource) complete(data acceptance.TestData) string {
+func (NetworkSecurityPerimeterResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -16,9 +16,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type MetadataResource struct{}
+type SentinelMetadataResource struct{}
 
-func (r MetadataResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r SentinelMetadataResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	client := clients.Sentinel.MetadataClient
 	id, err := metadata.ParseMetadataID(state.ID)
 	if err != nil {
@@ -35,7 +35,7 @@ func (r MetadataResource) Exists(ctx context.Context, clients *clients.Client, s
 
 func TestAccMetadata_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_metadata", "test")
-	r := MetadataResource{}
+	r := SentinelMetadataResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccMetadata_basic(t *testing.T) {
 
 func TestAccMetadata_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_metadata", "test")
-	r := MetadataResource{}
+	r := SentinelMetadataResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -65,7 +65,7 @@ func TestAccMetadata_complete(t *testing.T) {
 
 func TestAccMetadata_completeWithSolution(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_metadata", "test")
-	r := MetadataResource{}
+	r := SentinelMetadataResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -80,7 +80,7 @@ func TestAccMetadata_completeWithSolution(t *testing.T) {
 
 func TestAccMetadata_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_metadata", "test")
-	r := MetadataResource{}
+	r := SentinelMetadataResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -100,7 +100,7 @@ func TestAccMetadata_update(t *testing.T) {
 	})
 }
 
-func (MetadataResource) basic(data acceptance.TestData) string {
+func (SentinelMetadataResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -114,7 +114,7 @@ resource "azurerm_sentinel_metadata" "test" {
 `, SentinelAlertRuleNrtResource{}.basic(data))
 }
 
-func (MetadataResource) complete(data acceptance.TestData) string {
+func (SentinelMetadataResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -188,7 +188,7 @@ resource "azurerm_sentinel_metadata" "test" {
 `, SentinelAlertRuleNrtResource{}.basic(data))
 }
 
-func (MetadataResource) completeWithSolution(data acceptance.TestData) string {
+func (SentinelMetadataResource) completeWithSolution(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 

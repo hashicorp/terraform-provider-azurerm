@@ -133,7 +133,7 @@ func (r DataSource) Read() sdk.ResourceFunc {
 
 			hostPoolId, err := hostpool.ParseHostPoolIDInsensitively(model.Properties.HostPoolArmPath)
 			if err != nil {
-				return fmt.Errorf("parsing Host Pool ID %q: %+v", model.Properties.HostPoolArmPath, err)
+				return err
 			}
 			state.HostPoolId = hostPoolId.ID()
 

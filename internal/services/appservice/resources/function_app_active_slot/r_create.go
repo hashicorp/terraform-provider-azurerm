@@ -30,7 +30,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 			client := metadata.Client.AppService.WebAppsClient
 			id, err := webapps.ParseSlotID(activeSlot.SlotID)
 			if err != nil {
-				return fmt.Errorf("parsing App ID: %+v", err)
+				return err
 			}
 			appId := commonids.NewAppServiceID(id.SubscriptionId, id.ResourceGroupName, id.SiteName)
 

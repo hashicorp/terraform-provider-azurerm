@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type DatasetHTTPResource struct{}
+type DataFactoryDatasetHttpResource struct{}
 
 func TestAccDataFactoryDatasetHTTP_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_http", "test")
-	r := DatasetHTTPResource{}
+	r := DataFactoryDatasetHttpResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccDataFactoryDatasetHTTP_regressionTest(t *testing.T) {
 
 func TestAccDataFactoryDatasetHTTP_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_http", "test")
-	r := DatasetHTTPResource{}
+	r := DataFactoryDatasetHttpResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,7 +46,7 @@ func TestAccDataFactoryDatasetHTTP_basic(t *testing.T) {
 
 func TestAccDataFactoryDatasetHTTP_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_http", "test")
-	r := DatasetHTTPResource{}
+	r := DataFactoryDatasetHttpResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -76,7 +76,7 @@ func TestAccDataFactoryDatasetHTTP_update(t *testing.T) {
 	})
 }
 
-func (t DatasetHTTPResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t DataFactoryDatasetHttpResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.DataSetID(state.ID)
 	if err != nil {
 		return nil, err
@@ -90,7 +90,7 @@ func (t DatasetHTTPResource) Exists(ctx context.Context, clients *clients.Client
 	return pointer.To(resp.ID != nil), nil
 }
 
-func (DatasetHTTPResource) basic(data acceptance.TestData) string {
+func (DataFactoryDatasetHttpResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -128,7 +128,7 @@ resource "azurerm_data_factory_dataset_http" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (DatasetHTTPResource) update1(data acceptance.TestData) string {
+func (DataFactoryDatasetHttpResource) update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -185,7 +185,7 @@ resource "azurerm_data_factory_dataset_http" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (DatasetHTTPResource) update2(data acceptance.TestData) string {
+func (DataFactoryDatasetHttpResource) update2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

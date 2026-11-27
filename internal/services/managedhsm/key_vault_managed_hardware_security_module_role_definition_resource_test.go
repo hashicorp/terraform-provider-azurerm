@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type KeyVaultMHSMRoleDefinitionResource struct{}
+type KeyVaultManagedHardwareSecurityModuleRoleDefinitionResource struct{}
 
 func testAccKeyVaultManagedHardwareSecurityModuleRoleDefinition_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_hardware_security_module_role_definition", "test")
-	r := KeyVaultMHSMRoleDefinitionResource{}
+	r := KeyVaultManagedHardwareSecurityModuleRoleDefinitionResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -42,7 +42,7 @@ func testAccKeyVaultManagedHardwareSecurityModuleRoleDefinition_basic(t *testing
 }
 
 // real test nested in TestAccKeyVaultManagedHardwareSecurityModule, only provide Exists logic here
-func (r KeyVaultMHSMRoleDefinitionResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r KeyVaultManagedHardwareSecurityModuleRoleDefinitionResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	domainSuffix, ok := client.Account.Environment.ManagedHSM.DomainSuffix()
 	if !ok {
 		return nil, errors.New("this Environment doesn't specify the Domain Suffix for Managed HSM")
@@ -59,7 +59,7 @@ func (r KeyVaultMHSMRoleDefinitionResource) Exists(ctx context.Context, client *
 	return pointer.To(resp.RoleDefinitionProperties != nil), nil
 }
 
-func (r KeyVaultMHSMRoleDefinitionResource) basic(data acceptance.TestData) string {
+func (r KeyVaultManagedHardwareSecurityModuleRoleDefinitionResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -88,7 +88,7 @@ resource "azurerm_key_vault_managed_hardware_security_module_role_definition" "t
 `, r.template(data), data.RandomString)
 }
 
-func (r KeyVaultMHSMRoleDefinitionResource) update(data acceptance.TestData) string {
+func (r KeyVaultManagedHardwareSecurityModuleRoleDefinitionResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -117,6 +117,6 @@ resource "azurerm_key_vault_managed_hardware_security_module_role_definition" "t
 `, r.template(data), data.RandomString)
 }
 
-func (r KeyVaultMHSMRoleDefinitionResource) template(data acceptance.TestData) string {
+func (r KeyVaultManagedHardwareSecurityModuleRoleDefinitionResource) template(data acceptance.TestData) string {
 	return KeyVaultManagedHardwareSecurityModuleResource{}.download(data, 3)
 }

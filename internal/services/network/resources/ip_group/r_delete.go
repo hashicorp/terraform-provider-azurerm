@@ -51,7 +51,7 @@ func resourceIpGroupDelete(d *pluginsdk.ResourceData, meta any) error {
 	for _, fw := range *resp.Model.Properties.Firewalls {
 		fwID, err := azurefirewalls.ParseAzureFirewallID(pointer.From(fw.Id))
 		if err != nil {
-			return fmt.Errorf("parsing Azure Firewall ID %q: %+v", pointer.From(fw.Id), err)
+			return err
 		}
 		locks.ByName(fwID.AzureFirewallName, firewall.AzureFirewallResourceName)
 		defer locks.UnlockByName(fwID.AzureFirewallName, firewall.AzureFirewallResourceName)
@@ -60,7 +60,7 @@ func resourceIpGroupDelete(d *pluginsdk.ResourceData, meta any) error {
 	for _, fwpol := range *resp.Model.Properties.FirewallPolicies {
 		polID, err := firewallpolicies.ParseFirewallPolicyID(pointer.From(fwpol.Id))
 		if err != nil {
-			return fmt.Errorf("parsing Azure Firewall Policy ID %q: %+v", *fwpol.Id, err)
+			return err
 		}
 		locks.ByName(polID.FirewallPolicyName, firewall.AzureFirewallPolicyResourceName)
 		defer locks.UnlockByName(polID.FirewallPolicyName, firewall.AzureFirewallPolicyResourceName)

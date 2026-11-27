@@ -38,7 +38,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 
 			kubernetesClusterId, err := commonids.ParseKubernetesClusterID(id.Scope)
 			if err != nil {
-				return fmt.Errorf("parsing %q as a Kubernetes Cluster ID: %+v", id.Scope, err)
+				return err
 			}
 			state := KubernetesClusterExtensionModel{
 				Name:      id.ExtensionName,

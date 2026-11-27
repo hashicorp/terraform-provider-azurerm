@@ -581,7 +581,7 @@ func (ManagedDevOpsPoolResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					devCenterProjectId, err := projects.ParseProjectID(props.DevCenterProjectResourceId)
 					if err != nil {
-						return fmt.Errorf("parsing `dev_center_project_id`: %+v", err)
+						return err
 					}
 
 					state.DevCenterProjectId = devCenterProjectId.ID()

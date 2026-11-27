@@ -146,13 +146,13 @@ func (r Resource) Read() sdk.ResourceFunc {
 					}
 					parentAppFarmId, err := commonids.ParseAppServicePlanIDInsensitively(*functionApp.Model.Properties.ServerFarmId)
 					if err != nil {
-						return fmt.Errorf("parsing parent Service Plan ID for %s: %+v", *id, err)
+						return err
 					}
 
 					if slotPlanIdRaw := props.ServerFarmId; slotPlanIdRaw != nil && !strings.EqualFold(parentAppFarmId.ID(), *slotPlanIdRaw) {
 						slotPlanId, err := commonids.ParseAppServicePlanIDInsensitively(*slotPlanIdRaw)
 						if err != nil {
-							return fmt.Errorf("parsing Service Plan ID for %s: %+v", *id, err)
+							return err
 						}
 						state.ServicePlanID = slotPlanId.ID()
 					}

@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type SynapseWorkloadClassifierResource struct{}
+type SynapseSqlPoolWorkloadClassifierResource struct{}
 
 func TestAccSynapseWorkloadClassifier_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_sql_pool_workload_classifier", "test")
-	r := SynapseWorkloadClassifierResource{}
+	r := SynapseSqlPoolWorkloadClassifierResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,7 +36,7 @@ func TestAccSynapseWorkloadClassifier_basic(t *testing.T) {
 
 func TestAccSynapseWorkloadClassifier_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_sql_pool_workload_classifier", "test")
-	r := SynapseWorkloadClassifierResource{}
+	r := SynapseSqlPoolWorkloadClassifierResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -51,7 +51,7 @@ func TestAccSynapseWorkloadClassifier_requiresImport(t *testing.T) {
 
 func TestAccSynapseWorkloadClassifier_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_sql_pool_workload_classifier", "test")
-	r := SynapseWorkloadClassifierResource{}
+	r := SynapseSqlPoolWorkloadClassifierResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -66,7 +66,7 @@ func TestAccSynapseWorkloadClassifier_complete(t *testing.T) {
 
 func TestAccSynapseWorkloadClassifier_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_sql_pool_workload_classifier", "test")
-	r := SynapseWorkloadClassifierResource{}
+	r := SynapseSqlPoolWorkloadClassifierResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -93,7 +93,7 @@ func TestAccSynapseWorkloadClassifier_update(t *testing.T) {
 	})
 }
 
-func (r SynapseWorkloadClassifierResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r SynapseSqlPoolWorkloadClassifierResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.SqlPoolWorkloadClassifierID(state.ID)
 	if err != nil {
 		return nil, err
@@ -110,7 +110,7 @@ func (r SynapseWorkloadClassifierResource) Exists(ctx context.Context, client *c
 	return pointer.To(true), nil
 }
 
-func (r SynapseWorkloadClassifierResource) basic(data acceptance.TestData) string {
+func (r SynapseSqlPoolWorkloadClassifierResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -124,7 +124,7 @@ resource "azurerm_synapse_sql_pool_workload_classifier" "test" {
 `, template, data.RandomString)
 }
 
-func (r SynapseWorkloadClassifierResource) requiresImport(data acceptance.TestData) string {
+func (r SynapseSqlPoolWorkloadClassifierResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -137,7 +137,7 @@ resource "azurerm_synapse_sql_pool_workload_classifier" "import" {
 `, config)
 }
 
-func (r SynapseWorkloadClassifierResource) complete(data acceptance.TestData) string {
+func (r SynapseSqlPoolWorkloadClassifierResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -156,7 +156,7 @@ resource "azurerm_synapse_sql_pool_workload_classifier" "test" {
 `, template, data.RandomString)
 }
 
-func (r SynapseWorkloadClassifierResource) template(data acceptance.TestData) string {
+func (r SynapseSqlPoolWorkloadClassifierResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

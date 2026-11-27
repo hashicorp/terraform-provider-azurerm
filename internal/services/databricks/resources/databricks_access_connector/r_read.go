@@ -23,7 +23,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			id, err := accessconnector.ParseAccessConnectorID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("while parsing resource ID: %+v", err)
+				return err
 			}
 
 			client := metadata.Client.DataBricks.AccessConnectorClient

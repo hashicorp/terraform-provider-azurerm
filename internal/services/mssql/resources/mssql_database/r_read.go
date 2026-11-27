@@ -72,7 +72,7 @@ func resourceMsSqlDatabaseImporter(ctx context.Context, d *pluginsdk.ResourceDat
 
 		partnerDatabaseId, err := commonids.ParseSqlDatabaseIDInsensitively(*partnerDatabase.Id)
 		if err != nil {
-			return nil, fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.Id, err)
+			return nil, err
 		}
 
 		d.Set("create_mode", string(databases.CreateModeSecondary))

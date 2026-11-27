@@ -22,7 +22,7 @@ func (s Resource) Delete() sdk.ResourceFunc {
 
 			id, err := commonids.ParseScopeID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("parsing %+v", err)
+				return err
 			}
 
 			if _, err = client.Get(ctx, *id); err != nil {

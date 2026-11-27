@@ -39,5 +39,5 @@ data "azurerm_machine_learning_workspace" "test" {
   name                = azurerm_machine_learning_workspace.test.name
   resource_group_name = azurerm_machine_learning_workspace.test.resource_group_name
 }
-`, WorkspaceResource{}.complete(data))
+`, MachineLearningWorkspaceResource{}.complete(data))
 }

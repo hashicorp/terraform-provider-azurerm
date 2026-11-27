@@ -46,7 +46,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 				if properties := model.Properties; properties != nil {
 					parsedAttachedVirtualMachineScaleSetId, err := virtualmachinescalesets.ParseVirtualMachineScaleSetIDInsensitively(pointer.From(properties.AttachedVirtualMachineScaleSetId))
 					if err != nil {
-						return fmt.Errorf("parsing `attached_virtual_machine_scale_set_id` for %s: %+v", *id, err)
+						return err
 					}
 
 					state.AttachedVirtualMachineScaleSetId = parsedAttachedVirtualMachineScaleSetId.ID()

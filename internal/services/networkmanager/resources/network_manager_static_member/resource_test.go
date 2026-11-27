@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ManagerStaticMemberResource struct{}
+type NetworkManagerStaticMemberResource struct{}
 
 func TestAccNetworkManagerStaticMember_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_static_member", "test")
-	r := ManagerStaticMemberResource{}
+	r := NetworkManagerStaticMemberResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -35,7 +35,7 @@ func TestAccNetworkManagerStaticMember_basic(t *testing.T) {
 
 func TestAccNetworkManagerStaticMember_subnet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_static_member", "test")
-	r := ManagerStaticMemberResource{}
+	r := NetworkManagerStaticMemberResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.subnet(data),
@@ -49,7 +49,7 @@ func TestAccNetworkManagerStaticMember_subnet(t *testing.T) {
 
 func TestAccNetworkManagerStaticMember_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_static_member", "test")
-	r := ManagerStaticMemberResource{}
+	r := NetworkManagerStaticMemberResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -61,7 +61,7 @@ func TestAccNetworkManagerStaticMember_requiresImport(t *testing.T) {
 	})
 }
 
-func (r ManagerStaticMemberResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r NetworkManagerStaticMemberResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := staticmembers.ParseStaticMemberID(state.ID)
 	if err != nil {
 		return nil, err
@@ -78,7 +78,7 @@ func (r ManagerStaticMemberResource) Exists(ctx context.Context, clients *client
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r ManagerStaticMemberResource) template(data acceptance.TestData) string {
+func (r NetworkManagerStaticMemberResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -116,7 +116,7 @@ resource "azurerm_virtual_network" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (r ManagerStaticMemberResource) basic(data acceptance.TestData) string {
+func (r NetworkManagerStaticMemberResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -129,7 +129,7 @@ resource "azurerm_network_manager_static_member" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r ManagerStaticMemberResource) subnet(data acceptance.TestData) string {
+func (r NetworkManagerStaticMemberResource) subnet(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -154,7 +154,7 @@ resource "azurerm_network_manager_static_member" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ManagerStaticMemberResource) requiresImport(data acceptance.TestData) string {
+func (r NetworkManagerStaticMemberResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 %s

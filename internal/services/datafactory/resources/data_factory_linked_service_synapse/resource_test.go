@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type LinkedServiceSynapseResource struct{}
+type DataFactoryLinkedServiceSynapseResource struct{}
 
 func TestAccDataFactoryLinkedServiceSynapse_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_synapse", "test")
-	r := LinkedServiceSynapseResource{}
+	r := DataFactoryLinkedServiceSynapseResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccDataFactoryLinkedServiceSynapse_regressionTest(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceSynapse_ConnectionString(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_synapse", "test")
-	r := LinkedServiceSynapseResource{}
+	r := DataFactoryLinkedServiceSynapseResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -51,7 +51,7 @@ func TestAccDataFactoryLinkedServiceSynapse_ConnectionString(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceSynapse_KeyVaultReference(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_synapse", "test")
-	r := LinkedServiceSynapseResource{}
+	r := DataFactoryLinkedServiceSynapseResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -71,7 +71,7 @@ func TestAccDataFactoryLinkedServiceSynapse_KeyVaultReference(t *testing.T) {
 	})
 }
 
-func (t LinkedServiceSynapseResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t DataFactoryLinkedServiceSynapseResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.LinkedServiceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -85,7 +85,7 @@ func (t LinkedServiceSynapseResource) Exists(ctx context.Context, clients *clien
 	return pointer.To(resp.ID != nil), nil
 }
 
-func (LinkedServiceSynapseResource) connection_string(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceSynapseResource) connection_string(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -124,7 +124,7 @@ resource "azurerm_data_factory_linked_service_synapse" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (LinkedServiceSynapseResource) key_vault_reference(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceSynapseResource) key_vault_reference(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

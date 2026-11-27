@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type WatchlistResource struct{}
+type SentinelWatchlistResource struct{}
 
 func TestAccWatchlist_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_watchlist", "test")
-	r := WatchlistResource{}
+	r := SentinelWatchlistResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,7 +36,7 @@ func TestAccWatchlist_basic(t *testing.T) {
 
 func TestAccWatchlist_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_watchlist", "test")
-	r := WatchlistResource{}
+	r := SentinelWatchlistResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -51,7 +51,7 @@ func TestAccWatchlist_complete(t *testing.T) {
 
 func TestAccWatchlist_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_watchlist", "test")
-	r := WatchlistResource{}
+	r := SentinelWatchlistResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -64,7 +64,7 @@ func TestAccWatchlist_requiresImport(t *testing.T) {
 	})
 }
 
-func (r WatchlistResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r SentinelWatchlistResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	client := clients.Sentinel.WatchlistsClient
 
 	id, err := watchlists.ParseWatchlistID(state.ID)
@@ -83,7 +83,7 @@ func (r WatchlistResource) Exists(ctx context.Context, clients *clients.Client, 
 	return pointer.To(true), nil
 }
 
-func (r WatchlistResource) basic(data acceptance.TestData) string {
+func (r SentinelWatchlistResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -97,7 +97,7 @@ resource "azurerm_sentinel_watchlist" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r WatchlistResource) complete(data acceptance.TestData) string {
+func (r SentinelWatchlistResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -114,7 +114,7 @@ resource "azurerm_sentinel_watchlist" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r WatchlistResource) requiresImport(data acceptance.TestData) string {
+func (r SentinelWatchlistResource) requiresImport(data acceptance.TestData) string {
 	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -128,7 +128,7 @@ resource "azurerm_sentinel_watchlist" "import" {
 `, template)
 }
 
-func (r WatchlistResource) template(data acceptance.TestData) string {
+func (r SentinelWatchlistResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

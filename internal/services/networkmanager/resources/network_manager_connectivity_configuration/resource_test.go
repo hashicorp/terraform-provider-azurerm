@@ -18,11 +18,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ManagerConnectivityConfigurationResource struct{}
+type NetworkManagerConnectivityConfigurationResource struct{}
 
 func TestAccNetworkManagerConnectivityConfiguration_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_connectivity_configuration", "test")
-	r := ManagerConnectivityConfigurationResource{}
+	r := NetworkManagerConnectivityConfigurationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -36,7 +36,7 @@ func TestAccNetworkManagerConnectivityConfiguration_basic(t *testing.T) {
 
 func TestAccNetworkManagerConnectivityConfiguration_basicTopologyMesh(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_connectivity_configuration", "test")
-	r := ManagerConnectivityConfigurationResource{}
+	r := NetworkManagerConnectivityConfigurationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicTopologyMesh(data),
@@ -50,7 +50,7 @@ func TestAccNetworkManagerConnectivityConfiguration_basicTopologyMesh(t *testing
 
 func TestAccNetworkManagerConnectivityConfiguration_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_connectivity_configuration", "test")
-	r := ManagerConnectivityConfigurationResource{}
+	r := NetworkManagerConnectivityConfigurationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -64,7 +64,7 @@ func TestAccNetworkManagerConnectivityConfiguration_requiresImport(t *testing.T)
 
 func TestAccNetworkManagerConnectivityConfiguration_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_connectivity_configuration", "test")
-	r := ManagerConnectivityConfigurationResource{}
+	r := NetworkManagerConnectivityConfigurationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -78,7 +78,7 @@ func TestAccNetworkManagerConnectivityConfiguration_complete(t *testing.T) {
 
 func TestAccNetworkManagerConnectivityConfiguration_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_connectivity_configuration", "test")
-	r := ManagerConnectivityConfigurationResource{}
+	r := NetworkManagerConnectivityConfigurationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -106,7 +106,7 @@ func TestAccNetworkManagerConnectivityConfiguration_update(t *testing.T) {
 
 func TestAccNetworkManagerConnectivityConfiguration_connectivityCapabilityUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_connectivity_configuration", "test")
-	r := ManagerConnectivityConfigurationResource{}
+	r := NetworkManagerConnectivityConfigurationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.connectivityCapabilityUpdate(data),
@@ -127,7 +127,7 @@ func TestAccNetworkManagerConnectivityConfiguration_connectivityCapabilityUpdate
 
 func TestAccNetworkManagerConnectivityConfiguration_peeringEnforcementValidation(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_connectivity_configuration", "test")
-	r := ManagerConnectivityConfigurationResource{}
+	r := NetworkManagerConnectivityConfigurationResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -137,7 +137,7 @@ func TestAccNetworkManagerConnectivityConfiguration_peeringEnforcementValidation
 	})
 }
 
-func (r ManagerConnectivityConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r NetworkManagerConnectivityConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := connectivityconfigurations.ParseConnectivityConfigurationID(state.ID)
 	if err != nil {
 		return nil, err
@@ -154,7 +154,7 @@ func (r ManagerConnectivityConfigurationResource) Exists(ctx context.Context, cl
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r ManagerConnectivityConfigurationResource) template(data acceptance.TestData) string {
+func (r NetworkManagerConnectivityConfigurationResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -193,7 +193,7 @@ resource "azurerm_virtual_network" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (r ManagerConnectivityConfigurationResource) basic(data acceptance.TestData) string {
+func (r NetworkManagerConnectivityConfigurationResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -214,7 +214,7 @@ resource "azurerm_network_manager_connectivity_configuration" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r ManagerConnectivityConfigurationResource) basicTopologyMesh(data acceptance.TestData) string {
+func (r NetworkManagerConnectivityConfigurationResource) basicTopologyMesh(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -231,7 +231,7 @@ resource "azurerm_network_manager_connectivity_configuration" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r ManagerConnectivityConfigurationResource) requiresImport(data acceptance.TestData) string {
+func (r NetworkManagerConnectivityConfigurationResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -252,7 +252,7 @@ resource "azurerm_network_manager_connectivity_configuration" "import" {
 `, config)
 }
 
-func (r ManagerConnectivityConfigurationResource) complete(data acceptance.TestData) string {
+func (r NetworkManagerConnectivityConfigurationResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -292,7 +292,7 @@ resource "azurerm_network_manager_connectivity_configuration" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r ManagerConnectivityConfigurationResource) update(data acceptance.TestData) string {
+func (r NetworkManagerConnectivityConfigurationResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -318,7 +318,7 @@ resource "azurerm_network_manager_connectivity_configuration" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r ManagerConnectivityConfigurationResource) connectivityCapabilityUpdate(data acceptance.TestData) string {
+func (r NetworkManagerConnectivityConfigurationResource) connectivityCapabilityUpdate(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -339,7 +339,7 @@ resource "azurerm_network_manager_connectivity_configuration" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r ManagerConnectivityConfigurationResource) connectivityCapabilityUpdateToAllowed(data acceptance.TestData) string {
+func (r NetworkManagerConnectivityConfigurationResource) connectivityCapabilityUpdateToAllowed(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -360,7 +360,7 @@ resource "azurerm_network_manager_connectivity_configuration" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r ManagerConnectivityConfigurationResource) peeringEnforcementWithMeshTopology(data acceptance.TestData) string {
+func (r NetworkManagerConnectivityConfigurationResource) peeringEnforcementWithMeshTopology(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s

@@ -117,7 +117,7 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta any) error {
 	if keyVaultKeyId := d.Get("key_vault_key_id").(string); keyVaultKeyId != "" {
 		keyId, err := keyvault.ParseNestedItemID(keyVaultKeyId, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
 		if err != nil {
-			return fmt.Errorf("parsing Key Vault Key ID: %+v", err)
+			return err
 		}
 		containerGroup.Properties.EncryptionProperties = &containerinstance.EncryptionProperties{
 			VaultBaseURL: keyId.KeyVaultBaseURL,
@@ -139,7 +139,7 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta any) error {
 		for _, item := range *subnets {
 			subnet, err := commonids.ParseSubnetID(item.Id)
 			if err != nil {
-				return fmt.Errorf(`parsing subnet id %q: %v`, item.Id, err)
+				return err
 			}
 
 			locks.ByID(subnet.ID())

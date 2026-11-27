@@ -19,11 +19,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type DevCenterGalleryTestResource struct{}
+type DevCenterGalleryResource struct{}
 
 func TestAccDevCenterGallery_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_gallery", "test")
-	r := DevCenterGalleryTestResource{}
+	r := DevCenterGalleryResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -38,7 +38,7 @@ func TestAccDevCenterGallery_basic(t *testing.T) {
 
 func TestAccDevCenterGallery_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_gallery", "test")
-	r := DevCenterGalleryTestResource{}
+	r := DevCenterGalleryResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -53,7 +53,7 @@ func TestAccDevCenterGallery_requiresImport(t *testing.T) {
 
 func TestAccDevCenterGallery_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_gallery", "test")
-	r := DevCenterGalleryTestResource{}
+	r := DevCenterGalleryResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -68,7 +68,7 @@ func TestAccDevCenterGallery_complete(t *testing.T) {
 
 func TestAccDevCenterGallery_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_gallery", "test")
-	r := DevCenterGalleryTestResource{}
+	r := DevCenterGalleryResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -95,7 +95,7 @@ func TestAccDevCenterGallery_update(t *testing.T) {
 	})
 }
 
-func (r DevCenterGalleryTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r DevCenterGalleryResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := galleries.ParseGalleryID(state.ID)
 	if err != nil {
 		return nil, err
@@ -109,7 +109,7 @@ func (r DevCenterGalleryTestResource) Exists(ctx context.Context, clients *clien
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r DevCenterGalleryTestResource) basic(data acceptance.TestData) string {
+func (r DevCenterGalleryResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -125,7 +125,7 @@ resource "azurerm_dev_center_gallery" "test" {
 `, r.template(data))
 }
 
-func (r DevCenterGalleryTestResource) requiresImport(data acceptance.TestData) string {
+func (r DevCenterGalleryResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -137,7 +137,7 @@ resource "azurerm_dev_center_gallery" "import" {
 `, r.basic(data))
 }
 
-func (r DevCenterGalleryTestResource) complete(data acceptance.TestData) string {
+func (r DevCenterGalleryResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -153,7 +153,7 @@ resource "azurerm_dev_center_gallery" "test" {
 `, r.template(data))
 }
 
-func (r DevCenterGalleryTestResource) template(data acceptance.TestData) string {
+func (r DevCenterGalleryResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 variable "primary_location" {
   default = %q

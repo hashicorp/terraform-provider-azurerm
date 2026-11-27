@@ -42,7 +42,7 @@ func resourceArmMaintenanceAssignmentVirtualMachine() *pluginsdk.Resource {
 				return err
 			}
 			if _, err := virtualmachines.ParseVirtualMachineID(parsed.Scope); err != nil {
-				return fmt.Errorf("parsing %q as Virtual Machine ID: %+v", parsed.Scope, err)
+				return err
 			}
 			return err
 		}),
@@ -170,7 +170,7 @@ func resourceArmMaintenanceAssignmentVirtualMachineRead(d *pluginsdk.ResourceDat
 			if props.MaintenanceConfigurationId != nil {
 				parsedId, err := maintenanceconfigurations.ParseMaintenanceConfigurationIDInsensitively(*props.MaintenanceConfigurationId)
 				if err != nil {
-					return fmt.Errorf("parsing %q: %+v", *props.MaintenanceConfigurationId, err)
+					return err
 				}
 				maintenanceConfigurationId = parsedId.ID()
 			}

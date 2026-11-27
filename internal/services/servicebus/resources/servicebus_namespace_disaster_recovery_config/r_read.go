@@ -54,7 +54,7 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigRead(d *pluginsdk.Resource
 	if input := d.Get("alias_authorization_rule_id").(string); input != "" {
 		ruleId, err := disasterrecoveryconfigs.ParseDisasterRecoveryConfigAuthorizationRuleID(input)
 		if err != nil {
-			return fmt.Errorf("parsing primary namespace auth rule id error: %+v", err)
+			return err
 		}
 		authRuleId = *ruleId
 	}

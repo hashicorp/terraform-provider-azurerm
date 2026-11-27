@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type KubernetesFleetUpdateRunTestResource struct{}
+type KubernetesFleetUpdateRunResource struct{}
 
 func TestAccKubernetesFleetUpdateRun_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_fleet_update_run", "test")
-	r := KubernetesFleetUpdateRunTestResource{}
+	r := KubernetesFleetUpdateRunResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -32,7 +32,7 @@ func TestAccKubernetesFleetUpdateRun_regressionTest(t *testing.T) {
 
 func TestAccKubernetesFleetUpdateRun_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_fleet_update_run", "test")
-	r := KubernetesFleetUpdateRunTestResource{}
+	r := KubernetesFleetUpdateRunResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -47,7 +47,7 @@ func TestAccKubernetesFleetUpdateRun_basic(t *testing.T) {
 
 func TestAccKubernetesFleetUpdateRun_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_fleet_update_run", "test")
-	r := KubernetesFleetUpdateRunTestResource{}
+	r := KubernetesFleetUpdateRunResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -62,7 +62,7 @@ func TestAccKubernetesFleetUpdateRun_requiresImport(t *testing.T) {
 
 func TestAccKubernetesFleetUpdateRun_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_fleet_update_run", "test")
-	r := KubernetesFleetUpdateRunTestResource{}
+	r := KubernetesFleetUpdateRunResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -77,7 +77,7 @@ func TestAccKubernetesFleetUpdateRun_complete(t *testing.T) {
 
 func TestAccKubernetesFleetUpdateRun_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_fleet_update_run", "test")
-	r := KubernetesFleetUpdateRunTestResource{}
+	r := KubernetesFleetUpdateRunResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -104,7 +104,7 @@ func TestAccKubernetesFleetUpdateRun_update(t *testing.T) {
 	})
 }
 
-func (r KubernetesFleetUpdateRunTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r KubernetesFleetUpdateRunResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := updateruns.ParseUpdateRunID(state.ID)
 	if err != nil {
 		return nil, err
@@ -118,7 +118,7 @@ func (r KubernetesFleetUpdateRunTestResource) Exists(ctx context.Context, client
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r KubernetesFleetUpdateRunTestResource) basic(data acceptance.TestData) string {
+func (r KubernetesFleetUpdateRunResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -140,7 +140,7 @@ resource "azurerm_kubernetes_fleet_update_run" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r KubernetesFleetUpdateRunTestResource) requiresImport(data acceptance.TestData) string {
+func (r KubernetesFleetUpdateRunResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -157,7 +157,7 @@ resource "azurerm_kubernetes_fleet_update_run" "import" {
 `, r.basic(data))
 }
 
-func (r KubernetesFleetUpdateRunTestResource) complete(data acceptance.TestData) string {
+func (r KubernetesFleetUpdateRunResource) complete(data acceptance.TestData) string {
 	meta, _ := helpers.ObtainAKSMetadata(data.Locations.Primary)
 	return fmt.Sprintf(`
 %s
@@ -187,7 +187,7 @@ resource "azurerm_kubernetes_fleet_update_run" "test" {
 `, r.template(data), data.RandomInteger, meta.CurrentKubernetesVersionAlias)
 }
 
-func (r KubernetesFleetUpdateRunTestResource) template(data acceptance.TestData) string {
+func (r KubernetesFleetUpdateRunResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 provider "azurerm" {

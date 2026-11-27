@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ApiConnectionTestResource struct{}
+type ApiConnectionResource struct{}
 
 func TestAccApiConnection_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_connection", "test")
-	r := ApiConnectionTestResource{}
+	r := ApiConnectionResource{}
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -31,7 +31,7 @@ func TestAccApiConnection_regressionTest(t *testing.T) {
 
 func TestAccApiConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_connection", "test")
-	r := ApiConnectionTestResource{}
+	r := ApiConnectionResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -45,7 +45,7 @@ func TestAccApiConnection_basic(t *testing.T) {
 
 func TestAccApiConnection_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_connection", "test")
-	r := ApiConnectionTestResource{}
+	r := ApiConnectionResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -59,7 +59,7 @@ func TestAccApiConnection_requiresImport(t *testing.T) {
 
 func TestAccApiConnection_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_connection", "test")
-	r := ApiConnectionTestResource{}
+	r := ApiConnectionResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -79,7 +79,7 @@ func TestAccApiConnection_complete(t *testing.T) {
 	})
 }
 
-func (t ApiConnectionTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t ApiConnectionResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := connections.ParseConnectionID(state.ID)
 	if err != nil {
 		return nil, err
@@ -97,7 +97,7 @@ func (t ApiConnectionTestResource) Exists(ctx context.Context, client *clients.C
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (t ApiConnectionTestResource) basic(data acceptance.TestData) string {
+func (t ApiConnectionResource) basic(data acceptance.TestData) string {
 	template := t.template(data)
 	return fmt.Sprintf(`
 %[1]s
@@ -110,7 +110,7 @@ resource "azurerm_api_connection" "test" {
 `, template, data.RandomInteger)
 }
 
-func (t ApiConnectionTestResource) requiresImport(data acceptance.TestData) string {
+func (t ApiConnectionResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -122,7 +122,7 @@ resource "azurerm_api_connection" "import" {
 `, t.basic(data))
 }
 
-func (t ApiConnectionTestResource) complete(data acceptance.TestData) string {
+func (t ApiConnectionResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -178,7 +178,7 @@ resource "azurerm_api_connection" "test_sftpwithssh" {
 `, t.template(data), data.RandomInteger)
 }
 
-func (t ApiConnectionTestResource) completeUpdated(data acceptance.TestData) string {
+func (t ApiConnectionResource) completeUpdated(data acceptance.TestData) string {
 	template := t.template(data)
 	return fmt.Sprintf(`
 %[1]s
@@ -236,7 +236,7 @@ resource "azurerm_api_connection" "test_sftpwithssh" {
 `, template, data.RandomInteger)
 }
 
-func (ApiConnectionTestResource) template(data acceptance.TestData) string {
+func (ApiConnectionResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

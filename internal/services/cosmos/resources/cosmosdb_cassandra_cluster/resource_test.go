@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type CassandraClusterResource struct{}
+type CosmosdbCassandraClusterResource struct{}
 
 func TestAccCassandraCluster_sequential(t *testing.T) {
 	if os.Getenv("CASSANDRA_VERY_EXPENSIVE_TEST_ENABLED") != "true" {
@@ -37,7 +37,7 @@ func TestAccCassandraCluster_sequential(t *testing.T) {
 
 func testAccCassandraCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_cluster", "test")
-	r := CassandraClusterResource{}
+	r := CosmosdbCassandraClusterResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -52,7 +52,7 @@ func testAccCassandraCluster_basic(t *testing.T) {
 
 func testAccCassandraCluster_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_cluster", "test")
-	r := CassandraClusterResource{}
+	r := CosmosdbCassandraClusterResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -71,7 +71,7 @@ func testAccCassandraCluster_requiresImport(t *testing.T) {
 
 func testAccCassandraCluster_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_cluster", "test")
-	r := CassandraClusterResource{}
+	r := CosmosdbCassandraClusterResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -86,7 +86,7 @@ func testAccCassandraCluster_complete(t *testing.T) {
 
 func testAccCassandraCluster_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_cluster", "test")
-	r := CassandraClusterResource{}
+	r := CosmosdbCassandraClusterResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -106,7 +106,7 @@ func testAccCassandraCluster_update(t *testing.T) {
 	})
 }
 
-func (t CassandraClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t CosmosdbCassandraClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := managedcassandras.ParseCassandraClusterID(state.ID)
 	if err != nil {
 		return nil, err
@@ -120,7 +120,7 @@ func (t CassandraClusterResource) Exists(ctx context.Context, clients *clients.C
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r CassandraClusterResource) basic(data acceptance.TestData) string {
+func (r CosmosdbCassandraClusterResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -136,7 +136,7 @@ resource "azurerm_cosmosdb_cassandra_cluster" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CassandraClusterResource) complete(data acceptance.TestData) string {
+func (r CosmosdbCassandraClusterResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -168,7 +168,7 @@ resource "azurerm_cosmosdb_cassandra_cluster" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CassandraClusterResource) update(data acceptance.TestData) string {
+func (r CosmosdbCassandraClusterResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -196,7 +196,7 @@ resource "azurerm_cosmosdb_cassandra_cluster" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CassandraClusterResource) requiresImport(data acceptance.TestData) string {
+func (r CosmosdbCassandraClusterResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -210,7 +210,7 @@ resource "azurerm_cosmosdb_cassandra_cluster" "import" {
 `, r.basic(data))
 }
 
-func (r CassandraClusterResource) template(data acceptance.TestData) string {
+func (r CosmosdbCassandraClusterResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ManagerSubscriptionConnectionResource struct{}
+type NetworkManagerSubscriptionConnectionResource struct{}
 
 func testAccNetworkSubscriptionNetworkManagerConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_subscription_connection", "test")
-	r := ManagerSubscriptionConnectionResource{}
+	r := NetworkManagerSubscriptionConnectionResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -38,7 +38,7 @@ func testAccNetworkSubscriptionNetworkManagerConnection_basic(t *testing.T) {
 
 func testAccNetworkSubscriptionNetworkManagerConnection_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_subscription_connection", "test")
-	r := ManagerSubscriptionConnectionResource{}
+	r := NetworkManagerSubscriptionConnectionResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -52,7 +52,7 @@ func testAccNetworkSubscriptionNetworkManagerConnection_requiresImport(t *testin
 
 func testAccNetworkSubscriptionNetworkManagerConnection_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_subscription_connection", "test")
-	r := ManagerSubscriptionConnectionResource{}
+	r := NetworkManagerSubscriptionConnectionResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -66,7 +66,7 @@ func testAccNetworkSubscriptionNetworkManagerConnection_complete(t *testing.T) {
 
 func testAccNetworkSubscriptionNetworkManagerConnection_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_subscription_connection", "test")
-	r := ManagerSubscriptionConnectionResource{}
+	r := NetworkManagerSubscriptionConnectionResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -85,7 +85,7 @@ func testAccNetworkSubscriptionNetworkManagerConnection_update(t *testing.T) {
 	})
 }
 
-func (r ManagerSubscriptionConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r NetworkManagerSubscriptionConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := networkmanagerconnections.ParseNetworkManagerConnectionID(state.ID)
 	if err != nil {
 		return nil, err
@@ -102,7 +102,7 @@ func (r ManagerSubscriptionConnectionResource) Exists(ctx context.Context, clien
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r ManagerSubscriptionConnectionResource) template(data acceptance.TestData) string {
+func (r NetworkManagerSubscriptionConnectionResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -128,7 +128,7 @@ resource "azurerm_network_manager" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ManagerSubscriptionConnectionResource) basic(data acceptance.TestData) string {
+func (r NetworkManagerSubscriptionConnectionResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -141,7 +141,7 @@ resource "azurerm_network_manager_subscription_connection" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r ManagerSubscriptionConnectionResource) requiresImport(data acceptance.TestData) string {
+func (r NetworkManagerSubscriptionConnectionResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -154,7 +154,7 @@ resource "azurerm_network_manager_subscription_connection" "import" {
 `, config, data.RandomInteger)
 }
 
-func (r ManagerSubscriptionConnectionResource) complete(data acceptance.TestData) string {
+func (r NetworkManagerSubscriptionConnectionResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -168,7 +168,7 @@ resource "azurerm_network_manager_subscription_connection" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r ManagerSubscriptionConnectionResource) update(data acceptance.TestData) string {
+func (r NetworkManagerSubscriptionConnectionResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s

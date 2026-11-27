@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type BackupProtectionPolicyVMWorkloadResource struct{}
+type BackupPolicyVmWorkloadResource struct{}
 
 func TestAccBackupProtectionPolicyVMWorkload_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm_workload", "test")
-	r := BackupProtectionPolicyVMWorkloadResource{}
+	r := BackupPolicyVmWorkloadResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccBackupProtectionPolicyVMWorkload_basic(t *testing.T) {
 
 func TestAccBackupProtectionPolicyVMWorkload_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm_workload", "test")
-	r := BackupProtectionPolicyVMWorkloadResource{}
+	r := BackupPolicyVmWorkloadResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -55,7 +55,7 @@ func TestAccBackupProtectionPolicyVMWorkload_update(t *testing.T) {
 	})
 }
 
-func (r BackupProtectionPolicyVMWorkloadResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r BackupPolicyVmWorkloadResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := protectionpolicies.ParseBackupPolicyID(state.ID)
 	if err != nil {
 		return nil, err
@@ -69,7 +69,7 @@ func (r BackupProtectionPolicyVMWorkloadResource) Exists(ctx context.Context, cl
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r BackupProtectionPolicyVMWorkloadResource) basic(data acceptance.TestData) string {
+func (r BackupPolicyVmWorkloadResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -140,7 +140,7 @@ resource "azurerm_backup_policy_vm_workload" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (r BackupProtectionPolicyVMWorkloadResource) complete(data acceptance.TestData) string {
+func (r BackupPolicyVmWorkloadResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -229,7 +229,7 @@ resource "azurerm_backup_policy_vm_workload" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (r BackupProtectionPolicyVMWorkloadResource) update(data acceptance.TestData) string {
+func (r BackupPolicyVmWorkloadResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

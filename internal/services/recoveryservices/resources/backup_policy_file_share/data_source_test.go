@@ -38,5 +38,5 @@ data "azurerm_backup_policy_file_share" "test" {
   recovery_vault_name = azurerm_recovery_services_vault.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, BackupProtectionPolicyFileShareResource{}.basicDaily(data))
+`, BackupPolicyFileShareResource{}.basicDaily(data))
 }

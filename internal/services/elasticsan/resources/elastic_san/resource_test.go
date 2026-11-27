@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ElasticSANTestResource struct{}
+type ElasticSanResource struct{}
 
 func TestAccElasticSAN_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_elastic_san", "test")
-	r := ElasticSANTestResource{}
+	r := ElasticSanResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -32,7 +32,7 @@ func TestAccElasticSAN_regressionTest(t *testing.T) {
 
 func TestAccElasticSAN_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_elastic_san", "test")
-	r := ElasticSANTestResource{}
+	r := ElasticSanResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -47,7 +47,7 @@ func TestAccElasticSAN_basic(t *testing.T) {
 
 func TestAccElasticSAN_zoneWithZRS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_elastic_san", "test")
-	r := ElasticSANTestResource{}
+	r := ElasticSanResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -59,7 +59,7 @@ func TestAccElasticSAN_zoneWithZRS(t *testing.T) {
 
 func TestAccElasticSAN_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_elastic_san", "test")
-	r := ElasticSANTestResource{}
+	r := ElasticSanResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -74,7 +74,7 @@ func TestAccElasticSAN_requiresImport(t *testing.T) {
 
 func TestAccElasticSAN_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_elastic_san", "test")
-	r := ElasticSANTestResource{}
+	r := ElasticSanResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -94,7 +94,7 @@ func TestAccElasticSAN_complete(t *testing.T) {
 
 func TestAccElasticSAN_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_elastic_san", "test")
-	r := ElasticSANTestResource{}
+	r := ElasticSanResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -116,7 +116,7 @@ func TestAccElasticSAN_update(t *testing.T) {
 
 func TestAccElasticSAN_updateTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_elastic_san", "test")
-	r := ElasticSANTestResource{}
+	r := ElasticSanResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -145,7 +145,7 @@ func TestAccElasticSAN_updateTags(t *testing.T) {
 
 func TestAccElasticSAN_reduceBaseSize(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_elastic_san", "test")
-	r := ElasticSANTestResource{}
+	r := ElasticSanResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -162,7 +162,7 @@ func TestAccElasticSAN_reduceBaseSize(t *testing.T) {
 	})
 }
 
-func (r ElasticSANTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r ElasticSanResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := elasticsans.ParseElasticSanID(state.ID)
 	if err != nil {
 		return nil, err
@@ -176,7 +176,7 @@ func (r ElasticSANTestResource) Exists(ctx context.Context, clients *clients.Cli
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r ElasticSANTestResource) basic(data acceptance.TestData) string {
+func (r ElasticSanResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -196,7 +196,7 @@ resource "azurerm_elastic_san" "test" {
 `, r.template(data))
 }
 
-func (r ElasticSANTestResource) basicWithTags(data acceptance.TestData) string {
+func (r ElasticSanResource) basicWithTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -219,7 +219,7 @@ resource "azurerm_elastic_san" "test" {
 `, r.template(data))
 }
 
-func (r ElasticSANTestResource) zoneWithZRS(data acceptance.TestData) string {
+func (r ElasticSanResource) zoneWithZRS(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -241,7 +241,7 @@ resource "azurerm_elastic_san" "test" {
 `, r.template(data))
 }
 
-func (r ElasticSANTestResource) requiresImport(data acceptance.TestData) string {
+func (r ElasticSanResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -258,7 +258,7 @@ resource "azurerm_elastic_san" "import" {
 `, r.basic(data))
 }
 
-func (r ElasticSANTestResource) update(data acceptance.TestData) string {
+func (r ElasticSanResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -283,7 +283,7 @@ resource "azurerm_elastic_san" "test" {
 `, r.template(data))
 }
 
-func (r ElasticSANTestResource) complete(data acceptance.TestData) string {
+func (r ElasticSanResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -310,7 +310,7 @@ resource "azurerm_elastic_san" "test" {
 `, r.template(data))
 }
 
-func (r ElasticSANTestResource) template(data acceptance.TestData) string {
+func (r ElasticSanResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 variable "primary_location" {
   default = %q

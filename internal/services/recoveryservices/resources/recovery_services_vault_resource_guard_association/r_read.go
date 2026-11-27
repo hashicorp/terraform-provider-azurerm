@@ -23,7 +23,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 
 			id, err := resourceguardproxy.ParseBackupResourceGuardProxyID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("parsing %q:%+v", metadata.ResourceData.Id(), err)
+				return err
 			}
 
 			resp, err := client.Get(ctx, *id)

@@ -874,7 +874,7 @@ func (s *SiteConfigWindows) Flatten(appSiteConfig *webapps.SiteConfig, currentSt
 	if appSiteConfig.ApiManagementConfig != nil && appSiteConfig.ApiManagementConfig.Id != nil {
 		apiId, err := api.ParseApiIDInsensitively(pointer.From(appSiteConfig.ApiManagementConfig.Id))
 		if err != nil {
-			return fmt.Errorf("could not parse API Management ID: %+v", err)
+			return err
 		}
 		s.ApiManagementConfigId = apiId.ID()
 	}

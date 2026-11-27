@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type DatasetParquetResource struct{}
+type DataFactoryDatasetParquetResource struct{}
 
 func TestAccDataFactoryDatasetParquet_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_parquet", "test")
-	r := DatasetParquetResource{}
+	r := DataFactoryDatasetParquetResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccDataFactoryDatasetParquet_regressionTest(t *testing.T) {
 
 func TestAccDataFactoryDatasetParquet_http(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_parquet", "test")
-	r := DatasetParquetResource{}
+	r := DataFactoryDatasetParquetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,7 +46,7 @@ func TestAccDataFactoryDatasetParquet_http(t *testing.T) {
 
 func TestAccDataFactoryDatasetParquet_http_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_parquet", "test")
-	r := DatasetParquetResource{}
+	r := DataFactoryDatasetParquetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -80,7 +80,7 @@ func TestAccDataFactoryDatasetParquet_http_update(t *testing.T) {
 
 func TestAccDataFactoryDatasetParquet_blob(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_parquet", "test")
-	r := DatasetParquetResource{}
+	r := DataFactoryDatasetParquetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -95,7 +95,7 @@ func TestAccDataFactoryDatasetParquet_blob(t *testing.T) {
 
 func TestAccDataFactoryDatasetParquet_blobDynamicContainer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_parquet", "test")
-	r := DatasetParquetResource{}
+	r := DataFactoryDatasetParquetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -124,7 +124,7 @@ func TestAccDataFactoryDatasetParquet_blobDynamicContainer(t *testing.T) {
 
 func TestAccDataFactoryDatasetParquet_blobFS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_parquet", "test")
-	r := DatasetParquetResource{}
+	r := DataFactoryDatasetParquetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -139,7 +139,7 @@ func TestAccDataFactoryDatasetParquet_blobFS(t *testing.T) {
 
 func TestAccDataFactoryDatasetParquet_blobFSDynamicPath(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_parquet", "test")
-	r := DatasetParquetResource{}
+	r := DataFactoryDatasetParquetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -166,7 +166,7 @@ func TestAccDataFactoryDatasetParquet_blobFSDynamicPath(t *testing.T) {
 	})
 }
 
-func (t DatasetParquetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t DataFactoryDatasetParquetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.DataSetID(state.ID)
 	if err != nil {
 		return nil, err
@@ -180,7 +180,7 @@ func (t DatasetParquetResource) Exists(ctx context.Context, clients *clients.Cli
 	return pointer.To(resp.ID != nil), nil
 }
 
-func (DatasetParquetResource) http(data acceptance.TestData) string {
+func (DataFactoryDatasetParquetResource) http(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -217,7 +217,7 @@ resource "azurerm_data_factory_dataset_parquet" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (DatasetParquetResource) http_update1(data acceptance.TestData) string {
+func (DataFactoryDatasetParquetResource) http_update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -278,7 +278,7 @@ resource "azurerm_data_factory_dataset_parquet" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (DatasetParquetResource) http_update2(data acceptance.TestData) string {
+func (DataFactoryDatasetParquetResource) http_update2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -347,7 +347,7 @@ resource "azurerm_data_factory_dataset_parquet" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (DatasetParquetResource) blob(data acceptance.TestData) string {
+func (DataFactoryDatasetParquetResource) blob(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -398,7 +398,7 @@ resource "azurerm_data_factory_dataset_parquet" "test" {
 	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (DatasetParquetResource) blobDynamicContainer(data acceptance.TestData) string {
+func (DataFactoryDatasetParquetResource) blobDynamicContainer(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -451,7 +451,7 @@ resource "azurerm_data_factory_dataset_parquet" "test" {
 	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (DatasetParquetResource) blobFS(data acceptance.TestData) string {
+func (DataFactoryDatasetParquetResource) blobFS(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -503,7 +503,7 @@ resource "azurerm_data_factory_dataset_parquet" "test" {
 	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (DatasetParquetResource) blobFSDynamicPath(data acceptance.TestData) string {
+func (DataFactoryDatasetParquetResource) blobFSDynamicPath(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

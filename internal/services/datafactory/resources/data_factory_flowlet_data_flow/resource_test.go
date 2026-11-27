@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type FlowletDataFlowResource struct{}
+type DataFactoryFlowletDataFlowResource struct{}
 
 func TestAccDataFactoryFlowletDataFlow_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_flowlet_data_flow", "test")
-	r := FlowletDataFlowResource{}
+	r := DataFactoryFlowletDataFlowResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccDataFactoryFlowletDataFlow_regressionTest(t *testing.T) {
 
 func TestAccDataFactoryFlowletDataFlow_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_flowlet_data_flow", "test")
-	r := FlowletDataFlowResource{}
+	r := DataFactoryFlowletDataFlowResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,7 +46,7 @@ func TestAccDataFactoryFlowletDataFlow_basic(t *testing.T) {
 
 func TestAccDataFactoryFlowletDataFlow_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_flowlet_data_flow", "test")
-	r := FlowletDataFlowResource{}
+	r := DataFactoryFlowletDataFlowResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -61,7 +61,7 @@ func TestAccDataFactoryFlowletDataFlow_requiresImport(t *testing.T) {
 
 func TestAccDataFactoryFlowletDataFlow_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_flowlet_data_flow", "test")
-	r := FlowletDataFlowResource{}
+	r := DataFactoryFlowletDataFlowResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -74,7 +74,7 @@ func TestAccDataFactoryFlowletDataFlow_complete(t *testing.T) {
 	})
 }
 
-func (r FlowletDataFlowResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r DataFactoryFlowletDataFlowResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := dataflows.ParseDataflowID(state.ID)
 	if err != nil {
 		return nil, err
@@ -88,7 +88,7 @@ func (r FlowletDataFlowResource) Exists(ctx context.Context, clients *clients.Cl
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r FlowletDataFlowResource) basic(data acceptance.TestData) string {
+func (r DataFactoryFlowletDataFlowResource) basic(data acceptance.TestData) string {
 	//nolint:dupword
 	return fmt.Sprintf(`
 %s
@@ -130,7 +130,7 @@ EOT
 `, r.template(data), data.RandomInteger)
 }
 
-func (r FlowletDataFlowResource) requiresImport(data acceptance.TestData) string {
+func (r DataFactoryFlowletDataFlowResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -155,7 +155,7 @@ resource "azurerm_data_factory_flowlet_data_flow" "import" {
 `, r.basic(data))
 }
 
-func (r FlowletDataFlowResource) complete(data acceptance.TestData) string {
+func (r DataFactoryFlowletDataFlowResource) complete(data acceptance.TestData) string {
 	//nolint:dupword
 	return fmt.Sprintf(`
 %s
@@ -368,7 +368,7 @@ EOT
 `, r.template(data), data.RandomInteger)
 }
 
-func (FlowletDataFlowResource) template(data acceptance.TestData) string {
+func (DataFactoryFlowletDataFlowResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

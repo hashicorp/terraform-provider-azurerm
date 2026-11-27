@@ -16,13 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type BackupProtectionPolicyVMResource struct{}
-
-type BackupPolicyVmResource = BackupProtectionPolicyVMResource
+type BackupPolicyVmResource struct{}
 
 func TestAccBackupProtectionPolicyVM_policyTypeDefault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
-	r := BackupProtectionPolicyVMResource{}
+	r := BackupPolicyVmResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -38,7 +36,7 @@ func TestAccBackupProtectionPolicyVM_policyTypeDefault(t *testing.T) {
 
 func TestAccBackupProtectionPolicyVM_basicDaily(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
-	r := BackupProtectionPolicyVMResource{}
+	r := BackupPolicyVmResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -67,7 +65,7 @@ func TestAccBackupProtectionPolicyVM_basicDaily(t *testing.T) {
 
 func TestAccBackupProtectionPolicyVM_withInstantRestoreRetentionRangeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
-	r := BackupProtectionPolicyVMResource{}
+	r := BackupPolicyVmResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -89,7 +87,7 @@ func TestAccBackupProtectionPolicyVM_withInstantRestoreRetentionRangeUpdate(t *t
 
 func TestAccBackupProtectionPolicyVM_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
-	r := BackupProtectionPolicyVMResource{}
+	r := BackupPolicyVmResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -104,7 +102,7 @@ func TestAccBackupProtectionPolicyVM_requiresImport(t *testing.T) {
 
 func TestAccBackupProtectionPolicyVM_basicWeekly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
-	r := BackupProtectionPolicyVMResource{}
+	r := BackupPolicyVmResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -133,7 +131,7 @@ func TestAccBackupProtectionPolicyVM_basicWeekly(t *testing.T) {
 
 func TestAccBackupProtectionPolicyVM_completeDaily(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
-	r := BackupProtectionPolicyVMResource{}
+	r := BackupPolicyVmResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -148,7 +146,7 @@ func TestAccBackupProtectionPolicyVM_completeDaily(t *testing.T) {
 
 func TestAccBackupProtectionPolicyVM_completeWeekly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
-	r := BackupProtectionPolicyVMResource{}
+	r := BackupPolicyVmResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -175,7 +173,7 @@ func TestAccBackupProtectionPolicyVM_completeWeekly(t *testing.T) {
 
 func TestAccBackupProtectionPolicyVM_updateDaily(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
-	r := BackupProtectionPolicyVMResource{}
+	r := BackupPolicyVmResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -208,7 +206,7 @@ func TestAccBackupProtectionPolicyVM_updateDaily(t *testing.T) {
 
 func TestAccBackupProtectionPolicyVM_updateWeekly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
-	r := BackupProtectionPolicyVMResource{}
+	r := BackupPolicyVmResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -241,7 +239,7 @@ func TestAccBackupProtectionPolicyVM_updateWeekly(t *testing.T) {
 
 func TestAccBackupProtectionPolicyVM_updateDailyToWeekly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
-	r := BackupProtectionPolicyVMResource{}
+	r := BackupPolicyVmResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -263,7 +261,7 @@ func TestAccBackupProtectionPolicyVM_updateDailyToWeekly(t *testing.T) {
 
 func TestAccBackupProtectionPolicyVM_updateWeeklyToDaily(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
-	r := BackupProtectionPolicyVMResource{}
+	r := BackupPolicyVmResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -285,7 +283,7 @@ func TestAccBackupProtectionPolicyVM_updateWeeklyToDaily(t *testing.T) {
 
 func TestAccBackupProtectionPolicyVM_updateWeeklyToPartial(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
-	r := BackupProtectionPolicyVMResource{}
+	r := BackupPolicyVmResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -307,7 +305,7 @@ func TestAccBackupProtectionPolicyVM_updateWeeklyToPartial(t *testing.T) {
 
 func TestAccBackupProtectionPolicyVM_basicHourlyV2(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
-	r := BackupProtectionPolicyVMResource{}
+	r := BackupPolicyVmResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -322,7 +320,7 @@ func TestAccBackupProtectionPolicyVM_basicHourlyV2(t *testing.T) {
 
 func TestAccBackupProtectionPolicyVM_basicDailyV2(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
-	r := BackupProtectionPolicyVMResource{}
+	r := BackupPolicyVmResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -337,7 +335,7 @@ func TestAccBackupProtectionPolicyVM_basicDailyV2(t *testing.T) {
 
 func TestAccBackupProtectionPolicyVM_withInstantRestoreRetentionRangeUpdateV2(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
-	r := BackupProtectionPolicyVMResource{}
+	r := BackupPolicyVmResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -359,7 +357,7 @@ func TestAccBackupProtectionPolicyVM_withInstantRestoreRetentionRangeUpdateV2(t 
 
 func TestAccBackupProtectionPolicyVM_basicWeeklyV2(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
-	r := BackupProtectionPolicyVMResource{}
+	r := BackupPolicyVmResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -374,7 +372,7 @@ func TestAccBackupProtectionPolicyVM_basicWeeklyV2(t *testing.T) {
 
 func TestAccBackupProtectionPolicyVM_completeHourlyV2(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
-	r := BackupProtectionPolicyVMResource{}
+	r := BackupPolicyVmResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -389,7 +387,7 @@ func TestAccBackupProtectionPolicyVM_completeHourlyV2(t *testing.T) {
 
 func TestAccBackupProtectionPolicyVM_completeDailyV2(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
-	r := BackupProtectionPolicyVMResource{}
+	r := BackupPolicyVmResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -404,7 +402,7 @@ func TestAccBackupProtectionPolicyVM_completeDailyV2(t *testing.T) {
 
 func TestAccBackupProtectionPolicyVM_completeWeeklyV2(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
-	r := BackupProtectionPolicyVMResource{}
+	r := BackupPolicyVmResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -419,7 +417,7 @@ func TestAccBackupProtectionPolicyVM_completeWeeklyV2(t *testing.T) {
 
 func TestAccBackupProtectionPolicyVM_updateHourlyV2(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
-	r := BackupProtectionPolicyVMResource{}
+	r := BackupPolicyVmResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -440,7 +438,7 @@ func TestAccBackupProtectionPolicyVM_updateHourlyV2(t *testing.T) {
 
 func TestAccBackupProtectionPolicyVM_updateDailyV2(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
-	r := BackupProtectionPolicyVMResource{}
+	r := BackupPolicyVmResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -461,7 +459,7 @@ func TestAccBackupProtectionPolicyVM_updateDailyV2(t *testing.T) {
 
 func TestAccBackupProtectionPolicyVM_updateWeeklyV2(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
-	r := BackupProtectionPolicyVMResource{}
+	r := BackupPolicyVmResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -482,7 +480,7 @@ func TestAccBackupProtectionPolicyVM_updateWeeklyV2(t *testing.T) {
 
 func TestAccBackupProtectionPolicyVM_updateHourlyAndWeeklyV2(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
-	r := BackupProtectionPolicyVMResource{}
+	r := BackupPolicyVmResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -511,7 +509,7 @@ func TestAccBackupProtectionPolicyVM_updateHourlyAndWeeklyV2(t *testing.T) {
 
 func TestAccBackupProtectionPolicyVM_updateDailyAndWeeklyV2(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
-	r := BackupProtectionPolicyVMResource{}
+	r := BackupPolicyVmResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -540,7 +538,7 @@ func TestAccBackupProtectionPolicyVM_updateDailyAndWeeklyV2(t *testing.T) {
 
 func TestAccBackupProtectionPolicyVM_updateWeeklyToPartialV2(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
-	r := BackupProtectionPolicyVMResource{}
+	r := BackupPolicyVmResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -562,7 +560,7 @@ func TestAccBackupProtectionPolicyVM_updateWeeklyToPartialV2(t *testing.T) {
 
 func TestAccBackupProtectionPolicyVM_withCustomRGName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
-	r := BackupProtectionPolicyVMResource{}
+	r := BackupPolicyVmResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -577,7 +575,7 @@ func TestAccBackupProtectionPolicyVM_withCustomRGName(t *testing.T) {
 
 func TestAccBackupProtectionPolicyVM_withConsistencyType(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
-	r := BackupProtectionPolicyVMResource{}
+	r := BackupPolicyVmResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -592,7 +590,7 @@ func TestAccBackupProtectionPolicyVM_withConsistencyType(t *testing.T) {
 
 func TestAccBackupProtectionPolicyVM_basicDays(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
-	r := BackupProtectionPolicyVMResource{}
+	r := BackupPolicyVmResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -607,7 +605,7 @@ func TestAccBackupProtectionPolicyVM_basicDays(t *testing.T) {
 
 func TestAccBackupProtectionPolicyVM_completeDays(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
-	r := BackupProtectionPolicyVMResource{}
+	r := BackupPolicyVmResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -622,7 +620,7 @@ func TestAccBackupProtectionPolicyVM_completeDays(t *testing.T) {
 
 func TestAccBackupProtectionPolicyVM_tieringPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
-	r := BackupProtectionPolicyVMResource{}
+	r := BackupPolicyVmResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -637,7 +635,7 @@ func TestAccBackupProtectionPolicyVM_tieringPolicy(t *testing.T) {
 
 func TestAccBackupProtectionPolicyVM_updateBackupTime(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
-	r := BackupProtectionPolicyVMResource{}
+	r := BackupPolicyVmResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -657,7 +655,7 @@ func TestAccBackupProtectionPolicyVM_updateBackupTime(t *testing.T) {
 	})
 }
 
-func (r BackupProtectionPolicyVMResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r BackupPolicyVmResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := protectionpolicies.ParseBackupPolicyID(state.ID)
 	if err != nil {
 		return nil, err
@@ -671,7 +669,7 @@ func (r BackupProtectionPolicyVMResource) Exists(ctx context.Context, clients *c
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (BackupProtectionPolicyVMResource) template(data acceptance.TestData) string {
+func (BackupPolicyVmResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -691,7 +689,7 @@ resource "azurerm_recovery_services_vault" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r BackupProtectionPolicyVMResource) policyTypeDefault(data acceptance.TestData) string {
+func (r BackupPolicyVmResource) policyTypeDefault(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -713,7 +711,7 @@ resource "azurerm_backup_policy_vm" "test" {
 }
 
 //nolint:unparam
-func (r BackupProtectionPolicyVMResource) basicHourly(data acceptance.TestData, policyType string) string {
+func (r BackupPolicyVmResource) basicHourly(data acceptance.TestData, policyType string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -738,11 +736,11 @@ resource "azurerm_backup_policy_vm" "test" {
 `, r.template(data), data.RandomInteger, policyType)
 }
 
-func (r BackupProtectionPolicyVMResource) basicDaily(data acceptance.TestData, policyType string) string {
+func (r BackupPolicyVmResource) basicDaily(data acceptance.TestData, policyType string) string {
 	return r.basicDailyWithTime(data, policyType, "23:00")
 }
 
-func (r BackupProtectionPolicyVMResource) basicDailyWithTime(data acceptance.TestData, policyType, time string) string {
+func (r BackupPolicyVmResource) basicDailyWithTime(data acceptance.TestData, policyType, time string) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -765,7 +763,7 @@ resource "azurerm_backup_policy_vm" "test" {
 `, r.template(data), data.RandomInteger, policyType, time)
 }
 
-func (r BackupProtectionPolicyVMResource) requiresImport(data acceptance.TestData) string {
+func (r BackupPolicyVmResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -786,11 +784,11 @@ resource "azurerm_backup_policy_vm" "import" {
 `, r.basicDaily(data, "V1"))
 }
 
-func (r BackupProtectionPolicyVMResource) basicWeekly(data acceptance.TestData, policyType string) string {
+func (r BackupPolicyVmResource) basicWeekly(data acceptance.TestData, policyType string) string {
 	return r.basicWeeklyWithTime(data, policyType, "23:00")
 }
 
-func (r BackupProtectionPolicyVMResource) basicWeeklyWithTime(data acceptance.TestData, policyType, time string) string {
+func (r BackupPolicyVmResource) basicWeeklyWithTime(data acceptance.TestData, policyType, time string) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -815,7 +813,7 @@ resource "azurerm_backup_policy_vm" "test" {
 `, r.template(data), data.RandomInteger, policyType, time)
 }
 
-func (r BackupProtectionPolicyVMResource) completeHourly(data acceptance.TestData, policyType string) string {
+func (r BackupPolicyVmResource) completeHourly(data acceptance.TestData, policyType string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -859,7 +857,7 @@ resource "azurerm_backup_policy_vm" "test" {
 `, r.template(data), data.RandomInteger, policyType)
 }
 
-func (r BackupProtectionPolicyVMResource) completeDaily(data acceptance.TestData, policyType string) string {
+func (r BackupPolicyVmResource) completeDaily(data acceptance.TestData, policyType string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -900,7 +898,7 @@ resource "azurerm_backup_policy_vm" "test" {
 `, r.template(data), data.RandomInteger, policyType)
 }
 
-func (r BackupProtectionPolicyVMResource) completeWeekly(data acceptance.TestData, policyType string) string {
+func (r BackupPolicyVmResource) completeWeekly(data acceptance.TestData, policyType string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -938,7 +936,7 @@ resource "azurerm_backup_policy_vm" "test" {
 `, r.template(data), data.RandomInteger, policyType)
 }
 
-func (r BackupProtectionPolicyVMResource) completeWeeklyPartial(data acceptance.TestData, policyType string) string {
+func (r BackupPolicyVmResource) completeWeeklyPartial(data acceptance.TestData, policyType string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -976,7 +974,7 @@ resource "azurerm_backup_policy_vm" "test" {
 `, r.template(data), data.RandomInteger, policyType)
 }
 
-func (r BackupProtectionPolicyVMResource) basicDailyWithInstantRestoreRetentionRange(data acceptance.TestData, retentionRange int, policyType string) string {
+func (r BackupPolicyVmResource) basicDailyWithInstantRestoreRetentionRange(data acceptance.TestData, retentionRange int, policyType string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -999,7 +997,7 @@ resource "azurerm_backup_policy_vm" "test" {
 `, r.template(data), data.RandomInteger, retentionRange, policyType)
 }
 
-func (r BackupProtectionPolicyVMResource) withCustomResourceGroup(data acceptance.TestData) string {
+func (r BackupPolicyVmResource) withCustomResourceGroup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1025,7 +1023,7 @@ resource "azurerm_backup_policy_vm" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r BackupProtectionPolicyVMResource) daysBasic(data acceptance.TestData) string {
+func (r BackupPolicyVmResource) daysBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1058,7 +1056,7 @@ resource "azurerm_backup_policy_vm" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r BackupProtectionPolicyVMResource) daysComplete(data acceptance.TestData) string {
+func (r BackupPolicyVmResource) daysComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1093,7 +1091,7 @@ resource "azurerm_backup_policy_vm" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r BackupProtectionPolicyVMResource) tieringPolicy(data acceptance.TestData) string {
+func (r BackupPolicyVmResource) tieringPolicy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1137,7 +1135,7 @@ resource "azurerm_backup_policy_vm" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r BackupProtectionPolicyVMResource) withConsistencyType(data acceptance.TestData) string {
+func (r BackupPolicyVmResource) withConsistencyType(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1161,7 +1159,7 @@ resource "azurerm_backup_policy_vm" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r BackupProtectionPolicyVMResource) updateBackupTime(data acceptance.TestData) string {
+func (r BackupPolicyVmResource) updateBackupTime(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 

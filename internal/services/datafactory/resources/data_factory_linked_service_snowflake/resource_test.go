@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type LinkedServiceSnowflakeResource struct{}
+type DataFactoryLinkedServiceSnowflakeResource struct{}
 
 func TestAccDataFactoryLinkedServiceSnowflake_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_snowflake", "test")
-	r := LinkedServiceSnowflakeResource{}
+	r := DataFactoryLinkedServiceSnowflakeResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccDataFactoryLinkedServiceSnowflake_regressionTest(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceSnowflake_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_snowflake", "test")
-	r := LinkedServiceSnowflakeResource{}
+	r := DataFactoryLinkedServiceSnowflakeResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -62,7 +62,7 @@ func TestAccDataFactoryLinkedServiceSnowflake_basic(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceSnowflake_KeyVaultReference(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_snowflake", "test")
-	r := LinkedServiceSnowflakeResource{}
+	r := DataFactoryLinkedServiceSnowflakeResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -78,7 +78,7 @@ func TestAccDataFactoryLinkedServiceSnowflake_KeyVaultReference(t *testing.T) {
 	})
 }
 
-func (t LinkedServiceSnowflakeResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t DataFactoryLinkedServiceSnowflakeResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.LinkedServiceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -92,7 +92,7 @@ func (t LinkedServiceSnowflakeResource) Exists(ctx context.Context, clients *cli
 	return pointer.To(resp.ID != nil), nil
 }
 
-func (LinkedServiceSnowflakeResource) basic(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceSnowflakeResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -129,7 +129,7 @@ resource "azurerm_data_factory_linked_service_snowflake" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceSnowflakeResource) update(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceSnowflakeResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -166,7 +166,7 @@ resource "azurerm_data_factory_linked_service_snowflake" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceSnowflakeResource) key_vault_reference(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceSnowflakeResource) key_vault_reference(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

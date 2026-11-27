@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type VaultResourceGuardAssociationResource struct{}
+type RecoveryServicesVaultResourceGuardAssociationResource struct{}
 
 func TestAccSiteRecoveryVaultResourceGuardAssociation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault_resource_guard_association", "test")
-	r := VaultResourceGuardAssociationResource{}
+	r := RecoveryServicesVaultResourceGuardAssociationResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -33,7 +33,7 @@ func TestAccSiteRecoveryVaultResourceGuardAssociation_basic(t *testing.T) {
 	})
 }
 
-func (VaultResourceGuardAssociationResource) basic(data acceptance.TestData) string {
+func (RecoveryServicesVaultResourceGuardAssociationResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -64,7 +64,7 @@ resource "azurerm_recovery_services_vault_resource_guard_association" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (t VaultResourceGuardAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t RecoveryServicesVaultResourceGuardAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := resourceguardproxy.ParseBackupResourceGuardProxyID(state.ID)
 	if err != nil {
 		return nil, err

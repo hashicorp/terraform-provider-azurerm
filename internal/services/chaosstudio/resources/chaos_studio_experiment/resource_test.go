@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ChaosStudioExperimentTestResource struct{}
+type ChaosStudioExperimentResource struct{}
 
 func TestAccChaosStudioExperiment_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_chaos_studio_experiment", "test")
-	r := ChaosStudioExperimentTestResource{}
+	r := ChaosStudioExperimentResource{}
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -30,7 +30,7 @@ func TestAccChaosStudioExperiment_regressionTest(t *testing.T) {
 
 func TestAccChaosStudioExperiment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_chaos_studio_experiment", "test")
-	r := ChaosStudioExperimentTestResource{}
+	r := ChaosStudioExperimentResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -45,7 +45,7 @@ func TestAccChaosStudioExperiment_basic(t *testing.T) {
 
 func TestAccChaosStudioExperiment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_chaos_studio_experiment", "test")
-	r := ChaosStudioExperimentTestResource{}
+	r := ChaosStudioExperimentResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -60,7 +60,7 @@ func TestAccChaosStudioExperiment_requiresImport(t *testing.T) {
 
 func TestAccChaosStudioExperiment_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_chaos_studio_experiment", "test")
-	r := ChaosStudioExperimentTestResource{}
+	r := ChaosStudioExperimentResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -75,7 +75,7 @@ func TestAccChaosStudioExperiment_complete(t *testing.T) {
 
 func TestAccChaosStudioExperiment_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_chaos_studio_experiment", "test")
-	r := ChaosStudioExperimentTestResource{}
+	r := ChaosStudioExperimentResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -104,7 +104,7 @@ func TestAccChaosStudioExperiment_update(t *testing.T) {
 
 func TestAccChaosStudioExperiment_exampleAKS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_chaos_studio_experiment", "test")
-	r := ChaosStudioExperimentTestResource{}
+	r := ChaosStudioExperimentResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -119,7 +119,7 @@ func TestAccChaosStudioExperiment_exampleAKS(t *testing.T) {
 
 func TestAccChaosStudioExperiment_multipleSelectors(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_chaos_studio_experiment", "test")
-	r := ChaosStudioExperimentTestResource{}
+	r := ChaosStudioExperimentResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -146,7 +146,7 @@ func TestAccChaosStudioExperiment_multipleSelectors(t *testing.T) {
 	})
 }
 
-func (r ChaosStudioExperimentTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r ChaosStudioExperimentResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := experiments.ParseExperimentID(state.ID)
 	if err != nil {
 		return nil, err
@@ -160,7 +160,7 @@ func (r ChaosStudioExperimentTestResource) Exists(ctx context.Context, clients *
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r ChaosStudioExperimentTestResource) basic(data acceptance.TestData) string {
+func (r ChaosStudioExperimentResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -201,7 +201,7 @@ resource "azurerm_chaos_studio_experiment" "test" {
 `, r.templateVM(data))
 }
 
-func (r ChaosStudioExperimentTestResource) requiresImport(data acceptance.TestData) string {
+func (r ChaosStudioExperimentResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -234,7 +234,7 @@ resource "azurerm_chaos_studio_experiment" "import" {
 `, r.basic(data))
 }
 
-func (r ChaosStudioExperimentTestResource) complete(data acceptance.TestData) string {
+func (r ChaosStudioExperimentResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -281,7 +281,7 @@ resource "azurerm_chaos_studio_experiment" "test" {
 `, r.templateVM(data))
 }
 
-func (r ChaosStudioExperimentTestResource) exampleAKS(data acceptance.TestData) string {
+func (r ChaosStudioExperimentResource) exampleAKS(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -328,7 +328,7 @@ resource "azurerm_chaos_studio_experiment" "test" {
 `, r.templateBase(data), r.templateAKS())
 }
 
-func (r ChaosStudioExperimentTestResource) multipleSelectors(data acceptance.TestData) string {
+func (r ChaosStudioExperimentResource) multipleSelectors(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -392,7 +392,7 @@ resource "azurerm_chaos_studio_experiment" "test" {
 `, r.templateVM(data), r.templateAKS())
 }
 
-func (r ChaosStudioExperimentTestResource) templateVM(data acceptance.TestData) string {
+func (r ChaosStudioExperimentResource) templateVM(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -467,7 +467,7 @@ resource "azurerm_chaos_studio_capability" "test2" {
 `, r.templateBase(data))
 }
 
-func (r ChaosStudioExperimentTestResource) templateAKS() string {
+func (r ChaosStudioExperimentResource) templateAKS() string {
 	return `
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks${var.random_string}"
@@ -512,7 +512,7 @@ resource "azurerm_chaos_studio_capability" "pod" {
 `
 }
 
-func (r ChaosStudioExperimentTestResource) templateBase(data acceptance.TestData) string {
+func (r ChaosStudioExperimentResource) templateBase(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 variable "primary_location" {
   default = %q

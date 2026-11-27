@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type LinkedServiceAzureFileStorageResource struct{}
+type DataFactoryLinkedServiceAzureFileStorageResource struct{}
 
 func TestAccDataFactoryLinkedServiceAzureFileStorage_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_file_storage", "test")
-	r := LinkedServiceAzureFileStorageResource{}
+	r := DataFactoryLinkedServiceAzureFileStorageResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccDataFactoryLinkedServiceAzureFileStorage_regressionTest(t *testing.T
 
 func TestAccDataFactoryLinkedServiceAzureFileStorage_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_file_storage", "test")
-	r := LinkedServiceAzureFileStorageResource{}
+	r := DataFactoryLinkedServiceAzureFileStorageResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,7 +46,7 @@ func TestAccDataFactoryLinkedServiceAzureFileStorage_basic(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceAzureFileStorage_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_file_storage", "test")
-	r := LinkedServiceAzureFileStorageResource{}
+	r := DataFactoryLinkedServiceAzureFileStorageResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -76,7 +76,7 @@ func TestAccDataFactoryLinkedServiceAzureFileStorage_update(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceAzureFileStorage_file_share_name(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_file_storage", "test")
-	r := LinkedServiceAzureFileStorageResource{}
+	r := DataFactoryLinkedServiceAzureFileStorageResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -92,7 +92,7 @@ func TestAccDataFactoryLinkedServiceAzureFileStorage_file_share_name(t *testing.
 
 func TestAccDataFactoryLinkedServiceAzureFileStorage_KeyVaultReference(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_file_storage", "test")
-	r := LinkedServiceAzureFileStorageResource{}
+	r := DataFactoryLinkedServiceAzureFileStorageResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -110,7 +110,7 @@ func TestAccDataFactoryLinkedServiceAzureFileStorage_KeyVaultReference(t *testin
 
 func TestAccDataFactoryLinkedServiceAzureFileStorage_UserId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_file_storage", "test")
-	r := LinkedServiceAzureFileStorageResource{}
+	r := DataFactoryLinkedServiceAzureFileStorageResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -124,7 +124,7 @@ func TestAccDataFactoryLinkedServiceAzureFileStorage_UserId(t *testing.T) {
 	})
 }
 
-func (t LinkedServiceAzureFileStorageResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t DataFactoryLinkedServiceAzureFileStorageResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.LinkedServiceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -138,7 +138,7 @@ func (t LinkedServiceAzureFileStorageResource) Exists(ctx context.Context, clien
 	return pointer.To(resp.ID != nil), nil
 }
 
-func (LinkedServiceAzureFileStorageResource) basic(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceAzureFileStorageResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -163,7 +163,7 @@ resource "azurerm_data_factory_linked_service_azure_file_storage" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceAzureFileStorageResource) update1(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceAzureFileStorageResource) update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -200,7 +200,7 @@ resource "azurerm_data_factory_linked_service_azure_file_storage" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceAzureFileStorageResource) update2(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceAzureFileStorageResource) update2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -238,7 +238,7 @@ resource "azurerm_data_factory_linked_service_azure_file_storage" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceAzureFileStorageResource) file_share_name(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceAzureFileStorageResource) file_share_name(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -264,7 +264,7 @@ resource "azurerm_data_factory_linked_service_azure_file_storage" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceAzureFileStorageResource) userIdAndPassword(data acceptance.TestData, userId string) string {
+func (DataFactoryLinkedServiceAzureFileStorageResource) userIdAndPassword(data acceptance.TestData, userId string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -290,7 +290,7 @@ resource "azurerm_data_factory_linked_service_azure_file_storage" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, userId)
 }
 
-func (LinkedServiceAzureFileStorageResource) key_vault_reference(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceAzureFileStorageResource) key_vault_reference(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

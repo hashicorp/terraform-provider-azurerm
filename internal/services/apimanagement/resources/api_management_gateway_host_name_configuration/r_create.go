@@ -23,7 +23,7 @@ func resourceApiManagementGatewayHostNameConfigurationCreateUpdate(d *pluginsdk.
 
 	apimId, err := apimanagementservice.ParseServiceID(d.Get("api_management_id").(string))
 	if err != nil {
-		return fmt.Errorf("parsing `api_management_id`: %v", err)
+		return err
 	}
 
 	id := gatewayhostnameconfiguration.NewHostnameConfigurationID(apimId.SubscriptionId, apimId.ResourceGroupName, apimId.ServiceName, d.Get("gateway_name").(string), d.Get("name").(string))

@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type PrivateDNSResolverDnsResolverResource struct{}
+type PrivateDnsResolverResource struct{}
 
 func TestAccPrivateDNSResolverDnsResolver_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_resolver", "test")
-	r := PrivateDNSResolverDnsResolverResource{}
+	r := PrivateDnsResolverResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -35,7 +35,7 @@ func TestAccPrivateDNSResolverDnsResolver_basic(t *testing.T) {
 
 func TestAccPrivateDNSResolverDnsResolver_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_resolver", "test")
-	r := PrivateDNSResolverDnsResolverResource{}
+	r := PrivateDnsResolverResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -49,7 +49,7 @@ func TestAccPrivateDNSResolverDnsResolver_requiresImport(t *testing.T) {
 
 func TestAccPrivateDNSResolverDnsResolver_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_resolver", "test")
-	r := PrivateDNSResolverDnsResolverResource{}
+	r := PrivateDnsResolverResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -63,7 +63,7 @@ func TestAccPrivateDNSResolverDnsResolver_complete(t *testing.T) {
 
 func TestAccPrivateDNSResolverDnsResolver_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_resolver", "test")
-	r := PrivateDNSResolverDnsResolverResource{}
+	r := PrivateDnsResolverResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -82,7 +82,7 @@ func TestAccPrivateDNSResolverDnsResolver_update(t *testing.T) {
 	})
 }
 
-func (r PrivateDNSResolverDnsResolverResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r PrivateDnsResolverResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := dnsresolvers.ParseDnsResolverID(state.ID)
 	if err != nil {
 		return nil, err
@@ -99,7 +99,7 @@ func (r PrivateDNSResolverDnsResolverResource) Exists(ctx context.Context, clien
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r PrivateDNSResolverDnsResolverResource) template(data acceptance.TestData) string {
+func (r PrivateDnsResolverResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -119,7 +119,7 @@ resource "azurerm_virtual_network" "test" {
 `, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r PrivateDNSResolverDnsResolverResource) basic(data acceptance.TestData) string {
+func (r PrivateDnsResolverResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 				%s
@@ -133,7 +133,7 @@ resource "azurerm_private_dns_resolver" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r PrivateDNSResolverDnsResolverResource) requiresImport(data acceptance.TestData) string {
+func (r PrivateDnsResolverResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 			%s
@@ -147,7 +147,7 @@ resource "azurerm_private_dns_resolver" "import" {
 `, config)
 }
 
-func (r PrivateDNSResolverDnsResolverResource) complete(data acceptance.TestData) string {
+func (r PrivateDnsResolverResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 			%s
@@ -164,7 +164,7 @@ resource "azurerm_private_dns_resolver" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r PrivateDNSResolverDnsResolverResource) update(data acceptance.TestData) string {
+func (r PrivateDnsResolverResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 			%s

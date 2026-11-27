@@ -13,7 +13,7 @@ import (
 
 func TestAccAzureRMDataSourceLoadBalancer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_lb", "test")
-	d := LoadBalancer{}
+	d := LbResource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
@@ -28,7 +28,7 @@ func TestAccAzureRMDataSourceLoadBalancer_basic(t *testing.T) {
 	})
 }
 
-func (r LoadBalancer) dataSourceBasic(data acceptance.TestData) string {
+func (r LbResource) dataSourceBasic(data acceptance.TestData) string {
 	resource := r.basic(data)
 	return fmt.Sprintf(`
 %s

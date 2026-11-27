@@ -18,11 +18,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type VirtualDesktopScalingPlanAssociationResource struct{}
+type VirtualDesktopScalingPlanHostPoolAssociationResource struct{}
 
 func TestAccVirtualDesktopScalingPlanAssociation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_scaling_plan_host_pool_association", "test")
-	r := VirtualDesktopScalingPlanAssociationResource{}
+	r := VirtualDesktopScalingPlanHostPoolAssociationResource{}
 	roleAssignmentId := uuid.New().String()
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -38,7 +38,7 @@ func TestAccVirtualDesktopScalingPlanAssociation_basic(t *testing.T) {
 
 func TestAccVirtualDesktopScalingPlanAssociation_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_scaling_plan_host_pool_association", "test")
-	r := VirtualDesktopScalingPlanAssociationResource{}
+	r := VirtualDesktopScalingPlanHostPoolAssociationResource{}
 	roleAssignmentId := uuid.New().String()
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -55,7 +55,7 @@ func TestAccVirtualDesktopScalingPlanAssociation_requiresImport(t *testing.T) {
 	})
 }
 
-func (VirtualDesktopScalingPlanAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (VirtualDesktopScalingPlanHostPoolAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ScalingPlanHostPoolAssociationID(state.ID)
 	if err != nil {
 		return nil, err
@@ -80,7 +80,7 @@ func (VirtualDesktopScalingPlanAssociationResource) Exists(ctx context.Context, 
 	return pointer.To(found), nil
 }
 
-func (r VirtualDesktopScalingPlanAssociationResource) basic(data acceptance.TestData, roleAssignmentId string) string {
+func (r VirtualDesktopScalingPlanHostPoolAssociationResource) basic(data acceptance.TestData, roleAssignmentId string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -95,7 +95,7 @@ resource "azurerm_virtual_desktop_scaling_plan_host_pool_association" "test" {
 `, r.planTemplate(data, roleAssignmentId))
 }
 
-func (r VirtualDesktopScalingPlanAssociationResource) requiresImport(data acceptance.TestData, roleAssignmentId string) string {
+func (r VirtualDesktopScalingPlanHostPoolAssociationResource) requiresImport(data acceptance.TestData, roleAssignmentId string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -110,7 +110,7 @@ resource "azurerm_virtual_desktop_scaling_plan_host_pool_association" "import" {
 `, r.basic(data, roleAssignmentId))
 }
 
-func (VirtualDesktopScalingPlanAssociationResource) planTemplate(data acceptance.TestData, roleAssignmentId string) string {
+func (VirtualDesktopScalingPlanHostPoolAssociationResource) planTemplate(data acceptance.TestData, roleAssignmentId string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -89,7 +89,7 @@ func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta any) error {
 			// get job schedule from GET API, `ListByAutomationAccountComplete` lost parameters
 			jobscheduleID, err := jobschedule.ParseJobScheduleID(pointer.From(item.Id))
 			if err != nil {
-				return fmt.Errorf("parsing job schedule Id listed by Automation Account %q Job Schedule List: %v", id.AutomationAccountName, err)
+				return err
 			}
 			jsResult, err := jsClient.Get(ctx, *jobscheduleID)
 			if err != nil {

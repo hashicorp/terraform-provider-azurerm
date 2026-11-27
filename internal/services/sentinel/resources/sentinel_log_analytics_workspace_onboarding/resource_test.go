@@ -18,11 +18,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type SecurityInsightsSentinelOnboardingStateResource struct{}
+type SentinelLogAnalyticsWorkspaceOnboardingResource struct{}
 
 func TestAccSecurityInsightsSentinelOnboardingState_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_log_analytics_workspace_onboarding", "test")
-	r := SecurityInsightsSentinelOnboardingStateResource{}
+	r := SentinelLogAnalyticsWorkspaceOnboardingResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -36,7 +36,7 @@ func TestAccSecurityInsightsSentinelOnboardingState_basic(t *testing.T) {
 
 func TestAccSecurityInsightsSentinelOnboardingState_basicWithName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_log_analytics_workspace_onboarding", "test")
-	r := SecurityInsightsSentinelOnboardingStateResource{}
+	r := SentinelLogAnalyticsWorkspaceOnboardingResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicWithName(data),
@@ -55,7 +55,7 @@ func TestAccSecurityInsightsSentinelOnboardingState_ToggleCmkEnabled(t *testing.
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_log_analytics_workspace_onboarding", "test")
-	r := SecurityInsightsSentinelOnboardingStateResource{}
+	r := SentinelLogAnalyticsWorkspaceOnboardingResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withCmk(data),
@@ -69,7 +69,7 @@ func TestAccSecurityInsightsSentinelOnboardingState_ToggleCmkEnabled(t *testing.
 
 func TestAccSecurityInsightsSentinelOnboardingState_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_log_analytics_workspace_onboarding", "test")
-	r := SecurityInsightsSentinelOnboardingStateResource{}
+	r := SentinelLogAnalyticsWorkspaceOnboardingResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -81,7 +81,7 @@ func TestAccSecurityInsightsSentinelOnboardingState_requiresImport(t *testing.T)
 	})
 }
 
-func (r SecurityInsightsSentinelOnboardingStateResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r SentinelLogAnalyticsWorkspaceOnboardingResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := sentinelonboardingstates.ParseOnboardingStateID(state.ID)
 	if err != nil {
 		return nil, err
@@ -98,7 +98,7 @@ func (r SecurityInsightsSentinelOnboardingStateResource) Exists(ctx context.Cont
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r SecurityInsightsSentinelOnboardingStateResource) basic(data acceptance.TestData) string {
+func (r SentinelLogAnalyticsWorkspaceOnboardingResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -122,7 +122,7 @@ resource "azurerm_sentinel_log_analytics_workspace_onboarding" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r SecurityInsightsSentinelOnboardingStateResource) basicWithName(data acceptance.TestData) string {
+func (r SentinelLogAnalyticsWorkspaceOnboardingResource) basicWithName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -146,7 +146,7 @@ resource "azurerm_sentinel_log_analytics_workspace_onboarding" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r SecurityInsightsSentinelOnboardingStateResource) withCmk(data acceptance.TestData) string {
+func (r SentinelLogAnalyticsWorkspaceOnboardingResource) withCmk(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -280,7 +280,7 @@ resource "azurerm_sentinel_log_analytics_workspace_onboarding" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r SecurityInsightsSentinelOnboardingStateResource) requiresImport(data acceptance.TestData) string {
+func (r SentinelLogAnalyticsWorkspaceOnboardingResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 			%s

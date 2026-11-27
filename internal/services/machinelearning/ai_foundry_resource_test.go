@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type AIFoundry struct{}
+type AiFoundryResource struct{}
 
 func TestAccAIFoundry_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_ai_foundry", "test")
-	r := AIFoundry{}
+	r := AiFoundryResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccAIFoundry_basic(t *testing.T) {
 
 func TestAccAIFoundry_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_ai_foundry", "test")
-	r := AIFoundry{}
+	r := AiFoundryResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccAIFoundry_requiresImport(t *testing.T) {
 
 func TestAccAIFoundry_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_ai_foundry", "test")
-	r := AIFoundry{}
+	r := AiFoundryResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -65,7 +65,7 @@ func TestAccAIFoundry_complete(t *testing.T) {
 
 func TestAccAIFoundry_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_ai_foundry", "test")
-	r := AIFoundry{}
+	r := AiFoundryResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -87,7 +87,7 @@ func TestAccAIFoundry_update(t *testing.T) {
 
 func TestAccAIFoundry_encryptionWithSystemAssignedId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_ai_foundry", "test")
-	r := AIFoundry{}
+	r := AiFoundryResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -102,7 +102,7 @@ func TestAccAIFoundry_encryptionWithSystemAssignedId(t *testing.T) {
 
 func TestAccAIFoundry_encryptionWithUserAssignedId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_ai_foundry", "test")
-	r := AIFoundry{}
+	r := AiFoundryResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -115,7 +115,7 @@ func TestAccAIFoundry_encryptionWithUserAssignedId(t *testing.T) {
 	})
 }
 
-func (AIFoundry) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (AiFoundryResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := workspaces.ParseWorkspaceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -129,7 +129,7 @@ func (AIFoundry) Exists(ctx context.Context, clients *clients.Client, state *plu
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r AIFoundry) basic(data acceptance.TestData) string {
+func (r AiFoundryResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -156,7 +156,7 @@ resource "azurerm_ai_foundry" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r AIFoundry) complete(data acceptance.TestData) string {
+func (r AiFoundryResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -226,7 +226,7 @@ resource "azurerm_ai_foundry" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r AIFoundry) update(data acceptance.TestData) string {
+func (r AiFoundryResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -303,7 +303,7 @@ resource "azurerm_ai_foundry" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r AIFoundry) encryptionWithUserAssignedId(data acceptance.TestData) string {
+func (r AiFoundryResource) encryptionWithUserAssignedId(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -386,7 +386,7 @@ resource "azurerm_ai_foundry" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r AIFoundry) encryptionWithSystemAssignedId(data acceptance.TestData) string {
+func (r AiFoundryResource) encryptionWithSystemAssignedId(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -434,8 +434,8 @@ resource "azurerm_ai_foundry" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (AIFoundry) requiresImport(data acceptance.TestData) string {
-	template := AIFoundry{}.basic(data)
+func (AiFoundryResource) requiresImport(data acceptance.TestData) string {
+	template := AiFoundryResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -453,7 +453,7 @@ resource "azurerm_ai_foundry" "import" {
 `, template)
 }
 
-func (AIFoundry) template(data acceptance.TestData) string {
+func (AiFoundryResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 

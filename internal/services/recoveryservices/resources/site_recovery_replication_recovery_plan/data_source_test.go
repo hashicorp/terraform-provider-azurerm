@@ -57,7 +57,7 @@ data "azurerm_site_recovery_replication_recovery_plan" "test" {
   name              = azurerm_site_recovery_replication_recovery_plan.test.name
   recovery_vault_id = azurerm_site_recovery_replication_recovery_plan.test.recovery_vault_id
 }
-`, SiteRecoveryReplicationRecoveryPlan{}.basic(data))
+`, SiteRecoveryReplicationRecoveryPlanResource{}.basic(data))
 }
 
 func (SiteRecoveryReplicationRecoveryPlanDataSource) withZones(data acceptance.TestData) string {
@@ -68,5 +68,5 @@ data "azurerm_site_recovery_replication_recovery_plan" "test" {
   name              = azurerm_site_recovery_replication_recovery_plan.test.name
   recovery_vault_id = azurerm_site_recovery_replication_recovery_plan.test.recovery_vault_id
 }
-`, SiteRecoveryReplicationRecoveryPlan{}.withZones(data))
+`, SiteRecoveryReplicationRecoveryPlanResource{}.withZones(data))
 }

@@ -132,7 +132,7 @@ func dataSourceServiceBusTopicAuthorizationRuleRead(d *pluginsdk.ResourceData, m
 	if v, ok := d.Get("topic_id").(string); ok && v != "" {
 		topicId, err := topics.ParseTopicID(v)
 		if err != nil {
-			return fmt.Errorf("parsing topic ID %q: %+v", v, err)
+			return err
 		}
 		rgName = topicId.ResourceGroupName
 		nsName = topicId.NamespaceName

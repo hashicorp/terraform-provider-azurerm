@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type DatasetSQLServerTableResource struct{}
+type DataFactoryDatasetSqlServerTableResource struct{}
 
 func TestAccDataFactoryDatasetSQLServerTable_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_sql_server_table", "test")
-	r := DatasetSQLServerTableResource{}
+	r := DataFactoryDatasetSqlServerTableResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccDataFactoryDatasetSQLServerTable_regressionTest(t *testing.T) {
 
 func TestAccDataFactoryDatasetSQLServerTable_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_sql_server_table", "test")
-	r := DatasetSQLServerTableResource{}
+	r := DataFactoryDatasetSqlServerTableResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,7 +46,7 @@ func TestAccDataFactoryDatasetSQLServerTable_basic(t *testing.T) {
 
 func TestAccDataFactoryDatasetSQLServerTable_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_sql_server_table", "test")
-	r := DatasetSQLServerTableResource{}
+	r := DataFactoryDatasetSqlServerTableResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -75,7 +75,7 @@ func TestAccDataFactoryDatasetSQLServerTable_update(t *testing.T) {
 	})
 }
 
-func (t DatasetSQLServerTableResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t DataFactoryDatasetSqlServerTableResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.DataSetID(state.ID)
 	if err != nil {
 		return nil, err
@@ -89,7 +89,7 @@ func (t DatasetSQLServerTableResource) Exists(ctx context.Context, clients *clie
 	return pointer.To(resp.ID != nil), nil
 }
 
-func (DatasetSQLServerTableResource) basic(data acceptance.TestData) string {
+func (DataFactoryDatasetSqlServerTableResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -120,7 +120,7 @@ resource "azurerm_data_factory_dataset_sql_server_table" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (DatasetSQLServerTableResource) update1(data acceptance.TestData) string {
+func (DataFactoryDatasetSqlServerTableResource) update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -172,7 +172,7 @@ resource "azurerm_data_factory_dataset_sql_server_table" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (DatasetSQLServerTableResource) update2(data acceptance.TestData) string {
+func (DataFactoryDatasetSqlServerTableResource) update2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

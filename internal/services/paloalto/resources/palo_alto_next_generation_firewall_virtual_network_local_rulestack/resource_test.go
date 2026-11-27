@@ -17,12 +17,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type NextGenerationFirewallVnetResource struct{}
+type PaloAltoNextGenerationFirewallVirtualNetworkLocalRulestackResource struct{}
 
 func TestAccPaloAltoNextGenerationFirewallLocalRulestackVNet_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack", "test")
 
-	r := NextGenerationFirewallVnetResource{}
+	r := PaloAltoNextGenerationFirewallVirtualNetworkLocalRulestackResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -38,7 +38,7 @@ func TestAccPaloAltoNextGenerationFirewallLocalRulestackVNet_basic(t *testing.T)
 func TestAccPaloAltoNextGenerationFirewallLocalRulestackVNet_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack", "test")
 
-	r := NextGenerationFirewallVnetResource{}
+	r := PaloAltoNextGenerationFirewallVirtualNetworkLocalRulestackResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -54,7 +54,7 @@ func TestAccPaloAltoNextGenerationFirewallLocalRulestackVNet_requiresImport(t *t
 func TestAccPaloAltoNextGenerationFirewallLocalRulestackVNet_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack", "test")
 
-	r := NextGenerationFirewallVnetResource{}
+	r := PaloAltoNextGenerationFirewallVirtualNetworkLocalRulestackResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -70,7 +70,7 @@ func TestAccPaloAltoNextGenerationFirewallLocalRulestackVNet_complete(t *testing
 func TestAccPaloAltoNextGenerationFirewallLocalRulestackVNet_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack", "test")
 
-	r := NextGenerationFirewallVnetResource{}
+	r := PaloAltoNextGenerationFirewallVirtualNetworkLocalRulestackResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -105,7 +105,7 @@ func TestAccPaloAltoNextGenerationFirewallLocalRulestackVNet_update(t *testing.T
 	})
 }
 
-func (r NextGenerationFirewallVnetResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r PaloAltoNextGenerationFirewallVirtualNetworkLocalRulestackResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := firewallresources.ParseFirewallID(state.ID)
 	if err != nil {
 		return nil, err
@@ -122,7 +122,7 @@ func (r NextGenerationFirewallVnetResource) Exists(ctx context.Context, client *
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r NextGenerationFirewallVnetResource) basic(data acceptance.TestData) string {
+func (r PaloAltoNextGenerationFirewallVirtualNetworkLocalRulestackResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -150,7 +150,7 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rules
 `, r.template(data), data.RandomInteger)
 }
 
-func (r NextGenerationFirewallVnetResource) requiresImport(data acceptance.TestData) string {
+func (r PaloAltoNextGenerationFirewallVirtualNetworkLocalRulestackResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -172,7 +172,7 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rules
 `, r.basic(data))
 }
 
-func (r NextGenerationFirewallVnetResource) complete(data acceptance.TestData) string {
+func (r PaloAltoNextGenerationFirewallVirtualNetworkLocalRulestackResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -234,7 +234,7 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rules
 `, r.template(data), data.RandomInteger)
 }
 
-func (r NextGenerationFirewallVnetResource) completeUpdate(data acceptance.TestData) string {
+func (r PaloAltoNextGenerationFirewallVirtualNetworkLocalRulestackResource) completeUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -283,7 +283,7 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rules
 `, r.template(data), data.RandomInteger)
 }
 
-func (r NextGenerationFirewallVnetResource) template(data acceptance.TestData) string {
+func (r PaloAltoNextGenerationFirewallVirtualNetworkLocalRulestackResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-PANGFWVN-%[1]d"

@@ -233,7 +233,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta any) error {
 	if shouldShutDown {
 		virtualMachineId, err := virtualmachines.ParseVirtualMachineID(*disk.Model.ManagedBy)
 		if err != nil {
-			return fmt.Errorf("parsing VMID %q for disk attachment: %+v", *disk.Model.ManagedBy, err)
+			return err
 		}
 		// check instanceView State
 

@@ -29,7 +29,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			parsedVaultId, err := vaults.ParseVaultID(plan.RecoveryVaultID)
 			if err != nil {
-				return fmt.Errorf("parsing %s: %+v", plan.RecoveryVaultID, err)
+				return err
 			}
 
 			id := replicationpolicies.NewReplicationPolicyID(parsedVaultId.SubscriptionId, parsedVaultId.ResourceGroupName, parsedVaultId.VaultName, plan.Name)

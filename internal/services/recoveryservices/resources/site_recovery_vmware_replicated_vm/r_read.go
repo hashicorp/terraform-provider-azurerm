@@ -62,7 +62,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 				if respPolicyId := pointer.From(prop.PolicyId); respPolicyId != "" {
 					parsedPolicyId, err := replicationpolicies.ParseReplicationPolicyIDInsensitively(respPolicyId)
 					if err != nil {
-						return fmt.Errorf("parse %q: %+v", respPolicyId, err)
+						return err
 					}
 					policyId = parsedPolicyId.ID()
 				}
@@ -214,7 +214,7 @@ func resourceSiteRecoveryVMWareReplicatedVMNetworkInterfaceSchema() *pluginsdk.R
 func fetchSiteRecoveryContainerId(ctx context.Context, containerClient *replicationprotectioncontainers.ReplicationProtectionContainersClient, vaultId string) (string, error) {
 	vId, err := replicationprotectioncontainers.ParseVaultID(vaultId)
 	if err != nil {
-		return "", fmt.Errorf("parse %s: %+v", vaultId, err)
+		return "", err
 	}
 
 	resp, err := containerClient.ListComplete(ctx, *vId)
@@ -228,7 +228,7 @@ func fetchSiteRecoveryContainerId(ctx context.Context, containerClient *replicat
 
 	parsedID, err := replicationprotectioncontainers.ParseReplicationProtectionContainerIDInsensitively(*resp.Items[0].Id)
 	if err != nil {
-		return "", fmt.Errorf("parse %s: %+v", *resp.Items[0].Id, err)
+		return "", err
 	}
 
 	return parsedID.ID(), nil
@@ -237,7 +237,7 @@ func fetchSiteRecoveryContainerId(ctx context.Context, containerClient *replicat
 func fetchRunAsAccountsIdBySite(ctx context.Context, runAsAccountClient *runasaccounts.RunAsAccountsClient, siteId string, displayName string, applianceName string) (string, error) {
 	parsedSiteId, err := runasaccounts.ParseVMwareSiteIDInsensitively(siteId)
 	if err != nil {
-		return "", fmt.Errorf("parse %s: %+v", siteId, err)
+		return "", err
 	}
 
 	hackedClient := azuresdkhacks.RunAsAccountsClient{Client: runAsAccountClient.Client}
@@ -304,7 +304,7 @@ func fetchProcessServerIdByName(ctx context.Context, fabricClient *replicationfa
 func fetchDiscoveryMachineIdBySite(ctx context.Context, machinesClient *machines.MachinesClient, siteId string, machineName string) (string, error) {
 	parsedSiteId, err := machines.ParseVMwareSiteIDInsensitively(siteId)
 	if err != nil {
-		return "", fmt.Errorf("parse %s: %+v", siteId, err)
+		return "", err
 	}
 
 	hackedClient := azuresdkhacks.MachinesClient{Client: machinesClient.Client}
@@ -324,7 +324,7 @@ func fetchDiscoveryMachineIdBySite(ctx context.Context, machinesClient *machines
 			if strings.EqualFold(*machine.Properties.DisplayName, machineName) {
 				parsedMachineId, err := commonids.ParseVMwareSiteMachineIDInsensitively(*machine.Id)
 				if err != nil {
-					return "", fmt.Errorf("parse %s: %+v", *machine.Id, err)
+					return "", err
 				}
 				return parsedMachineId.ID(), nil
 			}
@@ -337,7 +337,7 @@ func fetchDiscoveryMachineIdBySite(ctx context.Context, machinesClient *machines
 func fetchCredentialByRunAsAccountId(ctx context.Context, client *runasaccounts.RunAsAccountsClient, id string) (string, error) {
 	parsedRunAsAccountId, err := commonids.ParseVMwareSiteRunAsAccountIDInsensitively(id)
 	if err != nil {
-		return "", fmt.Errorf("parse %s: %+v", id, err)
+		return "", err
 	}
 
 	resp, err := client.GetRunAsAccount(ctx, *parsedRunAsAccountId)

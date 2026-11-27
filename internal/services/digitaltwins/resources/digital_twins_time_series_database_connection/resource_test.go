@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type TimeSeriesDatabaseConnectionResource struct{}
+type DigitalTwinsTimeSeriesDatabaseConnectionResource struct{}
 
 func TestAccTimeSeriesDatabaseConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_digital_twins_time_series_database_connection", "test")
-	r := TimeSeriesDatabaseConnectionResource{}
+	r := DigitalTwinsTimeSeriesDatabaseConnectionResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -36,7 +36,7 @@ func TestAccTimeSeriesDatabaseConnection_basic(t *testing.T) {
 
 func TestAccTimeSeriesDatabaseConnection_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_digital_twins_time_series_database_connection", "test")
-	r := TimeSeriesDatabaseConnectionResource{}
+	r := DigitalTwinsTimeSeriesDatabaseConnectionResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -48,7 +48,7 @@ func TestAccTimeSeriesDatabaseConnection_complete(t *testing.T) {
 	})
 }
 
-func (r TimeSeriesDatabaseConnectionResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r DigitalTwinsTimeSeriesDatabaseConnectionResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := timeseriesdatabaseconnections.ParseTimeSeriesDatabaseConnectionID(state.ID)
 	if err != nil {
 		return nil, err
@@ -60,7 +60,7 @@ func (r TimeSeriesDatabaseConnectionResource) Exists(ctx context.Context, client
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r TimeSeriesDatabaseConnectionResource) basic(data acceptance.TestData) string {
+func (r DigitalTwinsTimeSeriesDatabaseConnectionResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -83,7 +83,7 @@ resource "azurerm_digital_twins_time_series_database_connection" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r TimeSeriesDatabaseConnectionResource) complete(data acceptance.TestData) string {
+func (r DigitalTwinsTimeSeriesDatabaseConnectionResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -116,7 +116,7 @@ resource "azurerm_digital_twins_time_series_database_connection" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r TimeSeriesDatabaseConnectionResource) template(data acceptance.TestData) string {
+func (r DigitalTwinsTimeSeriesDatabaseConnectionResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

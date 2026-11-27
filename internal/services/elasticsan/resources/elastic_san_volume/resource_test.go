@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ElasticSANVolumeTestResource struct{}
+type ElasticSanVolumeResource struct{}
 
 func TestAccElasticSANVolume_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_elastic_san_volume", "test")
-	r := ElasticSANVolumeTestResource{}
+	r := ElasticSanVolumeResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -32,7 +32,7 @@ func TestAccElasticSANVolume_regressionTest(t *testing.T) {
 
 func TestAccElasticSANVolume_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_elastic_san_volume", "test")
-	r := ElasticSANVolumeTestResource{}
+	r := ElasticSanVolumeResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -51,7 +51,7 @@ func TestAccElasticSANVolume_basic(t *testing.T) {
 
 func TestAccElasticSANVolume_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_elastic_san_volume", "test")
-	r := ElasticSANVolumeTestResource{}
+	r := ElasticSanVolumeResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -66,7 +66,7 @@ func TestAccElasticSANVolume_requiresImport(t *testing.T) {
 
 func TestAccElasticSANVolume_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_elastic_san_volume", "test")
-	r := ElasticSANVolumeTestResource{}
+	r := ElasticSanVolumeResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -81,7 +81,7 @@ func TestAccElasticSANVolume_complete(t *testing.T) {
 
 func TestAccElasticSANVolume_fromDisk(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_elastic_san_volume", "test")
-	r := ElasticSANVolumeTestResource{}
+	r := ElasticSanVolumeResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -96,7 +96,7 @@ func TestAccElasticSANVolume_fromDisk(t *testing.T) {
 
 func TestAccElasticSANVolume_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_elastic_san_volume", "test")
-	r := ElasticSANVolumeTestResource{}
+	r := ElasticSanVolumeResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -120,7 +120,7 @@ func TestAccElasticSANVolume_update(t *testing.T) {
 	})
 }
 
-func (r ElasticSANVolumeTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r ElasticSanVolumeResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := volumes.ParseVolumeID(state.ID)
 	if err != nil {
 		return nil, err
@@ -134,7 +134,7 @@ func (r ElasticSANVolumeTestResource) Exists(ctx context.Context, clients *clien
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r ElasticSANVolumeTestResource) basic(data acceptance.TestData) string {
+func (r ElasticSanVolumeResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -150,7 +150,7 @@ resource "azurerm_elastic_san_volume" "test" {
 `, r.template(data))
 }
 
-func (r ElasticSANVolumeTestResource) requiresImport(data acceptance.TestData) string {
+func (r ElasticSanVolumeResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -162,7 +162,7 @@ resource "azurerm_elastic_san_volume" "import" {
 `, r.basic(data))
 }
 
-func (r ElasticSANVolumeTestResource) update(data acceptance.TestData) string {
+func (r ElasticSanVolumeResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -178,7 +178,7 @@ resource "azurerm_elastic_san_volume" "test" {
 `, r.template(data))
 }
 
-func (r ElasticSANVolumeTestResource) fromDisk(data acceptance.TestData) string {
+func (r ElasticSanVolumeResource) fromDisk(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -207,7 +207,7 @@ resource "azurerm_elastic_san_volume" "test" {
 `, r.template(data))
 }
 
-func (r ElasticSANVolumeTestResource) complete(data acceptance.TestData) string {
+func (r ElasticSanVolumeResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -244,7 +244,7 @@ resource "azurerm_elastic_san_volume" "test" {
 `, r.template(data))
 }
 
-func (r ElasticSANVolumeTestResource) template(data acceptance.TestData) string {
+func (r ElasticSanVolumeResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 variable "primary_location" {
   default = %q

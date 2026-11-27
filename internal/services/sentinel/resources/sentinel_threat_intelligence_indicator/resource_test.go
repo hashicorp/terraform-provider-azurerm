@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type SecurityInsightsIndicatorResource struct{}
+type SentinelThreatIntelligenceIndicatorResource struct{}
 
 func TestAccSecurityInsightsIndicator_basicDomainName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_threat_intelligence_indicator", "test")
-	r := SecurityInsightsIndicatorResource{}
+	r := SentinelThreatIntelligenceIndicatorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, "domain-name", "test.com"),
@@ -34,7 +34,7 @@ func TestAccSecurityInsightsIndicator_basicDomainName(t *testing.T) {
 
 func TestAccSecurityInsightsIndicator_basicFile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_threat_intelligence_indicator", "test")
-	r := SecurityInsightsIndicatorResource{}
+	r := SentinelThreatIntelligenceIndicatorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, "file", "MD5:78ecc5c05cd8b79af480df2f8fba0b9d"),
@@ -48,7 +48,7 @@ func TestAccSecurityInsightsIndicator_basicFile(t *testing.T) {
 
 func TestAccSecurityInsightsIndicator_basicIpV4(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_threat_intelligence_indicator", "test")
-	r := SecurityInsightsIndicatorResource{}
+	r := SentinelThreatIntelligenceIndicatorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, "ipv4-addr", "1.1.1.1"),
@@ -62,7 +62,7 @@ func TestAccSecurityInsightsIndicator_basicIpV4(t *testing.T) {
 
 func TestAccSecurityInsightsIndicator_basicIpV6(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_threat_intelligence_indicator", "test")
-	r := SecurityInsightsIndicatorResource{}
+	r := SentinelThreatIntelligenceIndicatorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, "ipv6-addr", "::1"),
@@ -76,7 +76,7 @@ func TestAccSecurityInsightsIndicator_basicIpV6(t *testing.T) {
 
 func TestAccSecurityInsightsIndicator_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_threat_intelligence_indicator", "test")
-	r := SecurityInsightsIndicatorResource{}
+	r := SentinelThreatIntelligenceIndicatorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, "domain-name", "test.com"),
@@ -90,7 +90,7 @@ func TestAccSecurityInsightsIndicator_requiresImport(t *testing.T) {
 
 func TestAccSecurityInsightsIndicator_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_threat_intelligence_indicator", "test")
-	r := SecurityInsightsIndicatorResource{}
+	r := SentinelThreatIntelligenceIndicatorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data, "domain-name", "test.com"),
@@ -104,7 +104,7 @@ func TestAccSecurityInsightsIndicator_complete(t *testing.T) {
 
 func TestAccSecurityInsightsIndicator_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_threat_intelligence_indicator", "test")
-	r := SecurityInsightsIndicatorResource{}
+	r := SentinelThreatIntelligenceIndicatorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data, "domain-name", "test.com"),
@@ -125,7 +125,7 @@ func TestAccSecurityInsightsIndicator_update(t *testing.T) {
 	})
 }
 
-func (r SecurityInsightsIndicatorResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r SentinelThreatIntelligenceIndicatorResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := threatintelligence.ParseIndicatorID(state.ID)
 	if err != nil {
 		return nil, err
@@ -140,7 +140,7 @@ func (r SecurityInsightsIndicatorResource) Exists(ctx context.Context, clients *
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r SecurityInsightsIndicatorResource) template(data acceptance.TestData) string {
+func (r SentinelThreatIntelligenceIndicatorResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -165,7 +165,7 @@ resource "azurerm_sentinel_log_analytics_workspace_onboarding" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r SecurityInsightsIndicatorResource) basic(data acceptance.TestData, patternType string, pattern string) string {
+func (r SentinelThreatIntelligenceIndicatorResource) basic(data acceptance.TestData, patternType string, pattern string) string {
 	return fmt.Sprintf(`
 				%s
 
@@ -182,7 +182,7 @@ resource "azurerm_sentinel_threat_intelligence_indicator" "test" {
 `, r.template(data), patternType, pattern)
 }
 
-func (r SecurityInsightsIndicatorResource) requiresImport(data acceptance.TestData) string {
+func (r SentinelThreatIntelligenceIndicatorResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data, "domain-name", "test.com")
 	return fmt.Sprintf(`
 			%s
@@ -198,7 +198,7 @@ resource "azurerm_sentinel_threat_intelligence_indicator" "import" {
 `, config)
 }
 
-func (r SecurityInsightsIndicatorResource) complete(data acceptance.TestData, patternType string, pattern string) string {
+func (r SentinelThreatIntelligenceIndicatorResource) complete(data acceptance.TestData, patternType string, pattern string) string {
 	return fmt.Sprintf(`
 			%s
 
@@ -232,7 +232,7 @@ resource "azurerm_sentinel_threat_intelligence_indicator" "test" {
 `, r.template(data), patternType, pattern)
 }
 
-func (r SecurityInsightsIndicatorResource) update(data acceptance.TestData, patternType string, pattern string) string {
+func (r SentinelThreatIntelligenceIndicatorResource) update(data acceptance.TestData, patternType string, pattern string) string {
 	return fmt.Sprintf(`
 			%s
 

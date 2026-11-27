@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type NextGenerationFirewallVHubPanoramaResource struct{}
+type PaloAltoNextGenerationFirewallVirtualHubPanoramaResource struct{}
 
 func TestAccPaloAltoNextGenerationFirewallVHubPanoramaResource_basic(t *testing.T) {
 	if panorama := os.Getenv("ARM_PALO_ALTO_PANORAMA_CONFIG"); panorama == "" {
@@ -26,7 +26,7 @@ func TestAccPaloAltoNextGenerationFirewallVHubPanoramaResource_basic(t *testing.
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_virtual_hub_panorama", "test")
-	r := NextGenerationFirewallVHubPanoramaResource{}
+	r := PaloAltoNextGenerationFirewallVirtualHubPanoramaResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -45,7 +45,7 @@ func TestAccPaloAltoNextGenerationFirewallVHubPanoramaResource_complete(t *testi
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_virtual_hub_panorama", "test")
-	r := NextGenerationFirewallVHubPanoramaResource{}
+	r := PaloAltoNextGenerationFirewallVirtualHubPanoramaResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -64,7 +64,7 @@ func TestAccPaloAltoNextGenerationFirewallVHubPanoramaResource_update(t *testing
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_virtual_hub_panorama", "test")
-	r := NextGenerationFirewallVHubPanoramaResource{}
+	r := PaloAltoNextGenerationFirewallVirtualHubPanoramaResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -91,7 +91,7 @@ func TestAccPaloAltoNextGenerationFirewallVHubPanoramaResource_update(t *testing
 	})
 }
 
-func (r NextGenerationFirewallVHubPanoramaResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r PaloAltoNextGenerationFirewallVirtualHubPanoramaResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := firewallresources.ParseFirewallID(state.ID)
 	if err != nil {
 		return nil, err
@@ -108,7 +108,7 @@ func (r NextGenerationFirewallVHubPanoramaResource) Exists(ctx context.Context, 
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r NextGenerationFirewallVHubPanoramaResource) basic(data acceptance.TestData) string {
+func (r PaloAltoNextGenerationFirewallVirtualHubPanoramaResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -131,7 +131,7 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_panorama" "test
 `, r.template(data), data.RandomInteger, os.Getenv("ARM_PALO_ALTO_PANORAMA_CONFIG"))
 }
 
-func (r NextGenerationFirewallVHubPanoramaResource) complete(data acceptance.TestData) string {
+func (r PaloAltoNextGenerationFirewallVirtualHubPanoramaResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -188,7 +188,7 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_panorama" "test
 `, r.template(data), data.RandomInteger, os.Getenv("ARM_PALO_ALTO_PANORAMA_CONFIG"))
 }
 
-func (r NextGenerationFirewallVHubPanoramaResource) template(data acceptance.TestData) string {
+func (r PaloAltoNextGenerationFirewallVirtualHubPanoramaResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-PANGFWVH-%[1]d"

@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type FunctionApActiveSlotResource struct{}
+type FunctionAppActiveSlotResource struct{}
 
 func TestAccFunctionAppActiveSlot_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_active_slot", "test")
-	r := FunctionApActiveSlotResource{}
+	r := FunctionAppActiveSlotResource{}
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicWindows(data),
@@ -31,7 +31,7 @@ func TestAccFunctionAppActiveSlot_regressionTest(t *testing.T) {
 
 func TestAccFunctionAppActiveSlot_basicWindows(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_active_slot", "test")
-	r := FunctionApActiveSlotResource{}
+	r := FunctionAppActiveSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,7 +46,7 @@ func TestAccFunctionAppActiveSlot_basicWindows(t *testing.T) {
 
 func TestAccFunctionAppActiveSlot_basicLinux(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_active_slot", "test")
-	r := FunctionApActiveSlotResource{}
+	r := FunctionAppActiveSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -61,7 +61,7 @@ func TestAccFunctionAppActiveSlot_basicLinux(t *testing.T) {
 
 func TestAccFunctionAppActiveSlot_windowsUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_active_slot", "test")
-	r := FunctionApActiveSlotResource{}
+	r := FunctionAppActiveSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -83,7 +83,7 @@ func TestAccFunctionAppActiveSlot_windowsUpdate(t *testing.T) {
 
 func TestAccFunctionAppActiveSlot_linuxUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_active_slot", "test")
-	r := FunctionApActiveSlotResource{}
+	r := FunctionAppActiveSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -103,7 +103,7 @@ func TestAccFunctionAppActiveSlot_linuxUpdate(t *testing.T) {
 	})
 }
 
-func (r FunctionApActiveSlotResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r FunctionAppActiveSlotResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseFunctionAppID(state.ID)
 	if err != nil {
 		return nil, err
@@ -125,7 +125,7 @@ func (r FunctionApActiveSlotResource) Exists(ctx context.Context, client *client
 	return pointer.To(*app.Model.Properties.SlotSwapStatus.SourceSlotName == slotId.SlotName), nil
 }
 
-func (r FunctionApActiveSlotResource) basicWindows(data acceptance.TestData) string {
+func (r FunctionAppActiveSlotResource) basicWindows(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -140,7 +140,7 @@ resource "azurerm_function_app_active_slot" "test" {
 `, r.templateWindows(data))
 }
 
-func (r FunctionApActiveSlotResource) basicLinux(data acceptance.TestData) string {
+func (r FunctionAppActiveSlotResource) basicLinux(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -155,7 +155,7 @@ resource "azurerm_function_app_active_slot" "test" {
 `, r.templateLinux(data))
 }
 
-func (r FunctionApActiveSlotResource) windowsUpdate(data acceptance.TestData) string {
+func (r FunctionAppActiveSlotResource) windowsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -202,7 +202,7 @@ resource "azurerm_function_app_active_slot" "test" {
 `, r.templateWindows(data), data.RandomInteger)
 }
 
-func (r FunctionApActiveSlotResource) linuxUpdate(data acceptance.TestData) string {
+func (r FunctionAppActiveSlotResource) linuxUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -249,7 +249,7 @@ resource "azurerm_function_app_active_slot" "test" {
 `, r.templateLinux(data), data.RandomInteger)
 }
 
-func (FunctionApActiveSlotResource) templateLinux(data acceptance.TestData) string {
+func (FunctionAppActiveSlotResource) templateLinux(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
@@ -342,7 +342,7 @@ resource "azurerm_linux_function_app_slot" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (FunctionApActiveSlotResource) templateWindows(data acceptance.TestData) string {
+func (FunctionAppActiveSlotResource) templateWindows(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"

@@ -18,11 +18,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type PolicySetDefinitionResourceTest struct{}
+type PolicySetDefinitionResource struct{}
 
 func TestAccAzureRMPolicySetDefinition_builtIn(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
-	r := PolicySetDefinitionResourceTest{}
+	r := PolicySetDefinitionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -37,7 +37,7 @@ func TestAccAzureRMPolicySetDefinition_builtIn(t *testing.T) {
 
 func TestAccAzureRMPolicySetDefinition_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
-	r := PolicySetDefinitionResourceTest{}
+	r := PolicySetDefinitionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -52,7 +52,7 @@ func TestAccAzureRMPolicySetDefinition_requiresImport(t *testing.T) {
 
 func TestAccAzureRMPolicySetDefinition_custom(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
-	r := PolicySetDefinitionResourceTest{}
+	r := PolicySetDefinitionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -67,7 +67,7 @@ func TestAccAzureRMPolicySetDefinition_custom(t *testing.T) {
 
 func TestAccAzureRMPolicySetDefinition_customNoParameter(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
-	r := PolicySetDefinitionResourceTest{}
+	r := PolicySetDefinitionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -89,7 +89,7 @@ func TestAccAzureRMPolicySetDefinition_customNoParameter(t *testing.T) {
 
 func TestAccAzureRMPolicySetDefinition_customUpdateDisplayName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
-	r := PolicySetDefinitionResourceTest{}
+	r := PolicySetDefinitionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -111,7 +111,7 @@ func TestAccAzureRMPolicySetDefinition_customUpdateDisplayName(t *testing.T) {
 
 func TestAccAzureRMPolicySetDefinition_customUpdateParameters(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
-	r := PolicySetDefinitionResourceTest{}
+	r := PolicySetDefinitionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -132,7 +132,7 @@ func TestAccAzureRMPolicySetDefinition_customUpdateParameters(t *testing.T) {
 
 func TestAccAzureRMPolicySetDefinition_customUpdateAddNewReference(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
-	r := PolicySetDefinitionResourceTest{}
+	r := PolicySetDefinitionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -154,7 +154,7 @@ func TestAccAzureRMPolicySetDefinition_customUpdateAddNewReference(t *testing.T)
 
 func TestAccAzureRMPolicySetDefinition_customWithPolicyReferenceID(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
-	r := PolicySetDefinitionResourceTest{}
+	r := PolicySetDefinitionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -169,7 +169,7 @@ func TestAccAzureRMPolicySetDefinition_customWithPolicyReferenceID(t *testing.T)
 
 func TestAccAzureRMPolicySetDefinition_customWithDefinitionGroups(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
-	r := PolicySetDefinitionResourceTest{}
+	r := PolicySetDefinitionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -198,7 +198,7 @@ func TestAccAzureRMPolicySetDefinition_customWithDefinitionGroups(t *testing.T) 
 
 func TestAccAzureRMPolicySetDefinition_customWithGroupsInDefinitionReferenceUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
-	r := PolicySetDefinitionResourceTest{}
+	r := PolicySetDefinitionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -233,7 +233,7 @@ func TestAccAzureRMPolicySetDefinition_customWithGroupsInDefinitionReferenceUpda
 
 func TestAccAzureRMPolicySetDefinition_metadata(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
-	r := PolicySetDefinitionResourceTest{}
+	r := PolicySetDefinitionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -248,7 +248,7 @@ func TestAccAzureRMPolicySetDefinition_metadata(t *testing.T) {
 
 func TestAccAzureRMPolicySetDefinition_policyDefinitionVersion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
-	r := PolicySetDefinitionResourceTest{}
+	r := PolicySetDefinitionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -277,7 +277,7 @@ func TestAccAzureRMPolicySetDefinition_policyDefinitionVersion(t *testing.T) {
 
 func TestAccAzureRMPolicySetDefinition_removeParameter(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
-	r := PolicySetDefinitionResourceTest{}
+	r := PolicySetDefinitionResource{}
 
 	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
@@ -311,7 +311,7 @@ func TestAccAzureRMPolicySetDefinition_removeParameter(t *testing.T) {
 
 func TestAccAzureRMPolicySetDefinition_updateMultiplePolicyDefinitionReferences(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
-	r := PolicySetDefinitionResourceTest{}
+	r := PolicySetDefinitionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -338,7 +338,7 @@ func TestAccAzureRMPolicySetDefinition_updateMultiplePolicyDefinitionReferences(
 	})
 }
 
-func (r PolicySetDefinitionResourceTest) builtIn(data acceptance.TestData) string {
+func (r PolicySetDefinitionResource) builtIn(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -374,7 +374,7 @@ VALUES
 `, data.RandomInteger, data.RandomInteger)
 }
 
-func (r PolicySetDefinitionResourceTest) requiresImport(data acceptance.TestData) string {
+func (r PolicySetDefinitionResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -396,7 +396,7 @@ VALUES
 `, r.builtIn(data))
 }
 
-func (r PolicySetDefinitionResourceTest) custom(data acceptance.TestData) string {
+func (r PolicySetDefinitionResource) custom(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -430,7 +430,7 @@ VALUES
 `, r.template(data), data.RandomInteger)
 }
 
-func (r PolicySetDefinitionResourceTest) customUpdateDisplayName(data acceptance.TestData) string {
+func (r PolicySetDefinitionResource) customUpdateDisplayName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -464,7 +464,7 @@ VALUES
 `, r.template(data), data.RandomInteger)
 }
 
-func (r PolicySetDefinitionResourceTest) customUpdateParameters(data acceptance.TestData) string {
+func (r PolicySetDefinitionResource) customUpdateParameters(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -498,7 +498,7 @@ VALUES
 `, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (r PolicySetDefinitionResourceTest) customUpdateAddNewReference(data acceptance.TestData) string {
+func (r PolicySetDefinitionResource) customUpdateAddNewReference(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -545,7 +545,7 @@ VALUES
 `, r.template(data), data.RandomInteger)
 }
 
-func (r PolicySetDefinitionResourceTest) customNoParameter(data acceptance.TestData) string {
+func (r PolicySetDefinitionResource) customNoParameter(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -561,7 +561,7 @@ resource "azurerm_policy_set_definition" "test" {
 `, r.templateNoParameter(data), data.RandomInteger)
 }
 
-func (r PolicySetDefinitionResourceTest) customNoParameterUpdate(data acceptance.TestData) string {
+func (r PolicySetDefinitionResource) customNoParameterUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -578,7 +578,7 @@ resource "azurerm_policy_set_definition" "test" {
 `, r.templateNoParameter(data), data.RandomInteger)
 }
 
-func (r PolicySetDefinitionResourceTest) metadata(data acceptance.TestData) string {
+func (r PolicySetDefinitionResource) metadata(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -620,7 +620,7 @@ METADATA
 `, data.RandomInteger)
 }
 
-func (r PolicySetDefinitionResourceTest) customWithPolicyReferenceID(data acceptance.TestData) string {
+func (r PolicySetDefinitionResource) customWithPolicyReferenceID(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -655,7 +655,7 @@ VALUES
 `, r.template(data), data.RandomInteger)
 }
 
-func (r PolicySetDefinitionResourceTest) customWithDefinitionGroups(data acceptance.TestData) string {
+func (r PolicySetDefinitionResource) customWithDefinitionGroups(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -702,7 +702,7 @@ VALUES
 `, r.template(data), data.RandomInteger)
 }
 
-func (r PolicySetDefinitionResourceTest) customWithDefinitionGroupsUpdate(data acceptance.TestData) string {
+func (r PolicySetDefinitionResource) customWithDefinitionGroupsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -756,7 +756,7 @@ VALUES
 }
 
 // test adding "group-3" to policy_definition_reference.policy_group_names
-func (r PolicySetDefinitionResourceTest) customWithDefinitionGroupsUsedInPolicyReference(data acceptance.TestData) string {
+func (r PolicySetDefinitionResource) customWithDefinitionGroupsUsedInPolicyReference(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -817,7 +817,7 @@ VALUES
 }
 
 // test adding "group-3" to policy_definition_reference.policy_group_names
-func (r PolicySetDefinitionResourceTest) customWithDefinitionGroupsNotUsedInPolicyReference(data acceptance.TestData) string {
+func (r PolicySetDefinitionResource) customWithDefinitionGroupsNotUsedInPolicyReference(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -876,7 +876,7 @@ PARAMETERS
 `, r.template(data), data.RandomInteger)
 }
 
-func (r PolicySetDefinitionResourceTest) policyDefinitionVersion(data acceptance.TestData, version string) string {
+func (r PolicySetDefinitionResource) policyDefinitionVersion(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -899,7 +899,7 @@ VALUES
 `, r.template(data), data.RandomInteger, version)
 }
 
-func (r PolicySetDefinitionResourceTest) multipleReferences(data acceptance.TestData) string {
+func (r PolicySetDefinitionResource) multipleReferences(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -923,7 +923,7 @@ resource "azurerm_policy_set_definition" "test" {
 `, r.templateMultiplePolicies(), data.RandomInteger)
 }
 
-func (r PolicySetDefinitionResourceTest) multipleReferencesUpdate(data acceptance.TestData) string {
+func (r PolicySetDefinitionResource) multipleReferencesUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -943,7 +943,7 @@ resource "azurerm_policy_set_definition" "test" {
 `, r.templateMultiplePolicies(), data.RandomInteger)
 }
 
-func (r PolicySetDefinitionResourceTest) template(data acceptance.TestData) string {
+func (r PolicySetDefinitionResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -985,7 +985,7 @@ PARAMETERS
 `, data.RandomInteger)
 }
 
-func (PolicySetDefinitionResourceTest) templateMultiplePolicies() string {
+func (PolicySetDefinitionResource) templateMultiplePolicies() string {
 	return `
 provider "azurerm" {
   features {}
@@ -1005,7 +1005,7 @@ data "azurerm_policy_definition_built_in" "policyReference3" {
 `
 }
 
-func (r PolicySetDefinitionResourceTest) templateNoParameter(data acceptance.TestData) string {
+func (r PolicySetDefinitionResource) templateNoParameter(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1034,7 +1034,7 @@ POLICY_RULE
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r PolicySetDefinitionResourceTest) additionalParameter(data acceptance.TestData) string {
+func (r PolicySetDefinitionResource) additionalParameter(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1087,7 +1087,7 @@ VALUES
 }`, data.RandomInteger, data.RandomInteger)
 }
 
-func (r PolicySetDefinitionResourceTest) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r PolicySetDefinitionResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := policysetdefinitions.ParseProviderPolicySetDefinitionID(state.ID)
 	if err != nil {
 		return nil, err

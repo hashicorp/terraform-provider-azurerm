@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type LocalRulestackOutboundTrustCertificateResource struct{}
+type PaloAltoLocalRulestackOutboundTrustCertificateAssociationResource struct{}
 
 func TestAccLocalRulestackOutboundTrustCertificateResource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack_outbound_trust_certificate_association", "test")
-	r := LocalRulestackOutboundTrustCertificateResource{}
+	r := PaloAltoLocalRulestackOutboundTrustCertificateAssociationResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -34,7 +34,7 @@ func TestAccLocalRulestackOutboundTrustCertificateResource_basic(t *testing.T) {
 	})
 }
 
-func (r LocalRulestackOutboundTrustCertificateResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r PaloAltoLocalRulestackOutboundTrustCertificateAssociationResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := certificateobjectlocalrulestackresources.ParseLocalRulestackCertificateID(state.ID)
 	if err != nil {
 		return nil, err
@@ -51,7 +51,7 @@ func (r LocalRulestackOutboundTrustCertificateResource) Exists(ctx context.Conte
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r LocalRulestackOutboundTrustCertificateResource) basic(data acceptance.TestData) string {
+func (r PaloAltoLocalRulestackOutboundTrustCertificateAssociationResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -66,7 +66,7 @@ resource "azurerm_palo_alto_local_rulestack_outbound_trust_certificate_associati
 `, r.template(data))
 }
 
-func (r LocalRulestackOutboundTrustCertificateResource) template(data acceptance.TestData) string {
+func (r PaloAltoLocalRulestackOutboundTrustCertificateAssociationResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-PAN-%[1]d"

@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type SubscriptionAssignmentTestResource struct{}
+type SubscriptionPolicyAssignmentResource struct{}
 
 func TestAccSubscriptionPolicyAssignment_basicWithBuiltInPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subscription_policy_assignment", "test")
-	r := SubscriptionAssignmentTestResource{}
+	r := SubscriptionPolicyAssignmentResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccSubscriptionPolicyAssignment_basicWithBuiltInPolicy(t *testing.T) {
 
 func TestAccSubscriptionPolicyAssignment_basicWithBuiltInPolicyNonComplianceMessage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subscription_policy_assignment", "test")
-	r := SubscriptionAssignmentTestResource{}
+	r := SubscriptionPolicyAssignmentResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -84,7 +84,7 @@ func TestAccSubscriptionPolicyAssignment_basicWithBuiltInPolicyNonComplianceMess
 
 func TestAccSubscriptionPolicyAssignment_basicWithBuiltInPolicySet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subscription_policy_assignment", "test")
-	r := SubscriptionAssignmentTestResource{}
+	r := SubscriptionPolicyAssignmentResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -113,7 +113,7 @@ func TestAccSubscriptionPolicyAssignment_basicWithBuiltInPolicySet(t *testing.T)
 
 func TestAccSubscriptionPolicyAssignment_identity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subscription_policy_assignment", "test")
-	r := SubscriptionAssignmentTestResource{}
+	r := SubscriptionPolicyAssignmentResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -139,7 +139,7 @@ func TestAccSubscriptionPolicyAssignment_identity(t *testing.T) {
 
 func TestAccSubscriptionPolicyAssignment_basicWithBuiltInPolicySetNonComplianceMessage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subscription_policy_assignment", "test")
-	r := SubscriptionAssignmentTestResource{}
+	r := SubscriptionPolicyAssignmentResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -176,7 +176,7 @@ func TestAccSubscriptionPolicyAssignment_basicWithBuiltInPolicySetNonComplianceM
 
 func TestAccSubscriptionPolicyAssignment_basicWithCustomPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subscription_policy_assignment", "test")
-	r := SubscriptionAssignmentTestResource{}
+	r := SubscriptionPolicyAssignmentResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -205,7 +205,7 @@ func TestAccSubscriptionPolicyAssignment_basicWithCustomPolicy(t *testing.T) {
 
 func TestAccSubscriptionPolicyAssignment_overridesAndResourceSelector(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subscription_policy_assignment", "test")
-	r := SubscriptionAssignmentTestResource{}
+	r := SubscriptionPolicyAssignmentResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -234,7 +234,7 @@ func TestAccSubscriptionPolicyAssignment_overridesAndResourceSelector(t *testing
 
 func TestAccSubscriptionPolicyAssignment_basicWithCustomPolicyComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subscription_policy_assignment", "test")
-	r := SubscriptionAssignmentTestResource{}
+	r := SubscriptionPolicyAssignmentResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -263,7 +263,7 @@ func TestAccSubscriptionPolicyAssignment_basicWithCustomPolicyComplete(t *testin
 
 func TestAccSubscriptionPolicyAssignment_basicWithCustomPolicyRequiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subscription_policy_assignment", "test")
-	r := SubscriptionAssignmentTestResource{}
+	r := SubscriptionPolicyAssignmentResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -277,7 +277,7 @@ func TestAccSubscriptionPolicyAssignment_basicWithCustomPolicyRequiresImport(t *
 	})
 }
 
-func (r SubscriptionAssignmentTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r SubscriptionPolicyAssignmentResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := policyassignments.ParseScopedPolicyAssignmentID(state.ID)
 	if err != nil {
 		return nil, err
@@ -296,11 +296,11 @@ func (r SubscriptionAssignmentTestResource) Exists(ctx context.Context, client *
 }
 
 // subscription assignment for allowed location policy should contain all locations, or it will block some network resource create
-func (r SubscriptionAssignmentTestResource) locations(data acceptance.TestData) string {
+func (r SubscriptionPolicyAssignmentResource) locations(data acceptance.TestData) string {
 	return fmt.Sprintf(`["%s", "%s", "%s"]`, data.Locations.Primary, data.Locations.Secondary, data.Locations.Ternary)
 }
 
-func (r SubscriptionAssignmentTestResource) withBuiltInPolicyBasic(data acceptance.TestData) string {
+func (r SubscriptionPolicyAssignmentResource) withBuiltInPolicyBasic(data acceptance.TestData) string {
 	template := r.template()
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -326,7 +326,7 @@ resource "azurerm_subscription_policy_assignment" "test" {
 `, template, data.RandomInteger, r.locations(data))
 }
 
-func (r SubscriptionAssignmentTestResource) withBuiltInPolicyUpdated(data acceptance.TestData) string {
+func (r SubscriptionPolicyAssignmentResource) withBuiltInPolicyUpdated(data acceptance.TestData) string {
 	template := r.template()
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -352,7 +352,7 @@ resource "azurerm_subscription_policy_assignment" "test" {
 `, template, data.RandomInteger, r.locations(data))
 }
 
-func (r SubscriptionAssignmentTestResource) withBuiltInPolicyNonComplianceMessage(data acceptance.TestData) string {
+func (r SubscriptionPolicyAssignmentResource) withBuiltInPolicyNonComplianceMessage(data acceptance.TestData) string {
 	template := r.template()
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -383,7 +383,7 @@ resource "azurerm_subscription_policy_assignment" "test" {
 `, template, data.RandomInteger, r.locations(data))
 }
 
-func (r SubscriptionAssignmentTestResource) withBuiltInPolicyNonComplianceMessageUpdated(data acceptance.TestData) string {
+func (r SubscriptionPolicyAssignmentResource) withBuiltInPolicyNonComplianceMessageUpdated(data acceptance.TestData) string {
 	template := r.template()
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -409,7 +409,7 @@ resource "azurerm_subscription_policy_assignment" "test" {
 `, template, data.RandomInteger, r.locations(data))
 }
 
-func (r SubscriptionAssignmentTestResource) withBuiltInPolicySetBasic(data acceptance.TestData) string {
+func (r SubscriptionPolicyAssignmentResource) withBuiltInPolicySetBasic(data acceptance.TestData) string {
 	template := r.template()
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -435,7 +435,7 @@ resource "azurerm_subscription_policy_assignment" "test" {
 `, template, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r SubscriptionAssignmentTestResource) withBuiltInPolicySetUpdated(data acceptance.TestData) string {
+func (r SubscriptionPolicyAssignmentResource) withBuiltInPolicySetUpdated(data acceptance.TestData) string {
 	template := r.template()
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -465,7 +465,7 @@ resource "azurerm_subscription_policy_assignment" "test" {
 `, template, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r SubscriptionAssignmentTestResource) withBuiltInPolicySetNonComplianceMessage(data acceptance.TestData) string {
+func (r SubscriptionPolicyAssignmentResource) withBuiltInPolicySetNonComplianceMessage(data acceptance.TestData) string {
 	template := r.template()
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -495,7 +495,7 @@ resource "azurerm_subscription_policy_assignment" "test" {
 `, template, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r SubscriptionAssignmentTestResource) withBuiltInPolicySetNonComplianceMessageUpdated(data acceptance.TestData) string {
+func (r SubscriptionPolicyAssignmentResource) withBuiltInPolicySetNonComplianceMessageUpdated(data acceptance.TestData) string {
 	template := r.template()
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -534,7 +534,7 @@ resource "azurerm_subscription_policy_assignment" "test" {
 `, template, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r SubscriptionAssignmentTestResource) withCustomPolicyBasic(data acceptance.TestData) string {
+func (r SubscriptionPolicyAssignmentResource) withCustomPolicyBasic(data acceptance.TestData) string {
 	template := r.templateWithCustomPolicy(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -551,7 +551,7 @@ resource "azurerm_subscription_policy_assignment" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r SubscriptionAssignmentTestResource) withOverrideAndSelectorsBasic(data acceptance.TestData) string {
+func (r SubscriptionPolicyAssignmentResource) withOverrideAndSelectorsBasic(data acceptance.TestData) string {
 	template := r.templateWithCustomPolicy(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -589,7 +589,7 @@ resource "azurerm_subscription_policy_assignment" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r SubscriptionAssignmentTestResource) withOverrideAndSelectorsUpdate(data acceptance.TestData) string {
+func (r SubscriptionPolicyAssignmentResource) withOverrideAndSelectorsUpdate(data acceptance.TestData) string {
 	template := r.templateWithCustomPolicy(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -628,7 +628,7 @@ resource "azurerm_subscription_policy_assignment" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r SubscriptionAssignmentTestResource) withCustomPolicyComplete(data acceptance.TestData) string {
+func (r SubscriptionPolicyAssignmentResource) withCustomPolicyComplete(data acceptance.TestData) string {
 	template := r.templateWithCustomPolicy(data)
 	// NOTE: we could include parameters here but it's tested extensively elsewhere
 	return fmt.Sprintf(`
@@ -655,7 +655,7 @@ resource "azurerm_subscription_policy_assignment" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r SubscriptionAssignmentTestResource) withCustomPolicyRequiresImport(data acceptance.TestData) string {
+func (r SubscriptionPolicyAssignmentResource) withCustomPolicyRequiresImport(data acceptance.TestData) string {
 	template := r.withCustomPolicyBasic(data)
 	return fmt.Sprintf(`
 %s
@@ -668,7 +668,7 @@ resource "azurerm_subscription_policy_assignment" "import" {
 `, template)
 }
 
-func (r SubscriptionAssignmentTestResource) withCustomPolicyUpdated(data acceptance.TestData) string {
+func (r SubscriptionPolicyAssignmentResource) withCustomPolicyUpdated(data acceptance.TestData) string {
 	template := r.templateWithCustomPolicy(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -688,7 +688,7 @@ resource "azurerm_subscription_policy_assignment" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r SubscriptionAssignmentTestResource) templateWithCustomPolicy(data acceptance.TestData) string {
+func (r SubscriptionPolicyAssignmentResource) templateWithCustomPolicy(data acceptance.TestData) string {
 	template := r.template()
 	return fmt.Sprintf(`
 %[1]s
@@ -716,11 +716,11 @@ POLICY_RULE
 `, template, data.RandomInteger)
 }
 
-func (r SubscriptionAssignmentTestResource) template() string {
+func (r SubscriptionPolicyAssignmentResource) template() string {
 	return `data "azurerm_subscription" "test" {}`
 }
 
-func (r SubscriptionAssignmentTestResource) systemAssignedIdentity(data acceptance.TestData) string {
+func (r SubscriptionPolicyAssignmentResource) systemAssignedIdentity(data acceptance.TestData) string {
 	template := r.template()
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -746,7 +746,7 @@ resource "azurerm_subscription_policy_assignment" "test" {
 `, template, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r SubscriptionAssignmentTestResource) userAssignedIdentity(data acceptance.TestData, description string) string {
+func (r SubscriptionPolicyAssignmentResource) userAssignedIdentity(data acceptance.TestData, description string) string {
 	template := r.template()
 	return fmt.Sprintf(`
 provider "azurerm" {

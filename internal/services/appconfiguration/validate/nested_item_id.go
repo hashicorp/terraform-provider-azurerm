@@ -22,7 +22,7 @@ func NestedItemId(i any, k string) (warnings []string, errors []error) {
 	}
 
 	if _, err := parse.ParseNestedItemID(v); err != nil {
-		errors = append(errors, fmt.Errorf("parsing %q: %s", v, err))
+		errors = append(errors, err)
 		return warnings, errors
 	}
 

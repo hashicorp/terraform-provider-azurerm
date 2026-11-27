@@ -70,7 +70,7 @@ func dataSourceMonitorDiagnosticCategoriesRead(d *pluginsdk.ResourceData, meta a
 	resourceId := strings.TrimPrefix(actualResourceId.Scope, "/")
 	resourceIdToList, err := commonids.ParseScopeID(resourceId)
 	if err != nil {
-		return fmt.Errorf("parsing resource id error: %+v", err)
+		return err
 	}
 
 	// then retrieve the possible Diagnostics Categories for this Resource

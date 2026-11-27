@@ -27,7 +27,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			devCenterId, err := catalogs.ParseDevCenterID(model.DevCenterID)
 			if err != nil {
-				return fmt.Errorf("parsing dev center id: %+v", err)
+				return err
 			}
 			devCenterName := devCenterId.DevCenterName
 			id := catalogs.NewDevCenterCatalogID(subscriptionId, model.ResourceGroupName, devCenterName, model.Name)

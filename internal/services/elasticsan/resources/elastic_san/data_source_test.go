@@ -58,5 +58,5 @@ data "azurerm_elastic_san" "test" {
   name                = azurerm_elastic_san.test.name
   resource_group_name = azurerm_elastic_san.test.resource_group_name
 }
-`, ElasticSANTestResource{}.complete(data))
+`, ElasticSanResource{}.complete(data))
 }

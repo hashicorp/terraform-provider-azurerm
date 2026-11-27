@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type NextGenerationFirewallVNetStrataCloudManagerResource struct{}
+type PaloAltoNextGenerationFirewallVirtualNetworkStrataCloudManagerResource struct{}
 
 func TestAccNextGenerationFirewallVNetStrataCloudManager_basic(t *testing.T) {
 	if scmTenant := os.Getenv("ARM_PALO_ALTO_SCM_TENANT_NAME"); scmTenant == "" {
@@ -26,7 +26,7 @@ func TestAccNextGenerationFirewallVNetStrataCloudManager_basic(t *testing.T) {
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_virtual_network_strata_cloud_manager", "test")
-	r := NextGenerationFirewallVNetStrataCloudManagerResource{}
+	r := PaloAltoNextGenerationFirewallVirtualNetworkStrataCloudManagerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -45,7 +45,7 @@ func TestAccNextGenerationFirewallVNetStrataCloudManager_requiresImport(t *testi
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_virtual_network_strata_cloud_manager", "test")
-	r := NextGenerationFirewallVNetStrataCloudManagerResource{}
+	r := PaloAltoNextGenerationFirewallVirtualNetworkStrataCloudManagerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -64,7 +64,7 @@ func TestAccNextGenerationFirewallVNetStrataCloudManager_complete(t *testing.T) 
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_virtual_network_strata_cloud_manager", "test")
-	r := NextGenerationFirewallVNetStrataCloudManagerResource{}
+	r := PaloAltoNextGenerationFirewallVirtualNetworkStrataCloudManagerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -83,7 +83,7 @@ func TestAccNextGenerationFirewallVNetStrataCloudManager_update(t *testing.T) {
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_virtual_network_strata_cloud_manager", "test")
-	r := NextGenerationFirewallVNetStrataCloudManagerResource{}
+	r := PaloAltoNextGenerationFirewallVirtualNetworkStrataCloudManagerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -110,7 +110,7 @@ func TestAccNextGenerationFirewallVNetStrataCloudManager_update(t *testing.T) {
 	})
 }
 
-func (r NextGenerationFirewallVNetStrataCloudManagerResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r PaloAltoNextGenerationFirewallVirtualNetworkStrataCloudManagerResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := firewallresources.ParseFirewallID(state.ID)
 	if err != nil {
 		return nil, err
@@ -127,7 +127,7 @@ func (r NextGenerationFirewallVNetStrataCloudManagerResource) Exists(ctx context
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r NextGenerationFirewallVNetStrataCloudManagerResource) basic(data acceptance.TestData) string {
+func (r PaloAltoNextGenerationFirewallVirtualNetworkStrataCloudManagerResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -161,7 +161,7 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_network_strata_clou
 `, r.template(data), data.RandomInteger, os.Getenv("ARM_PALO_ALTO_SCM_TENANT_NAME"))
 }
 
-func (r NextGenerationFirewallVNetStrataCloudManagerResource) requiresImport(data acceptance.TestData) string {
+func (r PaloAltoNextGenerationFirewallVirtualNetworkStrataCloudManagerResource) requiresImport(data acceptance.TestData) string {
 	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -189,7 +189,7 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_network_strata_clou
 `, template)
 }
 
-func (r NextGenerationFirewallVNetStrataCloudManagerResource) complete(data acceptance.TestData) string {
+func (r PaloAltoNextGenerationFirewallVirtualNetworkStrataCloudManagerResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -259,7 +259,7 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_network_strata_clou
 `, r.template(data), data.RandomInteger, data.Locations.Primary, os.Getenv("ARM_PALO_ALTO_SCM_TENANT_NAME"))
 }
 
-func (r NextGenerationFirewallVNetStrataCloudManagerResource) template(data acceptance.TestData) string {
+func (r PaloAltoNextGenerationFirewallVirtualNetworkStrataCloudManagerResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-PANGFWVNSCM-%[1]d"

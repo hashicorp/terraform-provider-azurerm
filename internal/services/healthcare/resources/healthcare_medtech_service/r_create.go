@@ -28,7 +28,7 @@ func resourceHealthcareApisMedTechServiceCreate(d *pluginsdk.ResourceData, meta 
 
 	workspace, err := workspaces.ParseWorkspaceID(d.Get("workspace_id").(string))
 	if err != nil {
-		return fmt.Errorf("parsing healthcare api workspace error: %+v", err)
+		return err
 	}
 	id := iotconnectors.NewIotConnectorID(workspace.SubscriptionId, workspace.ResourceGroupName, workspace.WorkspaceName, d.Get("name").(string))
 

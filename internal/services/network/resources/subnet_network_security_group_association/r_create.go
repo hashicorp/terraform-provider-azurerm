@@ -57,7 +57,7 @@ func resourceSubnetNetworkSecurityGroupAssociationCreate(d *pluginsdk.ResourceDa
 		if propsUnlocked.NetworkSecurityGroup != nil && propsUnlocked.NetworkSecurityGroup.Id != nil {
 			oldNsgId, err := networksecuritygroups.ParseNetworkSecurityGroupID(*propsUnlocked.NetworkSecurityGroup.Id)
 			if err != nil {
-				return fmt.Errorf("parsing existing Network Security Group ID: %+v", err)
+				return err
 			}
 			nsgIds = append(nsgIds, oldNsgId.ID())
 		}
@@ -65,7 +65,7 @@ func resourceSubnetNetworkSecurityGroupAssociationCreate(d *pluginsdk.ResourceDa
 		if propsUnlocked.RouteTable != nil && propsUnlocked.RouteTable.Id != nil {
 			rtId, err := routetables.ParseRouteTableID(*propsUnlocked.RouteTable.Id)
 			if err != nil {
-				return fmt.Errorf("parsing existing Route Table ID: %+v", err)
+				return err
 			}
 			rtIds = append(rtIds, rtId.ID())
 		}

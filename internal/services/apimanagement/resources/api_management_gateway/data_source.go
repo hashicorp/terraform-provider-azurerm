@@ -80,7 +80,7 @@ func dataSourceApiManagementGatewayRead(d *pluginsdk.ResourceData, meta any) err
 
 	apimId, err := apimanagementservice.ParseServiceID(d.Get("api_management_id").(string))
 	if err != nil {
-		return fmt.Errorf("parsing `api_management_id`: %v", err)
+		return err
 	}
 
 	id := gateway.NewGatewayID(apimId.SubscriptionId, apimId.ResourceGroupName, apimId.ServiceName, d.Get("name").(string))

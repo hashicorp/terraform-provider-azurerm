@@ -26,7 +26,7 @@ func resourceIpGroupUpdate(d *pluginsdk.ResourceData, meta any) error {
 	for _, fw := range d.Get("firewall_ids").([]any) {
 		id, err := azurefirewalls.ParseAzureFirewallID(fw.(string))
 		if err != nil {
-			return fmt.Errorf("parsing Azure Firewall ID %q: %+v", fw, err)
+			return err
 		}
 		locks.ByName(id.AzureFirewallName, firewall.AzureFirewallResourceName)
 		defer locks.UnlockByName(id.AzureFirewallName, firewall.AzureFirewallResourceName)
@@ -35,7 +35,7 @@ func resourceIpGroupUpdate(d *pluginsdk.ResourceData, meta any) error {
 	for _, fwpol := range d.Get("firewall_policy_ids").([]any) {
 		id, err := firewallpolicies.ParseFirewallPolicyID(fwpol.(string))
 		if err != nil {
-			return fmt.Errorf("parsing Azure Firewall Policy ID %q: %+v", fwpol, err)
+			return err
 		}
 		locks.ByName(id.FirewallPolicyName, firewall.AzureFirewallPolicyResourceName)
 		defer locks.UnlockByName(id.FirewallPolicyName, firewall.AzureFirewallPolicyResourceName)

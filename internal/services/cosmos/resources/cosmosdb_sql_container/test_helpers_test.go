@@ -113,9 +113,9 @@ resource "azurerm_cosmosdb_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, string(kind), capeTf)
 }
 
-type CosmosSqlDatabaseResource struct{}
+type CosmosdbSqlDatabaseResource struct{}
 
-func (CosmosSqlDatabaseResource) basic(data acceptance.TestData) string {
+func (CosmosdbSqlDatabaseResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -127,7 +127,7 @@ resource "azurerm_cosmosdb_sql_database" "test" {
 `, CosmosDBAccountResource{}.basic(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelStrong), data.RandomInteger)
 }
 
-func (CosmosSqlDatabaseResource) serverless(data acceptance.TestData) string {
+func (CosmosdbSqlDatabaseResource) serverless(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 resource "azurerm_cosmosdb_sql_database" "test" {

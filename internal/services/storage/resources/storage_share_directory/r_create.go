@@ -56,7 +56,7 @@ func resourceStorageShareDirectoryCreate(d *pluginsdk.ResourceData, meta any) er
 
 	accountId, err := accounts.ParseAccountID(storageShareId.ID(), storageClient.StorageDomainSuffix)
 	if err != nil {
-		return fmt.Errorf("parsing Account ID: %v", err)
+		return err
 	}
 
 	id := directories.NewDirectoryID(*accountId, storageShareId.ShareName, directoryName)

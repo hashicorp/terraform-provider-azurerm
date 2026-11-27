@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type LoadBalancer struct{}
+type LbResource struct{}
 
 func TestAccAzureRMLoadBalancer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
-	r := LoadBalancer{}
+	r := LbResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,7 +36,7 @@ func TestAccAzureRMLoadBalancer_basic(t *testing.T) {
 
 func TestAccAzureRMLoadBalancer_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
-	r := LoadBalancer{}
+	r := LbResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -51,7 +51,7 @@ func TestAccAzureRMLoadBalancer_requiresImport(t *testing.T) {
 
 func TestAccAzureRMLoadBalancer_standard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
-	r := LoadBalancer{}
+	r := LbResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -66,7 +66,7 @@ func TestAccAzureRMLoadBalancer_standard(t *testing.T) {
 
 func TestAccAzureRMLoadBalancer_frontEndConfigPublicIPPrefix(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
-	r := LoadBalancer{}
+	r := LbResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -82,7 +82,7 @@ func TestAccAzureRMLoadBalancer_frontEndConfigPublicIPPrefix(t *testing.T) {
 
 func TestAccAzureRMLoadBalancer_frontEndConfig(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
-	r := LoadBalancer{}
+	r := LbResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -113,7 +113,7 @@ func TestAccAzureRMLoadBalancer_frontEndConfig(t *testing.T) {
 
 func TestAccAzureRMLoadBalancer_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
-	r := LoadBalancer{}
+	r := LbResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -139,7 +139,7 @@ func TestAccAzureRMLoadBalancer_tags(t *testing.T) {
 
 func TestAccAzureRMLoadBalancer_emptyPrivateIP(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
-	r := LoadBalancer{}
+	r := LbResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -155,7 +155,7 @@ func TestAccAzureRMLoadBalancer_emptyPrivateIP(t *testing.T) {
 
 func TestAccAzureRMLoadBalancer_privateIP(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
-	r := LoadBalancer{}
+	r := LbResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -170,7 +170,7 @@ func TestAccAzureRMLoadBalancer_privateIP(t *testing.T) {
 
 func TestAccAzureRMLoadBalancer_zonesSingle(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
-	r := LoadBalancer{}
+	r := LbResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -191,7 +191,7 @@ func TestAccAzureRMLoadBalancer_zonesSingle(t *testing.T) {
 
 func TestAccAzureRMLoadBalancer_zonesSingleRemoved(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
-	r := LoadBalancer{}
+	r := LbResource{}
 
 	// NOTE: Azure only allows removal of frontend config by recreating (destroy/create) the loadbalancer
 	// This test will cause a recreate scenario on purpose.
@@ -222,7 +222,7 @@ func TestAccAzureRMLoadBalancer_zonesSingleRemoved(t *testing.T) {
 
 func TestAccAzureRMLoadBalancer_zonesMultiple(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
-	r := LoadBalancer{}
+	r := LbResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -237,7 +237,7 @@ func TestAccAzureRMLoadBalancer_zonesMultiple(t *testing.T) {
 
 func TestAccAzureRMLoadBalancer_PointToGatewayLB(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
-	r := LoadBalancer{}
+	r := LbResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -252,7 +252,7 @@ func TestAccAzureRMLoadBalancer_PointToGatewayLB(t *testing.T) {
 
 func TestAccAzureRMLoadBalancer_edgeZone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
-	r := LoadBalancer{}
+	r := LbResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -265,7 +265,7 @@ func TestAccAzureRMLoadBalancer_edgeZone(t *testing.T) {
 	})
 }
 
-func (r LoadBalancer) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r LbResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	plbId := loadbalancers.ProviderLoadBalancerId{SubscriptionId: client.Account.SubscriptionId, ResourceGroupName: state.Attributes["resource_group_name"], LoadBalancerName: state.Attributes["name"]}
 	resp, err := client.LoadBalancers.LoadBalancersClient.Get(ctx, plbId, loadbalancers.GetOperationOptions{})
 	if err != nil {
@@ -279,7 +279,7 @@ func (r LoadBalancer) Exists(ctx context.Context, client *clients.Client, state 
 	return pointer.To(resp.Model != nil && resp.Model.Id != nil), nil
 }
 
-func (r LoadBalancer) basic(data acceptance.TestData) string {
+func (r LbResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -303,7 +303,7 @@ resource "azurerm_lb" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r LoadBalancer) requiresImport(data acceptance.TestData) string {
+func (r LbResource) requiresImport(data acceptance.TestData) string {
 	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -321,7 +321,7 @@ resource "azurerm_lb" "import" {
 `, template)
 }
 
-func (r LoadBalancer) standard(data acceptance.TestData) string {
+func (r LbResource) standard(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -347,7 +347,7 @@ resource "azurerm_lb" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r LoadBalancer) updatedTags(data acceptance.TestData) string {
+func (r LbResource) updatedTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -370,7 +370,7 @@ resource "azurerm_lb" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r LoadBalancer) frontEndConfig(data acceptance.TestData) string {
+func (r LbResource) frontEndConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -413,7 +413,7 @@ resource "azurerm_lb" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (r LoadBalancer) frontEndConfigRemovalWithIP(data acceptance.TestData) string {
+func (r LbResource) frontEndConfigRemovalWithIP(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -451,7 +451,7 @@ resource "azurerm_lb" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (r LoadBalancer) frontEndConfigPublicIPPrefix(data acceptance.TestData) string {
+func (r LbResource) frontEndConfigPublicIPPrefix(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -483,7 +483,7 @@ resource "azurerm_lb" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (r LoadBalancer) frontEndConfigRemoval(data acceptance.TestData) string {
+func (r LbResource) frontEndConfigRemoval(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -514,7 +514,7 @@ resource "azurerm_lb" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (r LoadBalancer) emptyPrivateIPAddress(data acceptance.TestData) string {
+func (r LbResource) emptyPrivateIPAddress(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -555,7 +555,7 @@ resource "azurerm_lb" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (r LoadBalancer) privateIPAddress(data acceptance.TestData) string {
+func (r LbResource) privateIPAddress(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -597,7 +597,7 @@ resource "azurerm_lb" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (r LoadBalancer) zonesSingle(data acceptance.TestData) string {
+func (r LbResource) zonesSingle(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -641,7 +641,7 @@ resource "azurerm_lb" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r LoadBalancer) zonesSingleUpdated(data acceptance.TestData) string {
+func (r LbResource) zonesSingleUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -690,7 +690,7 @@ resource "azurerm_lb" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r LoadBalancer) zonesSingleRemove(data acceptance.TestData) string {
+func (r LbResource) zonesSingleRemove(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -725,7 +725,7 @@ resource "azurerm_lb" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r LoadBalancer) zonesMultiple(data acceptance.TestData) string {
+func (r LbResource) zonesMultiple(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -768,7 +768,7 @@ resource "azurerm_lb" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r LoadBalancer) pointToGatewayLB(data acceptance.TestData) string {
+func (r LbResource) pointToGatewayLB(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -839,7 +839,7 @@ resource "azurerm_lb" "consumer" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r LoadBalancer) edgeZone(data acceptance.TestData) string {
+func (r LbResource) edgeZone(data acceptance.TestData) string {
 	// @tombuildsstuff: WestUS has an edge zone available - so hard-code to that for now
 	data.Locations.Primary = "westus"
 

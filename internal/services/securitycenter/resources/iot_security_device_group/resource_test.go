@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type DeviceSecurityGroupResource struct{}
+type IotSecurityDeviceGroupResource struct{}
 
 func TestAccIotSecurityDeviceGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iot_security_device_group", "test")
-	r := DeviceSecurityGroupResource{}
+	r := IotSecurityDeviceGroupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccIotSecurityDeviceGroup_basic(t *testing.T) {
 
 func TestAccIotSecurityDeviceGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iot_security_device_group", "test")
-	r := DeviceSecurityGroupResource{}
+	r := IotSecurityDeviceGroupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccIotSecurityDeviceGroup_requiresImport(t *testing.T) {
 
 func TestAccIotSecurityDeviceGroup_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iot_security_device_group", "test")
-	r := DeviceSecurityGroupResource{}
+	r := IotSecurityDeviceGroupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -65,7 +65,7 @@ func TestAccIotSecurityDeviceGroup_complete(t *testing.T) {
 
 func TestAccIotSecurityDeviceGroup_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iot_security_device_group", "test")
-	r := DeviceSecurityGroupResource{}
+	r := IotSecurityDeviceGroupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -92,7 +92,7 @@ func TestAccIotSecurityDeviceGroup_update(t *testing.T) {
 	})
 }
 
-func (DeviceSecurityGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (IotSecurityDeviceGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.IotSecurityDeviceGroupID(state.ID)
 	if err != nil {
 		return nil, err
@@ -106,7 +106,7 @@ func (DeviceSecurityGroupResource) Exists(ctx context.Context, clients *clients.
 	return pointer.To(resp.DeviceSecurityGroupProperties != nil), nil
 }
 
-func (r DeviceSecurityGroupResource) basic(data acceptance.TestData) string {
+func (r IotSecurityDeviceGroupResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -119,7 +119,7 @@ resource "azurerm_iot_security_device_group" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r DeviceSecurityGroupResource) requiresImport(data acceptance.TestData) string {
+func (r IotSecurityDeviceGroupResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -130,7 +130,7 @@ resource "azurerm_iot_security_device_group" "import" {
 `, r.basic(data))
 }
 
-func (r DeviceSecurityGroupResource) complete(data acceptance.TestData) string {
+func (r IotSecurityDeviceGroupResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -263,7 +263,7 @@ resource "azurerm_iot_security_device_group" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (DeviceSecurityGroupResource) template(data acceptance.TestData) string {
+func (IotSecurityDeviceGroupResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

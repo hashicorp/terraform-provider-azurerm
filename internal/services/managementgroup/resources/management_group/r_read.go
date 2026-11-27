@@ -90,7 +90,7 @@ func flattenManagementGroupSubscriptionIds(input *[]managementgroups.ManagementG
 
 		id, err := commonids.ParseSubscriptionID(*child.Id)
 		if err != nil {
-			return nil, fmt.Errorf("unable to parse child Subscription ID %+v", err)
+			return nil, err
 		}
 
 		if id != nil {
@@ -116,7 +116,7 @@ func determineManagementGroupSubscriptionsIdsToRemove(existing *[]managementgrou
 
 		id, err := commonids.ParseSubscriptionID(*v.Id)
 		if err != nil {
-			return nil, fmt.Errorf("unable to parse Subscription ID %q: %+v", *v.Id, err)
+			return nil, err
 		}
 
 		// not a Subscription - so let's skip it

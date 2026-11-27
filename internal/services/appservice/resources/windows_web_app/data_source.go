@@ -364,7 +364,7 @@ func (d DataSource) Read() sdk.ResourceFunc {
 					}
 					servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(pointer.From(props.ServerFarmId))
 					if err != nil {
-						return fmt.Errorf("parsing Service Plan ID for %s, %+v", id, err)
+						return err
 					}
 					webApp.ServicePlanId = servicePlanId.ID()
 					webApp.OutboundIPAddresses = pointer.From(props.OutboundIPAddresses)

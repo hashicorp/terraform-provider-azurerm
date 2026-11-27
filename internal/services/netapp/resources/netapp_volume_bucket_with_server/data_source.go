@@ -83,7 +83,7 @@ func (r DataSource) Read() sdk.ResourceFunc {
 
 			volumeID, err := volumes.ParseVolumeID(state.NetAppVolumeID)
 			if err != nil {
-				return fmt.Errorf("parsing volume id %s: %+v", state.NetAppVolumeID, err)
+				return err
 			}
 
 			id := buckets.NewBucketID(volumeID.SubscriptionId, volumeID.ResourceGroupName, volumeID.NetAppAccountName, volumeID.CapacityPoolName, volumeID.VolumeName, state.Name)

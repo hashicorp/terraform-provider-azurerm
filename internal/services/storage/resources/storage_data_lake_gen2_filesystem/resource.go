@@ -32,7 +32,7 @@ func RegisterResource() *pluginsdk.Resource {
 
 			id, err := filesystems.ParseFileSystemID(d.Id(), storageClient.StorageDomainSuffix)
 			if err != nil {
-				return []*pluginsdk.ResourceData{d}, fmt.Errorf("parsing ID %q for import of Data Lake Gen2 File System: %v", d.Id(), err)
+				return []*pluginsdk.ResourceData{d}, err
 			}
 
 			// we then need to look up the Storage Account ID

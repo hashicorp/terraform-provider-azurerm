@@ -44,7 +44,7 @@ func (Resource) Delete() sdk.ResourceFunc {
 					for _, volumeId := range volumeIds {
 						volId, err := volumes.ParseVolumeID(volumeId)
 						if err != nil {
-							return fmt.Errorf("parsing volume ID %q: %+v", volumeId, err)
+							return err
 						}
 
 						// Update volume to remove snapshot policy

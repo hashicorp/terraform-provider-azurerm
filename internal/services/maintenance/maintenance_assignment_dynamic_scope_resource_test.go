@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type MaintenanceDynamicScopeResource struct{}
+type MaintenanceAssignmentDynamicScopeResource struct{}
 
 func TestAccMaintenanceAssignmentDynamicScope_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_maintenance_assignment_dynamic_scope", "test")
-	r := MaintenanceDynamicScopeResource{}
+	r := MaintenanceAssignmentDynamicScopeResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccMaintenanceAssignmentDynamicScope_basic(t *testing.T) {
 
 func TestAccMaintenanceAssignmentDynamicScope_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_maintenance_assignment_dynamic_scope", "test")
-	r := MaintenanceDynamicScopeResource{}
+	r := MaintenanceAssignmentDynamicScopeResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccMaintenanceAssignmentDynamicScope_complete(t *testing.T) {
 
 func TestAccMaintenanceAssignmentDynamicScope_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_maintenance_assignment_dynamic_scope", "test")
-	r := MaintenanceDynamicScopeResource{}
+	r := MaintenanceAssignmentDynamicScopeResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -79,7 +79,7 @@ func TestAccMaintenanceAssignmentDynamicScope_update(t *testing.T) {
 
 func TestAccMaintenanceAssignmentDynamicScope_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_maintenance_assignment_dynamic_scope", "test")
-	r := MaintenanceDynamicScopeResource{}
+	r := MaintenanceAssignmentDynamicScopeResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -92,7 +92,7 @@ func TestAccMaintenanceAssignmentDynamicScope_requiresImport(t *testing.T) {
 	})
 }
 
-func (MaintenanceDynamicScopeResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (MaintenanceAssignmentDynamicScopeResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := configurationassignments.ParseConfigurationAssignmentID(state.ID)
 	if err != nil {
 		return nil, err
@@ -106,7 +106,7 @@ func (MaintenanceDynamicScopeResource) Exists(ctx context.Context, clients *clie
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r MaintenanceDynamicScopeResource) basic(data acceptance.TestData) string {
+func (r MaintenanceAssignmentDynamicScopeResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -125,7 +125,7 @@ resource "azurerm_maintenance_assignment_dynamic_scope" "test" {
 `, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (r MaintenanceDynamicScopeResource) complete(data acceptance.TestData) string {
+func (r MaintenanceAssignmentDynamicScopeResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -152,7 +152,7 @@ resource "azurerm_maintenance_assignment_dynamic_scope" "test" {
 `, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (r MaintenanceDynamicScopeResource) requiresImport(data acceptance.TestData) string {
+func (r MaintenanceAssignmentDynamicScopeResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -166,7 +166,7 @@ resource "azurerm_maintenance_assignment_dynamic_scope" "import" {
 `, r.basic(data))
 }
 
-func (MaintenanceDynamicScopeResource) template(data acceptance.TestData) string {
+func (MaintenanceAssignmentDynamicScopeResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-maint-%[1]d"

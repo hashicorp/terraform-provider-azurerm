@@ -31,7 +31,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 			var id sentinelonboardingstates.OnboardingStateId
 			parsedWorkspaceId, err := workspaces.ParseWorkspaceID(model.WorkspaceId)
 			if err != nil {
-				return fmt.Errorf("parsing `log_analytics_workspace_id`: %+v", err)
+				return err
 			}
 			id = sentinelonboardingstates.NewOnboardingStateID(parsedWorkspaceId.SubscriptionId, parsedWorkspaceId.ResourceGroupName, parsedWorkspaceId.WorkspaceName, "default")
 

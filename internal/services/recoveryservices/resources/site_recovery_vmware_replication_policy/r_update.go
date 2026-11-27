@@ -25,7 +25,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 
 			id, err := replicationpolicies.ParseReplicationPolicyID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("parsing %s: %+v", metadata.ResourceData.Id(), err)
+				return err
 			}
 
 			client := metadata.Client.RecoveryServices.ReplicationPoliciesClient

@@ -18,11 +18,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type MachineLearningDataStoreDataLakeGen2 struct{}
+type MachineLearningDatastoreDatalakeGen2Resource struct{}
 
 func TestAccMachineLearningDataStoreDataLakeGen2_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_datastore_datalake_gen2", "test")
-	r := MachineLearningDataStoreDataLakeGen2{}
+	r := MachineLearningDatastoreDatalakeGen2Resource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -37,7 +37,7 @@ func TestAccMachineLearningDataStoreDataLakeGen2_basic(t *testing.T) {
 
 func TestAccMachineLearningDataStoreDataLakeGen2_spn(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_datastore_datalake_gen2", "test")
-	r := MachineLearningDataStoreDataLakeGen2{}
+	r := MachineLearningDatastoreDatalakeGen2Resource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -56,7 +56,7 @@ func TestAccMachineLearningDataStoreDataLakeGen2_crossSubStorageAccount(t *testi
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_datastore_datalake_gen2", "test")
-	r := MachineLearningDataStoreDataLakeGen2{}
+	r := MachineLearningDatastoreDatalakeGen2Resource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -71,7 +71,7 @@ func TestAccMachineLearningDataStoreDataLakeGen2_crossSubStorageAccount(t *testi
 
 func TestAccMachineLearningDataStoreDataLakeGen2_Update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_datastore_datalake_gen2", "test")
-	r := MachineLearningDataStoreDataLakeGen2{}
+	r := MachineLearningDatastoreDatalakeGen2Resource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -93,7 +93,7 @@ func TestAccMachineLearningDataStoreDataLakeGen2_Update(t *testing.T) {
 
 func TestAccMachineLearningDataStoreDataLakeGen2_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_datastore_datalake_gen2", "test")
-	r := MachineLearningDataStoreDataLakeGen2{}
+	r := MachineLearningDatastoreDatalakeGen2Resource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -106,7 +106,7 @@ func TestAccMachineLearningDataStoreDataLakeGen2_requiresImport(t *testing.T) {
 	})
 }
 
-func (r MachineLearningDataStoreDataLakeGen2) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r MachineLearningDatastoreDatalakeGen2Resource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	dataStoreClient := client.MachineLearning.Datastore
 	id, err := datastore.ParseDataStoreID(state.ID)
 	if err != nil {
@@ -124,7 +124,7 @@ func (r MachineLearningDataStoreDataLakeGen2) Exists(ctx context.Context, client
 	return pointer.To(resp.Model.Properties != nil), nil
 }
 
-func (r MachineLearningDataStoreDataLakeGen2) dataLakeGen2Basic(data acceptance.TestData) string {
+func (r MachineLearningDatastoreDatalakeGen2Resource) dataLakeGen2Basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -143,7 +143,7 @@ resource "azurerm_machine_learning_datastore_datalake_gen2" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r MachineLearningDataStoreDataLakeGen2) dataLakeGen2Spn(data acceptance.TestData) string {
+func (r MachineLearningDatastoreDatalakeGen2Resource) dataLakeGen2Spn(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -176,7 +176,7 @@ resource "azurerm_machine_learning_datastore_datalake_gen2" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r MachineLearningDataStoreDataLakeGen2) dataLakeGen2CrossSubStorageAccount(data acceptance.TestData) string {
+func (r MachineLearningDatastoreDatalakeGen2Resource) dataLakeGen2CrossSubStorageAccount(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -234,7 +234,7 @@ resource "azurerm_machine_learning_datastore_datalake_gen2" "crosssub" {
 	`, template, data.RandomInteger, os.Getenv("ARM_SUBSCRIPTION_ID_ALT"), data.Locations.Primary, data.RandomIntOfLength(10))
 }
 
-func (r MachineLearningDataStoreDataLakeGen2) requiresImport(data acceptance.TestData) string {
+func (r MachineLearningDatastoreDatalakeGen2Resource) requiresImport(data acceptance.TestData) string {
 	template := r.dataLakeGen2Basic(data)
 	return fmt.Sprintf(`
 %s
@@ -247,7 +247,7 @@ resource "azurerm_machine_learning_datastore_datalake_gen2" "import" {
 `, template)
 }
 
-func (r MachineLearningDataStoreDataLakeGen2) template(data acceptance.TestData) string {
+func (r MachineLearningDatastoreDatalakeGen2Resource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {

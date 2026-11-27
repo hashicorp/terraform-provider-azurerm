@@ -24,7 +24,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 			client := metadata.Client.DevCenter.V20250201.Catalogs
 			id, err := catalogs.ParseDevCenterCatalogID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("parsing catalog id: %+v", err)
+				return err
 			}
 
 			resp, err := client.Get(ctx, *id)

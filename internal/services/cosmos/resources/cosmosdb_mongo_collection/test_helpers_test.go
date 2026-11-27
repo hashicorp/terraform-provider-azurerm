@@ -121,9 +121,9 @@ resource "azurerm_cosmosdb_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, string(consistency))
 }
 
-type CosmosMongoDatabaseResource struct{}
+type CosmosdbMongoDatabaseResource struct{}
 
-func (CosmosMongoDatabaseResource) basic(data acceptance.TestData) string {
+func (CosmosdbMongoDatabaseResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 

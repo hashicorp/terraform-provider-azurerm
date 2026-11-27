@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type LinkedServiceKustoResource struct{}
+type DataFactoryLinkedServiceKustoResource struct{}
 
 func TestAccDataFactoryLinkedServiceKusto_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_kusto", "test")
-	r := LinkedServiceKustoResource{}
+	r := DataFactoryLinkedServiceKustoResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccDataFactoryLinkedServiceKusto_regressionTest(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceKusto_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_kusto", "test")
-	r := LinkedServiceKustoResource{}
+	r := DataFactoryLinkedServiceKustoResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,7 +46,7 @@ func TestAccDataFactoryLinkedServiceKusto_basic(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceKusto_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_kusto", "test")
-	r := LinkedServiceKustoResource{}
+	r := DataFactoryLinkedServiceKustoResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -61,7 +61,7 @@ func TestAccDataFactoryLinkedServiceKusto_requiresImport(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceKusto_servicePrincipal(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_kusto", "test")
-	r := LinkedServiceKustoResource{}
+	r := DataFactoryLinkedServiceKustoResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -76,7 +76,7 @@ func TestAccDataFactoryLinkedServiceKusto_servicePrincipal(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceKusto_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_kusto", "test")
-	r := LinkedServiceKustoResource{}
+	r := DataFactoryLinkedServiceKustoResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -91,7 +91,7 @@ func TestAccDataFactoryLinkedServiceKusto_complete(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceKusto_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_kusto", "test")
-	r := LinkedServiceKustoResource{}
+	r := DataFactoryLinkedServiceKustoResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -118,7 +118,7 @@ func TestAccDataFactoryLinkedServiceKusto_update(t *testing.T) {
 	})
 }
 
-func (t LinkedServiceKustoResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t DataFactoryLinkedServiceKustoResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.LinkedServiceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -132,7 +132,7 @@ func (t LinkedServiceKustoResource) Exists(ctx context.Context, clients *clients
 	return pointer.To(resp.ID != nil), nil
 }
 
-func (r LinkedServiceKustoResource) basic(data acceptance.TestData) string {
+func (r DataFactoryLinkedServiceKustoResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -146,7 +146,7 @@ resource "azurerm_data_factory_linked_service_kusto" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LinkedServiceKustoResource) requiresImport(data acceptance.TestData) string {
+func (r DataFactoryLinkedServiceKustoResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -160,7 +160,7 @@ resource "azurerm_data_factory_linked_service_kusto" "import" {
 `, r.basic(data))
 }
 
-func (r LinkedServiceKustoResource) servicePrincipal(data acceptance.TestData) string {
+func (r DataFactoryLinkedServiceKustoResource) servicePrincipal(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -179,7 +179,7 @@ resource "azurerm_data_factory_linked_service_kusto" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LinkedServiceKustoResource) complete(data acceptance.TestData) string {
+func (r DataFactoryLinkedServiceKustoResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -206,7 +206,7 @@ resource "azurerm_data_factory_linked_service_kusto" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (LinkedServiceKustoResource) template(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceKustoResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

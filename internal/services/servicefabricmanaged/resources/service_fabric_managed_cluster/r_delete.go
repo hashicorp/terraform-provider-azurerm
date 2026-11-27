@@ -17,7 +17,7 @@ func (k Resource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			resourceId, err := managedcluster.ParseManagedClusterID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("while parsing resourceID: %+v", err)
+				return err
 			}
 			clusterClient := metadata.Client.ServiceFabricManaged.ManagedClusterClient
 

@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type BackupProtectionPolicyFileShareResource struct{}
+type BackupPolicyFileShareResource struct{}
 
 func TestAccBackupProtectionPolicyFileShare_basicDaily(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
-	r := BackupProtectionPolicyFileShareResource{}
+	r := BackupPolicyFileShareResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -38,7 +38,7 @@ func TestAccBackupProtectionPolicyFileShare_basicDaily(t *testing.T) {
 
 func TestAccBackupProtectionPolicyFileShare_basicHourly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
-	r := BackupProtectionPolicyFileShareResource{}
+	r := BackupPolicyFileShareResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -58,7 +58,7 @@ func TestAccBackupProtectionPolicyFileShare_basicHourly(t *testing.T) {
 
 func TestAccBackupProtectionPolicyFileShare_updateHourly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
-	r := BackupProtectionPolicyFileShareResource{}
+	r := BackupPolicyFileShareResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -90,7 +90,7 @@ func TestAccBackupProtectionPolicyFileShare_updateHourly(t *testing.T) {
 
 func TestAccBackupProtectionPolicyFileShare_vaultStandard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
-	r := BackupProtectionPolicyFileShareResource{}
+	r := BackupPolicyFileShareResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -105,7 +105,7 @@ func TestAccBackupProtectionPolicyFileShare_vaultStandard(t *testing.T) {
 
 func TestAccBackupProtectionPolicyFileShare_updateVaultStandard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
-	r := BackupProtectionPolicyFileShareResource{}
+	r := BackupPolicyFileShareResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -141,7 +141,7 @@ func TestAccBackupProtectionPolicyFileShare_updateVaultStandard(t *testing.T) {
 
 func TestAccBackupProtectionPolicyFileShare_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
-	r := BackupProtectionPolicyFileShareResource{}
+	r := BackupPolicyFileShareResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -156,7 +156,7 @@ func TestAccBackupProtectionPolicyFileShare_requiresImport(t *testing.T) {
 
 func TestAccBackupProtectionPolicyFileShare_WeeklyRetention(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
-	r := BackupProtectionPolicyFileShareResource{}
+	r := BackupPolicyFileShareResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -176,7 +176,7 @@ func TestAccBackupProtectionPolicyFileShare_WeeklyRetention(t *testing.T) {
 
 func TestAccBackupProtectionPolicyFileShare_WeeklyRetentionImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
-	r := BackupProtectionPolicyFileShareResource{}
+	r := BackupPolicyFileShareResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -191,7 +191,7 @@ func TestAccBackupProtectionPolicyFileShare_WeeklyRetentionImport(t *testing.T) 
 
 func TestAccBackupProtectionPolicyFileShare_MonthlyRetention(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
-	r := BackupProtectionPolicyFileShareResource{}
+	r := BackupPolicyFileShareResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -212,7 +212,7 @@ func TestAccBackupProtectionPolicyFileShare_MonthlyRetention(t *testing.T) {
 
 func TestAccBackupProtectionPolicyFileShare_MonthlyRetentionImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
-	r := BackupProtectionPolicyFileShareResource{}
+	r := BackupPolicyFileShareResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -227,7 +227,7 @@ func TestAccBackupProtectionPolicyFileShare_MonthlyRetentionImport(t *testing.T)
 
 func TestAccBackupProtectionPolicyFileShare_YearlyRetention(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
-	r := BackupProtectionPolicyFileShareResource{}
+	r := BackupPolicyFileShareResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -249,7 +249,7 @@ func TestAccBackupProtectionPolicyFileShare_YearlyRetention(t *testing.T) {
 
 func TestAccBackupProtectionPolicyFileShare_YearlyRetentionImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
-	r := BackupProtectionPolicyFileShareResource{}
+	r := BackupPolicyFileShareResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -264,7 +264,7 @@ func TestAccBackupProtectionPolicyFileShare_YearlyRetentionImport(t *testing.T) 
 
 func TestAccBackupProtectionPolicyFileShare_completeDaily(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
-	r := BackupProtectionPolicyFileShareResource{}
+	r := BackupPolicyFileShareResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -279,7 +279,7 @@ func TestAccBackupProtectionPolicyFileShare_completeDaily(t *testing.T) {
 
 func TestAccBackupProtectionPolicyFileShare_updateDaily(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
-	r := BackupProtectionPolicyFileShareResource{}
+	r := BackupPolicyFileShareResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -312,7 +312,7 @@ func TestAccBackupProtectionPolicyFileShare_updateDaily(t *testing.T) {
 
 func TestAccBackupProtectionPolicyFileShare_updateDailyRetentionToWeekly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
-	r := BackupProtectionPolicyFileShareResource{}
+	r := BackupPolicyFileShareResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -338,7 +338,7 @@ func TestAccBackupProtectionPolicyFileShare_updateDailyRetentionToWeekly(t *test
 
 func TestAccBackupProtectionPolicyFileShare_updateWeeklyRetentionToMonthly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
-	r := BackupProtectionPolicyFileShareResource{}
+	r := BackupPolicyFileShareResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -365,7 +365,7 @@ func TestAccBackupProtectionPolicyFileShare_updateWeeklyRetentionToMonthly(t *te
 
 func TestAccBackupProtectionPolicyFileShare_updateMonthlyRetentionToYearly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
-	r := BackupProtectionPolicyFileShareResource{}
+	r := BackupPolicyFileShareResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -393,7 +393,7 @@ func TestAccBackupProtectionPolicyFileShare_updateMonthlyRetentionToYearly(t *te
 
 func TestAccBackupProtectionPolicyFileShare_updateYearlyRetentionToDaily(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
-	r := BackupProtectionPolicyFileShareResource{}
+	r := BackupPolicyFileShareResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -417,7 +417,7 @@ func TestAccBackupProtectionPolicyFileShare_updateYearlyRetentionToDaily(t *test
 
 func TestAccBackupProtectionPolicyFileShare_updateDailyToPartial(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
-	r := BackupProtectionPolicyFileShareResource{}
+	r := BackupPolicyFileShareResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -439,7 +439,7 @@ func TestAccBackupProtectionPolicyFileShare_updateDailyToPartial(t *testing.T) {
 
 func TestAccBackupProtectionPolicyFileShare_basicDays(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
-	r := BackupProtectionPolicyFileShareResource{}
+	r := BackupPolicyFileShareResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -454,7 +454,7 @@ func TestAccBackupProtectionPolicyFileShare_basicDays(t *testing.T) {
 
 func TestAccBackupProtectionPolicyFileShare_completeDays(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
-	r := BackupProtectionPolicyFileShareResource{}
+	r := BackupPolicyFileShareResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -467,7 +467,7 @@ func TestAccBackupProtectionPolicyFileShare_completeDays(t *testing.T) {
 	})
 }
 
-func (t BackupProtectionPolicyFileShareResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t BackupPolicyFileShareResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := protectionpolicies.ParseBackupPolicyID(state.ID)
 	if err != nil {
 		return nil, err
@@ -481,7 +481,7 @@ func (t BackupProtectionPolicyFileShareResource) Exists(ctx context.Context, cli
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (BackupProtectionPolicyFileShareResource) template(data acceptance.TestData) string {
+func (BackupPolicyFileShareResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -501,7 +501,7 @@ resource "azurerm_recovery_services_vault" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r BackupProtectionPolicyFileShareResource) basicDaily(data acceptance.TestData) string {
+func (r BackupPolicyFileShareResource) basicDaily(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -522,7 +522,7 @@ resource "azurerm_backup_policy_file_share" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r BackupProtectionPolicyFileShareResource) basicHourly(data acceptance.TestData) string {
+func (r BackupPolicyFileShareResource) basicHourly(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -548,7 +548,7 @@ resource "azurerm_backup_policy_file_share" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r BackupProtectionPolicyFileShareResource) hourlyInterval(data acceptance.TestData, interval int) string {
+func (r BackupPolicyFileShareResource) hourlyInterval(data acceptance.TestData, interval int) string {
 	return fmt.Sprintf(`
 %s
 
@@ -574,7 +574,7 @@ resource "azurerm_backup_policy_file_share" "test" {
 `, r.template(data), data.RandomInteger, interval)
 }
 
-func (r BackupProtectionPolicyFileShareResource) vaultStandard(data acceptance.TestData) string {
+func (r BackupPolicyFileShareResource) vaultStandard(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -604,7 +604,7 @@ resource "azurerm_backup_policy_file_share" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r BackupProtectionPolicyFileShareResource) vaultStandardUpdated(data acceptance.TestData) string {
+func (r BackupPolicyFileShareResource) vaultStandardUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -634,7 +634,7 @@ resource "azurerm_backup_policy_file_share" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r BackupProtectionPolicyFileShareResource) requiresImport(data acceptance.TestData) string {
+func (r BackupPolicyFileShareResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -655,7 +655,7 @@ resource "azurerm_backup_policy_file_share" "import" {
 `, r.basicDaily(data))
 }
 
-func (r BackupProtectionPolicyFileShareResource) WeeklyRetention(data acceptance.TestData) string {
+func (r BackupPolicyFileShareResource) WeeklyRetention(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -682,7 +682,7 @@ resource "azurerm_backup_policy_file_share" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r BackupProtectionPolicyFileShareResource) WeeklyRetentionImport(data acceptance.TestData) string {
+func (r BackupPolicyFileShareResource) WeeklyRetentionImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -709,7 +709,7 @@ resource "azurerm_backup_policy_file_share" "import" {
 `, r.WeeklyRetention(data))
 }
 
-func (r BackupProtectionPolicyFileShareResource) MonthlyRetention(data acceptance.TestData) string {
+func (r BackupPolicyFileShareResource) MonthlyRetention(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -737,7 +737,7 @@ resource "azurerm_backup_policy_file_share" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r BackupProtectionPolicyFileShareResource) MonthlyRetentionImport(data acceptance.TestData) string {
+func (r BackupPolicyFileShareResource) MonthlyRetentionImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -765,7 +765,7 @@ resource "azurerm_backup_policy_file_share" "import" {
 `, r.MonthlyRetention(data))
 }
 
-func (r BackupProtectionPolicyFileShareResource) YearlyRetention(data acceptance.TestData) string {
+func (r BackupPolicyFileShareResource) YearlyRetention(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -794,7 +794,7 @@ resource "azurerm_backup_policy_file_share" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r BackupProtectionPolicyFileShareResource) YearlyRetentionImport(data acceptance.TestData) string {
+func (r BackupPolicyFileShareResource) YearlyRetentionImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -823,7 +823,7 @@ resource "azurerm_backup_policy_file_share" "import" {
 `, r.YearlyRetention(data))
 }
 
-func (r BackupProtectionPolicyFileShareResource) completeDaily(data acceptance.TestData) string {
+func (r BackupPolicyFileShareResource) completeDaily(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -863,7 +863,7 @@ resource "azurerm_backup_policy_file_share" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r BackupProtectionPolicyFileShareResource) completeDailyPartial(data acceptance.TestData) string {
+func (r BackupPolicyFileShareResource) completeDailyPartial(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -902,7 +902,7 @@ resource "azurerm_backup_policy_file_share" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r BackupProtectionPolicyFileShareResource) daysBasic(data acceptance.TestData) string {
+func (r BackupPolicyFileShareResource) daysBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -935,7 +935,7 @@ resource "azurerm_backup_policy_file_share" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r BackupProtectionPolicyFileShareResource) daysComplete(data acceptance.TestData) string {
+func (r BackupPolicyFileShareResource) daysComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 

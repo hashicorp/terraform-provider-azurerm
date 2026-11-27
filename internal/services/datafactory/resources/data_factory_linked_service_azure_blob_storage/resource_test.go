@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type LinkedServiceAzureBlobStorageResource struct{}
+type DataFactoryLinkedServiceAzureBlobStorageResource struct{}
 
 func TestAccDataFactoryLinkedServiceAzureBlobStorage_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_blob_storage", "test")
-	r := LinkedServiceAzureBlobStorageResource{}
+	r := DataFactoryLinkedServiceAzureBlobStorageResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -32,7 +32,7 @@ func TestAccDataFactoryLinkedServiceAzureBlobStorage_regressionTest(t *testing.T
 
 func TestAccDataFactoryLinkedServiceAzureBlobStorage_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_blob_storage", "test")
-	r := LinkedServiceAzureBlobStorageResource{}
+	r := DataFactoryLinkedServiceAzureBlobStorageResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -47,7 +47,7 @@ func TestAccDataFactoryLinkedServiceAzureBlobStorage_basic(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceAzureBlobStorage_managedId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_blob_storage", "test")
-	r := LinkedServiceAzureBlobStorageResource{}
+	r := DataFactoryLinkedServiceAzureBlobStorageResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -62,7 +62,7 @@ func TestAccDataFactoryLinkedServiceAzureBlobStorage_managedId(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceAzureBlobStorage_sasUri(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_blob_storage", "test")
-	r := LinkedServiceAzureBlobStorageResource{}
+	r := DataFactoryLinkedServiceAzureBlobStorageResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -77,7 +77,7 @@ func TestAccDataFactoryLinkedServiceAzureBlobStorage_sasUri(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceAzureBlobStorage_sasUriWithSasTokenLinkedKeyVaultKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_blob_storage", "test")
-	r := LinkedServiceAzureBlobStorageResource{}
+	r := DataFactoryLinkedServiceAzureBlobStorageResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -93,7 +93,7 @@ func TestAccDataFactoryLinkedServiceAzureBlobStorage_sasUriWithSasTokenLinkedKey
 
 func TestAccDataFactoryLinkedServiceAzureBlobStorage_serviceEndpointWithServicePrincipalLinkedKeyVaultKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_blob_storage", "test")
-	r := LinkedServiceAzureBlobStorageResource{}
+	r := DataFactoryLinkedServiceAzureBlobStorageResource{}
 
 	tenantID := os.Getenv("ARM_TENANT_ID")
 
@@ -113,7 +113,7 @@ func TestAccDataFactoryLinkedServiceAzureBlobStorage_serviceEndpointWithServiceP
 
 func TestAccDataFactoryLinkedServiceAzureBlobStorage_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_blob_storage", "test")
-	r := LinkedServiceAzureBlobStorageResource{}
+	r := DataFactoryLinkedServiceAzureBlobStorageResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -143,7 +143,7 @@ func TestAccDataFactoryLinkedServiceAzureBlobStorage_update(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceAzureBlobStorage_connectionStringInsecure(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_blob_storage", "test")
-	r := LinkedServiceAzureBlobStorageResource{}
+	r := DataFactoryLinkedServiceAzureBlobStorageResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -156,7 +156,7 @@ func TestAccDataFactoryLinkedServiceAzureBlobStorage_connectionStringInsecure(t 
 	})
 }
 
-func (t LinkedServiceAzureBlobStorageResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t DataFactoryLinkedServiceAzureBlobStorageResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.LinkedServiceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -170,7 +170,7 @@ func (t LinkedServiceAzureBlobStorageResource) Exists(ctx context.Context, clien
 	return pointer.To(resp.ID != nil), nil
 }
 
-func (LinkedServiceAzureBlobStorageResource) basic(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceAzureBlobStorageResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -195,7 +195,7 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceAzureBlobStorageResource) update1(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceAzureBlobStorageResource) update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -232,7 +232,7 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceAzureBlobStorageResource) update2(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceAzureBlobStorageResource) update2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -270,7 +270,7 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceAzureBlobStorageResource) managedId(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceAzureBlobStorageResource) managedId(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -319,7 +319,7 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
 `, data.RandomIntOfLength(10), data.Locations.Primary)
 }
 
-func (LinkedServiceAzureBlobStorageResource) sasUri(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceAzureBlobStorageResource) sasUri(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -350,7 +350,7 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceAzureBlobStorageResource) sasUriWithSasTokenLinkedKeyVaultKey(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceAzureBlobStorageResource) sasUriWithSasTokenLinkedKeyVaultKey(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -400,7 +400,7 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }
 
-func (LinkedServiceAzureBlobStorageResource) serviceEndpointWithServicePrincipalLinkedKeyVaultKey(data acceptance.TestData, tenantID string) string {
+func (DataFactoryLinkedServiceAzureBlobStorageResource) serviceEndpointWithServicePrincipalLinkedKeyVaultKey(data acceptance.TestData, tenantID string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -452,7 +452,7 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, tenantID)
 }
 
-func (LinkedServiceAzureBlobStorageResource) connectionStringInsecure(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceAzureBlobStorageResource) connectionStringInsecure(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -17,7 +17,7 @@ import (
 
 func TestAccBackupProtectionPolicyVM_listByRecoveryVaultID(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
-	r := BackupProtectionPolicyVMResource{}
+	r := BackupPolicyVmResource{}
 	listResourceAddress := "azurerm_backup_policy_vm.list"
 
 	resource.Test(t, resource.TestCase{
@@ -42,7 +42,7 @@ func TestAccBackupProtectionPolicyVM_listByRecoveryVaultID(t *testing.T) {
 }
 
 // provision multiple Backup Policy VM resources for testing
-func (r BackupProtectionPolicyVMResource) basicList(data acceptance.TestData) string {
+func (r BackupPolicyVmResource) basicList(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -66,7 +66,7 @@ resource "azurerm_backup_policy_vm" "test" {
 }
 
 // define the list query for testing by recovery vault ID
-func (r BackupProtectionPolicyVMResource) basicQueryByRecoveryVaultID() string {
+func (r BackupPolicyVmResource) basicQueryByRecoveryVaultID() string {
 	return `
 list "azurerm_backup_policy_vm" "list" {
   provider = azurerm

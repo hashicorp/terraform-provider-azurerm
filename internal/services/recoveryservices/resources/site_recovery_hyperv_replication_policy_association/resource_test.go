@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type SiteRecoverHyperVReplicationPolicyAssociationResource struct{}
+type SiteRecoveryHypervReplicationPolicyAssociationResource struct{}
 
 func TestAccSiteRecoveryHyperVReplicationPolicyAssociation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_hyperv_replication_policy_association", "test")
-	r := SiteRecoverHyperVReplicationPolicyAssociationResource{}
+	r := SiteRecoveryHypervReplicationPolicyAssociationResource{}
 	hostResource := HyperVHostTestResource{}
 
 	data.ResourceTest(t, r, append(hostResource.PrepareHostTestSteps(data), []acceptance.TestStep{
@@ -34,7 +34,7 @@ func TestAccSiteRecoveryHyperVReplicationPolicyAssociation_basic(t *testing.T) {
 	}...))
 }
 
-func (SiteRecoverHyperVReplicationPolicyAssociationResource) basic(data acceptance.TestData) string {
+func (SiteRecoveryHypervReplicationPolicyAssociationResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -54,7 +54,7 @@ resource "azurerm_site_recovery_hyperv_replication_policy_association" "test" {
 `, HyperVHostTestResource{}.template(data), data.RandomInteger)
 }
 
-func (t SiteRecoverHyperVReplicationPolicyAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t SiteRecoveryHypervReplicationPolicyAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := replicationprotectioncontainermappings.ParseReplicationProtectionContainerMappingID(state.ID)
 	if err != nil {
 		return nil, err

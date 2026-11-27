@@ -22,7 +22,7 @@ func resourceMsSqlFirewallRuleRead(d *pluginsdk.ResourceData, meta any) error {
 
 	id, err := firewallrules.ParseFirewallRuleID(d.Id())
 	if err != nil {
-		return fmt.Errorf("parsing ID %q: %+v", d.Id(), err)
+		return err
 	}
 
 	resp, err := client.Get(ctx, *id)

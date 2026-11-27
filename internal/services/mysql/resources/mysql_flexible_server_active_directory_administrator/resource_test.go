@@ -18,11 +18,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type MySQLFlexibleServerAdministratorResource struct{}
+type MysqlFlexibleServerActiveDirectoryAdministratorResource struct{}
 
 func TestAccMySQLFlexibleServerAdministrator_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server_active_directory_administrator", "test")
-	r := MySQLFlexibleServerAdministratorResource{}
+	r := MysqlFlexibleServerActiveDirectoryAdministratorResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -37,7 +37,7 @@ func TestAccMySQLFlexibleServerAdministrator_basic(t *testing.T) {
 
 func TestAccMySQLFlexibleServerAdministrator_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server_active_directory_administrator", "test")
-	r := MySQLFlexibleServerAdministratorResource{}
+	r := MysqlFlexibleServerActiveDirectoryAdministratorResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -52,7 +52,7 @@ func TestAccMySQLFlexibleServerAdministrator_requiresImport(t *testing.T) {
 
 func TestAccMySQLFlexibleServerAdministrator_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server_active_directory_administrator", "test")
-	r := MySQLFlexibleServerAdministratorResource{}
+	r := MysqlFlexibleServerActiveDirectoryAdministratorResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -72,7 +72,7 @@ func TestAccMySQLFlexibleServerAdministrator_update(t *testing.T) {
 	})
 }
 
-func (r MySQLFlexibleServerAdministratorResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r MysqlFlexibleServerActiveDirectoryAdministratorResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.FlexibleServerAzureActiveDirectoryAdministratorID(state.ID)
 	if err != nil {
 		return nil, err
@@ -91,7 +91,7 @@ func (r MySQLFlexibleServerAdministratorResource) Exists(ctx context.Context, cl
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r MySQLFlexibleServerAdministratorResource) template(data acceptance.TestData) string {
+func (r MysqlFlexibleServerActiveDirectoryAdministratorResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -133,7 +133,7 @@ resource "azurerm_mysql_flexible_server" "test" {
 `, data.RandomInteger, data.Locations.Ternary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (r MySQLFlexibleServerAdministratorResource) basic(data acceptance.TestData) string {
+func (r MysqlFlexibleServerActiveDirectoryAdministratorResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -147,7 +147,7 @@ resource "azurerm_mysql_flexible_server_active_directory_administrator" "test" {
 `, r.template(data))
 }
 
-func (r MySQLFlexibleServerAdministratorResource) requiresImport(data acceptance.TestData) string {
+func (r MysqlFlexibleServerActiveDirectoryAdministratorResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -161,7 +161,7 @@ resource "azurerm_mysql_flexible_server_active_directory_administrator" "import"
 `, r.basic(data))
 }
 
-func (r MySQLFlexibleServerAdministratorResource) update(data acceptance.TestData) string {
+func (r MysqlFlexibleServerActiveDirectoryAdministratorResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 

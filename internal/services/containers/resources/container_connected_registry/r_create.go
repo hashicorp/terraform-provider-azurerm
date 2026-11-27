@@ -29,7 +29,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			rid, err := registries.ParseRegistryID(model.ContainerRegistryId)
 			if err != nil {
-				return fmt.Errorf("parsing parent container registry id: %v", err)
+				return err
 			}
 			id := connectedregistries.NewConnectedRegistryID(rid.SubscriptionId, rid.ResourceGroupName, rid.RegistryName, model.Name)
 

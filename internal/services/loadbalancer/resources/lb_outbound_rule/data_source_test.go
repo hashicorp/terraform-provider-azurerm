@@ -13,7 +13,7 @@ import (
 
 func TestAccAzureRMDataSourceLoadBalancerOutboundRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_lb_outbound_rule", "test")
-	r := LoadBalancerOutboundRule{}
+	r := LbOutboundRuleResource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
@@ -29,7 +29,7 @@ func TestAccAzureRMDataSourceLoadBalancerOutboundRule_basic(t *testing.T) {
 
 func TestAccAzureRMDataSourceLoadBalancerOutboundRule_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_lb_outbound_rule", "test")
-	r := LoadBalancerOutboundRule{}
+	r := LbOutboundRuleResource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
@@ -46,7 +46,7 @@ func TestAccAzureRMDataSourceLoadBalancerOutboundRule_complete(t *testing.T) {
 	})
 }
 
-func (r LoadBalancerOutboundRule) basicDataSource(data acceptance.TestData) string {
+func (r LbOutboundRuleResource) basicDataSource(data acceptance.TestData) string {
 	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -58,7 +58,7 @@ data "azurerm_lb_outbound_rule" "test" {
 `, template)
 }
 
-func (r LoadBalancerOutboundRule) completeDataSource(data acceptance.TestData) string {
+func (r LbOutboundRuleResource) completeDataSource(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

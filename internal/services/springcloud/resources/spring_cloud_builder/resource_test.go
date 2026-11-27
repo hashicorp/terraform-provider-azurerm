@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type SpringCloudBuildServiceBuilderResource struct{}
+type SpringCloudBuilderResource struct{}
 
 func TestAccSpringCloudBuildServiceBuilder_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_builder", "test")
-	r := SpringCloudBuildServiceBuilderResource{}
+	r := SpringCloudBuilderResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -35,7 +35,7 @@ func TestAccSpringCloudBuildServiceBuilder_basic(t *testing.T) {
 
 func TestAccSpringCloudBuildServiceBuilder_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_builder", "test")
-	r := SpringCloudBuildServiceBuilderResource{}
+	r := SpringCloudBuilderResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -47,7 +47,7 @@ func TestAccSpringCloudBuildServiceBuilder_requiresImport(t *testing.T) {
 	})
 }
 
-func (r SpringCloudBuildServiceBuilderResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r SpringCloudBuilderResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := appplatform.ParseBuilderID(state.ID)
 	if err != nil {
 		return nil, err
@@ -62,7 +62,7 @@ func (r SpringCloudBuildServiceBuilderResource) Exists(ctx context.Context, clie
 	return pointer.To(true), nil
 }
 
-func (r SpringCloudBuildServiceBuilderResource) template(data acceptance.TestData) string {
+func (r SpringCloudBuilderResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -82,7 +82,7 @@ resource "azurerm_spring_cloud_service" "test" {
 `, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r SpringCloudBuildServiceBuilderResource) basic(data acceptance.TestData) string {
+func (r SpringCloudBuilderResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -103,7 +103,7 @@ resource "azurerm_spring_cloud_builder" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r SpringCloudBuildServiceBuilderResource) requiresImport(data acceptance.TestData) string {
+func (r SpringCloudBuilderResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 %s

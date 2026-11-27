@@ -50,7 +50,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("customer_managed_key_id") {
 				keyVaultKey, err := keyvault.ParseNestedItemID(customerManagedKey.CustomerManagedKeyID, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
 				if err != nil {
-					return fmt.Errorf("could not parse Key Vault Key ID: %+v", err)
+					return err
 				}
 				encryption.VaultBaseURL = keyVaultKey.KeyVaultBaseURL
 				encryption.KeyName = keyVaultKey.Name

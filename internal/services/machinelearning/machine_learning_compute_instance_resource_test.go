@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ComputeInstanceResource struct{}
+type MachineLearningComputeInstanceResource struct{}
 
 func TestAccComputeInstance_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_compute_instance", "test")
-	r := ComputeInstanceResource{}
+	r := MachineLearningComputeInstanceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,7 +36,7 @@ func TestAccComputeInstance_basic(t *testing.T) {
 
 func TestAccComputeInstance_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_compute_instance", "test")
-	r := ComputeInstanceResource{}
+	r := MachineLearningComputeInstanceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -53,7 +53,7 @@ func TestAccComputeInstance_complete(t *testing.T) {
 
 func TestAccComputeInstance_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_compute_instance", "test")
-	r := ComputeInstanceResource{}
+	r := MachineLearningComputeInstanceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -68,7 +68,7 @@ func TestAccComputeInstance_requiresImport(t *testing.T) {
 
 func TestAccComputeInstance_identity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_compute_instance", "test")
-	r := ComputeInstanceResource{}
+	r := MachineLearningComputeInstanceResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -108,7 +108,7 @@ func TestAccComputeInstance_identity(t *testing.T) {
 
 func TestAccComputeInstance_withWorkspaceManagedNetworkAndNoSubnet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_compute_instance", "test")
-	r := ComputeInstanceResource{}
+	r := MachineLearningComputeInstanceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -121,7 +121,7 @@ func TestAccComputeInstance_withWorkspaceManagedNetworkAndNoSubnet(t *testing.T)
 	})
 }
 
-func (r ComputeInstanceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r MachineLearningComputeInstanceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	computeClient := client.MachineLearning.MachineLearningComputes
 	id, err := machinelearningcomputes.ParseComputeID(state.ID)
 	if err != nil {
@@ -138,7 +138,7 @@ func (r ComputeInstanceResource) Exists(ctx context.Context, client *clients.Cli
 	return pointer.To(computeResource.Model.Properties != nil), nil
 }
 
-func (r ComputeInstanceResource) basic(data acceptance.TestData) string {
+func (r MachineLearningComputeInstanceResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 
 	return fmt.Sprintf(`
@@ -153,7 +153,7 @@ resource "azurerm_machine_learning_compute_instance" "test" {
 `, template, data.RandomIntOfLength(8))
 }
 
-func (r ComputeInstanceResource) complete(data acceptance.TestData) string {
+func (r MachineLearningComputeInstanceResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 
 	return fmt.Sprintf(`
@@ -249,7 +249,7 @@ resource "azurerm_machine_learning_compute_instance" "test" {
 `, template, data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8))
 }
 
-func (r ComputeInstanceResource) requiresImport(data acceptance.TestData) string {
+func (r MachineLearningComputeInstanceResource) requiresImport(data acceptance.TestData) string {
 	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -262,7 +262,7 @@ resource "azurerm_machine_learning_compute_instance" "import" {
 `, template)
 }
 
-func (r ComputeInstanceResource) identitySystemAssigned(data acceptance.TestData) string {
+func (r MachineLearningComputeInstanceResource) identitySystemAssigned(data acceptance.TestData) string {
 	template := r.template(data)
 
 	return fmt.Sprintf(`
@@ -279,7 +279,7 @@ resource "azurerm_machine_learning_compute_instance" "test" {
 `, template, data.RandomIntOfLength(8))
 }
 
-func (r ComputeInstanceResource) identityUserAssigned(data acceptance.TestData) string {
+func (r MachineLearningComputeInstanceResource) identityUserAssigned(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -304,7 +304,7 @@ resource "azurerm_machine_learning_compute_instance" "test" {
 `, template, data.RandomInteger, data.RandomIntOfLength(8))
 }
 
-func (r ComputeInstanceResource) identitySystemAssignedUserAssigned(data acceptance.TestData) string {
+func (r MachineLearningComputeInstanceResource) identitySystemAssignedUserAssigned(data acceptance.TestData) string {
 	template := r.template(data)
 
 	return fmt.Sprintf(`
@@ -330,7 +330,7 @@ resource "azurerm_machine_learning_compute_instance" "test" {
 `, template, data.RandomInteger, data.RandomIntOfLength(8))
 }
 
-func (r ComputeInstanceResource) template(data acceptance.TestData) string {
+func (r MachineLearningComputeInstanceResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -392,7 +392,7 @@ resource "azurerm_machine_learning_workspace" "test" {
 		data.RandomIntOfLength(15), data.RandomIntOfLength(16))
 }
 
-func (r ComputeInstanceResource) withWorkspaceManagedNetworkAndInstanceNoSubnet(data acceptance.TestData) string {
+func (r MachineLearningComputeInstanceResource) withWorkspaceManagedNetworkAndInstanceNoSubnet(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {

@@ -25,7 +25,7 @@ func resourceStorageBlobUpdate(d *pluginsdk.ResourceData, meta any) error {
 
 	id, err := blobs.ParseBlobID(d.Id(), storageClient.StorageDomainSuffix)
 	if err != nil {
-		return fmt.Errorf("parsing %q: %v", d.Id(), err)
+		return err
 	}
 
 	var accountName string

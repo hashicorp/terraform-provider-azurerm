@@ -28,7 +28,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			signalRServiceId, err := signalr.ParseSignalRIDInsensitively(metadata.ResourceData.Get("signalr_service_id").(string))
 			if err != nil {
-				return fmt.Errorf("parsing signalr service id error: %+v", err)
+				return err
 			}
 
 			id := signalr.NewCustomDomainID(signalRServiceId.SubscriptionId, signalRServiceId.ResourceGroupName, signalRServiceId.SignalRName, metadata.ResourceData.Get("name").(string))
@@ -37,7 +37,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 			defer locks.UnlockByID(signalRServiceId.ID())
 
 			if _, err := signalr.ParseCustomCertificateIDInsensitively(customDomainSignalrServiceModel.SignalrCustomCertificateId); err != nil {
-				return fmt.Errorf("parsing custom certificate for %s: %+v", id, err)
+				return err
 			}
 
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {

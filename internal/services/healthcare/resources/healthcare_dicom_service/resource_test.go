@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type HealthCareDicomResource struct{}
+type HealthcareDicomServiceResource struct{}
 
 func TestAccHealthCareDicomResource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_healthcare_dicom_service", "test")
-	r := HealthCareDicomResource{}
+	r := HealthcareDicomServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccHealthCareDicomResource_basic(t *testing.T) {
 
 func TestAccHealthCareDicomResource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_healthcare_dicom_service", "test")
-	r := HealthCareDicomResource{}
+	r := HealthcareDicomServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccHealthCareDicomResource_complete(t *testing.T) {
 
 func TestAccHealthCareDicomResource_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_healthcare_dicom_service", "test")
-	r := HealthCareDicomResource{}
+	r := HealthcareDicomServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -79,7 +79,7 @@ func TestAccHealthCareDicomResource_update(t *testing.T) {
 
 func TestAccHealthCareDicomResource_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_healthcare_dicom_service", "test")
-	r := HealthCareDicomResource{}
+	r := HealthcareDicomServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -92,7 +92,7 @@ func TestAccHealthCareDicomResource_requiresImport(t *testing.T) {
 	})
 }
 
-func (HealthCareDicomResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (HealthcareDicomServiceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := dicomservices.ParseDicomServiceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -106,7 +106,7 @@ func (HealthCareDicomResource) Exists(ctx context.Context, clients *clients.Clie
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r HealthCareDicomResource) basic(data acceptance.TestData) string {
+func (r HealthcareDicomServiceResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -119,7 +119,7 @@ resource "azurerm_healthcare_dicom_service" "test" {
 `, r.template(data), data.RandomString)
 }
 
-func (r HealthCareDicomResource) complete(data acceptance.TestData) string {
+func (r HealthcareDicomServiceResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -172,7 +172,7 @@ resource "azurerm_healthcare_dicom_service" "test" {
 `, r.template(data), data.RandomString)
 }
 
-func (r HealthCareDicomResource) update(data acceptance.TestData) string {
+func (r HealthcareDicomServiceResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -203,7 +203,7 @@ resource "azurerm_healthcare_dicom_service" "test" {
 `, r.template(data), data.RandomString)
 }
 
-func (r HealthCareDicomResource) requiresImport(data acceptance.TestData) string {
+func (r HealthcareDicomServiceResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_healthcare_dicom_service" "import" {
@@ -214,7 +214,7 @@ resource "azurerm_healthcare_dicom_service" "import" {
 `, r.basic(data))
 }
 
-func (HealthCareDicomResource) template(data acceptance.TestData) string {
+func (HealthcareDicomServiceResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

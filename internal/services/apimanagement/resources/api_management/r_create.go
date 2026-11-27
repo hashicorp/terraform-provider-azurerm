@@ -225,7 +225,7 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta any) err
 			}
 			apiId, err := api.ParseApiID(pointer.From(contract.Id))
 			if err != nil {
-				return fmt.Errorf("parsing API ID: %+v", err)
+				return err
 			}
 			if delResp, err := apiClient.Delete(ctx, *apiId, api.DeleteOperationOptions{DeleteRevisions: pointer.To(true)}); err != nil {
 				if !response.WasNotFound(delResp.HttpResponse) {
@@ -247,7 +247,7 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta any) err
 			}
 			productId, err := product.ParseProductID(pointer.From(contract.Id))
 			if err != nil {
-				return fmt.Errorf("parsing product ID: %+v", err)
+				return err
 			}
 			if delResp, err := productsClient.Delete(ctx, *productId, product.DeleteOperationOptions{DeleteSubscriptions: pointer.To(true)}); err != nil {
 				if !response.WasNotFound(delResp.HttpResponse) {

@@ -25,7 +25,7 @@ func resourceResourceGroupPolicyRemediationRead(d *pluginsdk.ResourceData, meta 
 
 	id, err := remediations.ParseProviderRemediationID(d.Id())
 	if err != nil {
-		return fmt.Errorf("reading Policy Remediation: %+v", err)
+		return err
 	}
 
 	resourceGroupId := commonids.NewResourceGroupID(id.SubscriptionId, id.ResourceGroupName)

@@ -26,7 +26,7 @@ func TestAccDynatraceMonitorsDataSource_basic(t *testing.T) {
 	})
 }
 
-func (d MonitorsDataSource) basic(data acceptance.TestData, resource MonitorsResource) string {
+func (d MonitorsDataSource) basic(data acceptance.TestData, resource DynatraceMonitorResource) string {
 	return fmt.Sprintf(`
 %s
 

@@ -33,7 +33,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			workspaceId, err := threatintelligence.ParseWorkspaceID(model.WorkspaceId)
 			if err != nil {
-				return fmt.Errorf("parsing Workspace id %s: %+v", model.WorkspaceId, err)
+				return err
 			}
 
 			patternValue, err := expandIndicatorPattern(model.PatternType, model.Pattern)

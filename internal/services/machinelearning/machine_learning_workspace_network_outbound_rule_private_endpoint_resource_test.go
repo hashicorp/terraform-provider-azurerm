@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type WorkspaceNetworkOutboundPrivateEndpointResource struct{}
+type MachineLearningWorkspaceNetworkOutboundRulePrivateEndpointResource struct{}
 
 func TestAccMachineLearningWorkspaceNetworkOutboundRulePrivateEndpoint_onlyApprovedOutbound(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace_network_outbound_rule_private_endpoint", "test")
-	r := WorkspaceNetworkOutboundPrivateEndpointResource{}
+	r := MachineLearningWorkspaceNetworkOutboundRulePrivateEndpointResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,7 +36,7 @@ func TestAccMachineLearningWorkspaceNetworkOutboundRulePrivateEndpoint_onlyAppro
 
 func TestAccMachineLearningWorkspaceNetworkOutboundRulePrivateEndpoint_internetOutbound(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace_network_outbound_rule_private_endpoint", "test")
-	r := WorkspaceNetworkOutboundPrivateEndpointResource{}
+	r := MachineLearningWorkspaceNetworkOutboundRulePrivateEndpointResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -52,7 +52,7 @@ func TestAccMachineLearningWorkspaceNetworkOutboundRulePrivateEndpoint_internetO
 
 func TestAccMachineLearningWorkspaceNetworkOutboundRulePrivateEndpoint_keyVault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace_network_outbound_rule_private_endpoint", "test")
-	r := WorkspaceNetworkOutboundPrivateEndpointResource{}
+	r := MachineLearningWorkspaceNetworkOutboundRulePrivateEndpointResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -68,7 +68,7 @@ func TestAccMachineLearningWorkspaceNetworkOutboundRulePrivateEndpoint_keyVault(
 
 func TestAccMachineLearningWorkspaceNetworkOutboundRulePrivateEndpoint_workspace(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace_network_outbound_rule_private_endpoint", "test")
-	r := WorkspaceNetworkOutboundPrivateEndpointResource{}
+	r := MachineLearningWorkspaceNetworkOutboundRulePrivateEndpointResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -84,7 +84,7 @@ func TestAccMachineLearningWorkspaceNetworkOutboundRulePrivateEndpoint_workspace
 
 func TestAccMachineLearningWorkspaceNetworkOutboundRulePrivateEndpoint_cognitiveAccount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace_network_outbound_rule_private_endpoint", "test")
-	r := WorkspaceNetworkOutboundPrivateEndpointResource{}
+	r := MachineLearningWorkspaceNetworkOutboundRulePrivateEndpointResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -100,7 +100,7 @@ func TestAccMachineLearningWorkspaceNetworkOutboundRulePrivateEndpoint_cognitive
 
 func TestAccMachineLearningWorkspaceNetworkOutboundRulePrivateEndpoint_redis(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace_network_outbound_rule_private_endpoint", "test")
-	r := WorkspaceNetworkOutboundPrivateEndpointResource{}
+	r := MachineLearningWorkspaceNetworkOutboundRulePrivateEndpointResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -116,7 +116,7 @@ func TestAccMachineLearningWorkspaceNetworkOutboundRulePrivateEndpoint_redis(t *
 
 func TestAccMachineLearningWorkspaceNetworkOutboundRulePrivateEndpoint_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace_network_outbound_rule_private_endpoint", "test")
-	r := WorkspaceNetworkOutboundPrivateEndpointResource{}
+	r := MachineLearningWorkspaceNetworkOutboundRulePrivateEndpointResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -129,7 +129,7 @@ func TestAccMachineLearningWorkspaceNetworkOutboundRulePrivateEndpoint_requiresI
 	})
 }
 
-func (r WorkspaceNetworkOutboundPrivateEndpointResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r MachineLearningWorkspaceNetworkOutboundRulePrivateEndpointResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := managednetwork.ParseOutboundRuleID(state.ID)
 	if err != nil {
 		return nil, err
@@ -143,7 +143,7 @@ func (r WorkspaceNetworkOutboundPrivateEndpointResource) Exists(ctx context.Cont
 	return pointer.To(resp.Model.Properties != nil), nil
 }
 
-func (r WorkspaceNetworkOutboundPrivateEndpointResource) template(data acceptance.TestData) string {
+func (r MachineLearningWorkspaceNetworkOutboundRulePrivateEndpointResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -195,7 +195,7 @@ resource "azurerm_storage_account" "test" {
 }`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomIntOfLength(14))
 }
 
-func (r WorkspaceNetworkOutboundPrivateEndpointResource) onlyApprovedOutbound(data acceptance.TestData) string {
+func (r MachineLearningWorkspaceNetworkOutboundRulePrivateEndpointResource) onlyApprovedOutbound(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -245,7 +245,7 @@ resource "azurerm_machine_learning_workspace_network_outbound_rule_private_endpo
 `, template, data.RandomInteger, data.RandomString)
 }
 
-func (r WorkspaceNetworkOutboundPrivateEndpointResource) internetOutbound(data acceptance.TestData) string {
+func (r MachineLearningWorkspaceNetworkOutboundRulePrivateEndpointResource) internetOutbound(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -295,7 +295,7 @@ resource "azurerm_machine_learning_workspace_network_outbound_rule_private_endpo
 `, template, data.RandomInteger, data.RandomStringOfLength(6))
 }
 
-func (r WorkspaceNetworkOutboundPrivateEndpointResource) withKeyVault(data acceptance.TestData) string {
+func (r MachineLearningWorkspaceNetworkOutboundRulePrivateEndpointResource) withKeyVault(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -364,7 +364,7 @@ resource "azurerm_machine_learning_workspace_network_outbound_rule_private_endpo
 `, template, data.RandomInteger, data.RandomStringOfLength(6))
 }
 
-func (r WorkspaceNetworkOutboundPrivateEndpointResource) withWorkspace(data acceptance.TestData) string {
+func (r MachineLearningWorkspaceNetworkOutboundRulePrivateEndpointResource) withWorkspace(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -419,7 +419,7 @@ resource "azurerm_machine_learning_workspace_network_outbound_rule_private_endpo
 `, template, data.RandomInteger, data.RandomStringOfLength(6))
 }
 
-func (r WorkspaceNetworkOutboundPrivateEndpointResource) withCognitiveAccount(data acceptance.TestData) string {
+func (r MachineLearningWorkspaceNetworkOutboundRulePrivateEndpointResource) withCognitiveAccount(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -465,7 +465,7 @@ resource "azurerm_machine_learning_workspace_network_outbound_rule_private_endpo
 `, r.template(data), data.RandomInteger, data.RandomStringOfLength(6))
 }
 
-func (r WorkspaceNetworkOutboundPrivateEndpointResource) withRedis(data acceptance.TestData) string {
+func (r MachineLearningWorkspaceNetworkOutboundRulePrivateEndpointResource) withRedis(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -530,7 +530,7 @@ resource "azurerm_machine_learning_workspace_network_outbound_rule_private_endpo
 `, template, data.RandomInteger, data.RandomStringOfLength(6))
 }
 
-func (r WorkspaceNetworkOutboundPrivateEndpointResource) requiresImport(data acceptance.TestData) string {
+func (r MachineLearningWorkspaceNetworkOutboundRulePrivateEndpointResource) requiresImport(data acceptance.TestData) string {
 	template := r.onlyApprovedOutbound(data)
 	return fmt.Sprintf(`
 %s

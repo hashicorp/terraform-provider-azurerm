@@ -262,7 +262,7 @@ func (MaintenanceDynamicScopeResource) Read() sdk.ResourceFunc {
 					if properties.MaintenanceConfigurationId != nil {
 						maintenanceConfigurationId, err := maintenanceconfigurations.ParseMaintenanceConfigurationIDInsensitively(pointer.From(properties.MaintenanceConfigurationId))
 						if err != nil {
-							return fmt.Errorf("parsing %q: %+v", pointer.From(properties.MaintenanceConfigurationId), err)
+							return err
 						}
 						state.MaintenanceConfigurationId = maintenanceConfigurationId.ID()
 					}

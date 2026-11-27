@@ -18,7 +18,7 @@ import (
 )
 
 func TestAccVideoIndexerAccount_list_basic(t *testing.T) {
-	r := AccountResource{}
+	r := VideoIndexerAccountResource{}
 	listResourceAddress := "azurerm_video_indexer_account.list"
 
 	data := acceptance.BuildTestData(t, "azurerm_video_indexer_account", "testlist")
@@ -65,7 +65,7 @@ func TestAccVideoIndexerAccount_list_basic(t *testing.T) {
 	})
 }
 
-func (r AccountResource) basicList(data acceptance.TestData) string {
+func (r VideoIndexerAccountResource) basicList(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -102,7 +102,7 @@ resource "azurerm_video_indexer_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r AccountResource) basicQuery() string {
+func (r VideoIndexerAccountResource) basicQuery() string {
 	return `
 list "azurerm_video_indexer_account" "list" {
   provider = azurerm
@@ -111,7 +111,7 @@ list "azurerm_video_indexer_account" "list" {
 `
 }
 
-func (r AccountResource) basicQueryByResourceGroupName() string {
+func (r VideoIndexerAccountResource) basicQueryByResourceGroupName() string {
 	return `
 list "azurerm_video_indexer_account" "list" {
   provider = azurerm
@@ -122,7 +122,7 @@ list "azurerm_video_indexer_account" "list" {
 `
 }
 
-func (r AccountResource) basicQueryIncludeResource() string {
+func (r VideoIndexerAccountResource) basicQueryIncludeResource() string {
 	return `
 list "azurerm_video_indexer_account" "list" {
   provider         = azurerm

@@ -124,7 +124,7 @@ func dataSourceStorageBlobRead(d *pluginsdk.ResourceData, meta any) error {
 
 	accountId, err := accounts.ParseAccountID(*blobEndpoint, storageClient.StorageDomainSuffix)
 	if err != nil {
-		return fmt.Errorf("parsing Account ID: %v", err)
+		return err
 	}
 
 	id := blobs.NewBlobID(*accountId, containerName, name)

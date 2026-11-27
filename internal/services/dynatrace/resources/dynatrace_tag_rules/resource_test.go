@@ -18,12 +18,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type TagRulesResource struct {
+type DynatraceTagRulesResource struct {
 	dynatraceInfo dynatraceInfo
 }
 
-func NewTagRulesResource() TagRulesResource {
-	return TagRulesResource{
+func NewTagRulesResource() DynatraceTagRulesResource {
+	return DynatraceTagRulesResource{
 		dynatraceInfo: dynatraceInfo{
 			UserCountry:     os.Getenv("DYNATRACE_USER_COUNTRY"),
 			UserEmail:       os.Getenv("DYNATRACE_USER_EMAIL"),
@@ -104,7 +104,7 @@ func TestAccDynatraceTagRules_requiresImport(t *testing.T) {
 	})
 }
 
-func (r TagRulesResource) preCheck(t *testing.T) {
+func (r DynatraceTagRulesResource) preCheck(t *testing.T) {
 	if r.dynatraceInfo.UserCountry == "" {
 		t.Skipf("DYNATRACE_USER_COUNTRY must be set for acceptance tests")
 	}
@@ -122,7 +122,7 @@ func (r TagRulesResource) preCheck(t *testing.T) {
 	}
 }
 
-func (r TagRulesResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r DynatraceTagRulesResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := tagrules.ParseTagRuleID(state.ID)
 	if err != nil {
 		return nil, err
@@ -138,7 +138,7 @@ func (r TagRulesResource) Exists(ctx context.Context, client *clients.Client, st
 	return pointer.To(true), nil
 }
 
-func (r TagRulesResource) basic(data acceptance.TestData) string {
+func (r DynatraceTagRulesResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -149,7 +149,7 @@ resource "azurerm_dynatrace_tag_rules" "test" {
 `, MonitorsResource{}.basic(data))
 }
 
-func (r TagRulesResource) complete(data acceptance.TestData) string {
+func (r DynatraceTagRulesResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -180,7 +180,7 @@ resource "azurerm_dynatrace_tag_rules" "test" {
 `, MonitorsResource{}.basic(data))
 }
 
-func (r TagRulesResource) updated(data acceptance.TestData) string {
+func (r DynatraceTagRulesResource) updated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -210,7 +210,7 @@ resource "azurerm_dynatrace_tag_rules" "test" {
 `, MonitorsResource{}.basic(data))
 }
 
-func (r TagRulesResource) requiresImport(data acceptance.TestData) string {
+func (r DynatraceTagRulesResource) requiresImport(data acceptance.TestData) string {
 	template := r.basic(data)
 	return fmt.Sprintf(`
 %s

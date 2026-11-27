@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type HyperVSiteResource struct{}
+type SiteRecoveryServicesVaultHypervSiteResource struct{}
 
 func TestAccSiteRecoveryHyperVSite_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_services_vault_hyperv_site", "test")
-	r := HyperVSiteResource{}
+	r := SiteRecoveryServicesVaultHypervSiteResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -33,7 +33,7 @@ func TestAccSiteRecoveryHyperVSite_basic(t *testing.T) {
 	})
 }
 
-func (HyperVSiteResource) basic(data acceptance.TestData) string {
+func (SiteRecoveryServicesVaultHypervSiteResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -58,7 +58,7 @@ resource "azurerm_site_recovery_services_vault_hyperv_site" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (t HyperVSiteResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t SiteRecoveryServicesVaultHypervSiteResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := replicationfabrics.ParseReplicationFabricID(state.ID)
 	if err != nil {
 		return nil, err

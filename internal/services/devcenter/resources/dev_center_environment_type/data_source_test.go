@@ -36,5 +36,5 @@ data "azurerm_dev_center_environment_type" "test" {
   name          = azurerm_dev_center_environment_type.test.name
   dev_center_id = azurerm_dev_center_environment_type.test.dev_center_id
 }
-`, DevCenterEnvironmentTypeTestResource{}.basic(data))
+`, DevCenterEnvironmentTypeResource{}.basic(data))
 }

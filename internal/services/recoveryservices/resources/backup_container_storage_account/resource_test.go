@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type BackupProtectionContainerStorageAccountResource struct{}
+type BackupContainerStorageAccountResource struct{}
 
 func TestAccBackupProtectionContainerStorageAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_container_storage_account", "test")
-	r := BackupProtectionContainerStorageAccountResource{}
+	r := BackupContainerStorageAccountResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -33,7 +33,7 @@ func TestAccBackupProtectionContainerStorageAccount_basic(t *testing.T) {
 	})
 }
 
-func (t BackupProtectionContainerStorageAccountResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t BackupContainerStorageAccountResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := protectioncontainers.ParseProtectionContainerID(state.ID)
 	if err != nil {
 		return nil, err
@@ -46,7 +46,7 @@ func (t BackupProtectionContainerStorageAccountResource) Exists(ctx context.Cont
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (BackupProtectionContainerStorageAccountResource) basic(data acceptance.TestData) string {
+func (BackupContainerStorageAccountResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

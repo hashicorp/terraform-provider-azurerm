@@ -57,7 +57,7 @@ func resourceDevTestLabRead(d *pluginsdk.ResourceData, meta any) error {
 		if props.VaultName != nil {
 			id, err := commonids.ParseKeyVaultIDInsensitively(*props.VaultName)
 			if err != nil {
-				return fmt.Errorf("parsing %q: %+v", *props.VaultName, err)
+				return err
 			}
 			kvId = id.ID()
 		}

@@ -40,5 +40,5 @@ data "azurerm_dev_center_project_pool" "test" {
   name                  = azurerm_dev_center_project_pool.test.name
   dev_center_project_id = azurerm_dev_center_project_pool.test.dev_center_project_id
 }
-`, DevCenterProjectPoolTestResource{}.basic(data))
+`, DevCenterProjectPoolResource{}.basic(data))
 }

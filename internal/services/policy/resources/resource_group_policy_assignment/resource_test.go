@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ResourceGroupAssignmentTestResource struct{}
+type ResourceGroupPolicyAssignmentResource struct{}
 
 func TestAccResourceGroupPolicyAssignment_basicWithBuiltInPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_policy_assignment", "test")
-	r := ResourceGroupAssignmentTestResource{}
+	r := ResourceGroupPolicyAssignmentResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccResourceGroupPolicyAssignment_basicWithBuiltInPolicy(t *testing.T) {
 
 func TestAccResourceGroupPolicyAssignment_basicWithBuiltInPolicyNonComplianceMessage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_policy_assignment", "test")
-	r := ResourceGroupAssignmentTestResource{}
+	r := ResourceGroupPolicyAssignmentResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -84,7 +84,7 @@ func TestAccResourceGroupPolicyAssignment_basicWithBuiltInPolicyNonComplianceMes
 
 func TestAccResourceGroupPolicyAssignment_basicWithBuiltInPolicySet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_policy_assignment", "test")
-	r := ResourceGroupAssignmentTestResource{}
+	r := ResourceGroupPolicyAssignmentResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -113,7 +113,7 @@ func TestAccResourceGroupPolicyAssignment_basicWithBuiltInPolicySet(t *testing.T
 
 func TestAccResourceGroupPolicyAssignment_identity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_policy_assignment", "test")
-	r := ResourceGroupAssignmentTestResource{}
+	r := ResourceGroupPolicyAssignmentResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -135,7 +135,7 @@ func TestAccResourceGroupPolicyAssignment_identity(t *testing.T) {
 
 func TestAccResourceGroupPolicyAssignment_basicWithBuiltInPolicySetNonComplianceMessage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_policy_assignment", "test")
-	r := ResourceGroupAssignmentTestResource{}
+	r := ResourceGroupPolicyAssignmentResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -172,7 +172,7 @@ func TestAccResourceGroupPolicyAssignment_basicWithBuiltInPolicySetNonCompliance
 
 func TestAccResourceGroupPolicyAssignment_basicWithCustomPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_policy_assignment", "test")
-	r := ResourceGroupAssignmentTestResource{}
+	r := ResourceGroupPolicyAssignmentResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -201,7 +201,7 @@ func TestAccResourceGroupPolicyAssignment_basicWithCustomPolicy(t *testing.T) {
 
 func TestAccResourceGroupPolicyAssignment_basicWithCustomPolicyRequiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_policy_assignment", "test")
-	r := ResourceGroupAssignmentTestResource{}
+	r := ResourceGroupPolicyAssignmentResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -217,7 +217,7 @@ func TestAccResourceGroupPolicyAssignment_basicWithCustomPolicyRequiresImport(t 
 
 func TestAccResourceGroupPolicyAssignment_basicWithCustomPolicyComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_policy_assignment", "test")
-	r := ResourceGroupAssignmentTestResource{}
+	r := ResourceGroupPolicyAssignmentResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -244,7 +244,7 @@ func TestAccResourceGroupPolicyAssignment_basicWithCustomPolicyComplete(t *testi
 	})
 }
 
-func (r ResourceGroupAssignmentTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r ResourceGroupPolicyAssignmentResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := policyassignments.ParseScopedPolicyAssignmentID(state.ID)
 	if err != nil {
 		return nil, err
@@ -262,7 +262,7 @@ func (r ResourceGroupAssignmentTestResource) Exists(ctx context.Context, client 
 	return pointer.To(true), nil
 }
 
-func (r ResourceGroupAssignmentTestResource) withBuiltInPolicyBasic(data acceptance.TestData) string {
+func (r ResourceGroupPolicyAssignmentResource) withBuiltInPolicyBasic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -288,7 +288,7 @@ resource "azurerm_resource_group_policy_assignment" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r ResourceGroupAssignmentTestResource) withBuiltInPolicyUpdated(data acceptance.TestData) string {
+func (r ResourceGroupPolicyAssignmentResource) withBuiltInPolicyUpdated(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -314,7 +314,7 @@ resource "azurerm_resource_group_policy_assignment" "test" {
 `, template, data.RandomInteger, data.Locations.Secondary)
 }
 
-func (r ResourceGroupAssignmentTestResource) withBuiltInPolicyNonComplianceMessage(data acceptance.TestData) string {
+func (r ResourceGroupPolicyAssignmentResource) withBuiltInPolicyNonComplianceMessage(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -345,7 +345,7 @@ resource "azurerm_resource_group_policy_assignment" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r ResourceGroupAssignmentTestResource) withBuiltInPolicyNonComplianceMessageUpdated(data acceptance.TestData) string {
+func (r ResourceGroupPolicyAssignmentResource) withBuiltInPolicyNonComplianceMessageUpdated(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -371,7 +371,7 @@ resource "azurerm_resource_group_policy_assignment" "test" {
 `, template, data.RandomInteger, data.Locations.Secondary)
 }
 
-func (r ResourceGroupAssignmentTestResource) withBuiltInPolicySetBasic(data acceptance.TestData) string {
+func (r ResourceGroupPolicyAssignmentResource) withBuiltInPolicySetBasic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -397,7 +397,7 @@ resource "azurerm_resource_group_policy_assignment" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r ResourceGroupAssignmentTestResource) withBuiltInPolicySetUpdated(data acceptance.TestData) string {
+func (r ResourceGroupPolicyAssignmentResource) withBuiltInPolicySetUpdated(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -427,7 +427,7 @@ resource "azurerm_resource_group_policy_assignment" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r ResourceGroupAssignmentTestResource) withBuiltInPolicySetNonComplianceMessage(data acceptance.TestData) string {
+func (r ResourceGroupPolicyAssignmentResource) withBuiltInPolicySetNonComplianceMessage(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -457,7 +457,7 @@ resource "azurerm_resource_group_policy_assignment" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r ResourceGroupAssignmentTestResource) withBuiltInPolicySetNonComplianceMessageUpdated(data acceptance.TestData) string {
+func (r ResourceGroupPolicyAssignmentResource) withBuiltInPolicySetNonComplianceMessageUpdated(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -496,7 +496,7 @@ resource "azurerm_resource_group_policy_assignment" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r ResourceGroupAssignmentTestResource) withCustomPolicyBasic(data acceptance.TestData) string {
+func (r ResourceGroupPolicyAssignmentResource) withCustomPolicyBasic(data acceptance.TestData) string {
 	template := r.templateWithCustomPolicy(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -515,7 +515,7 @@ resource "azurerm_resource_group_policy_assignment" "test" {
 
 func TestAccResourceGroupPolicyAssignment_overridesAndResourceSelector(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_policy_assignment", "test")
-	r := ResourceGroupAssignmentTestResource{}
+	r := ResourceGroupPolicyAssignmentResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -542,7 +542,7 @@ func TestAccResourceGroupPolicyAssignment_overridesAndResourceSelector(t *testin
 	})
 }
 
-func (r ResourceGroupAssignmentTestResource) withCustomPolicyComplete(data acceptance.TestData) string {
+func (r ResourceGroupPolicyAssignmentResource) withCustomPolicyComplete(data acceptance.TestData) string {
 	template := r.templateWithCustomPolicy(data)
 	// NOTE: we could include parameters here but it's tested extensively elsewhere
 	return fmt.Sprintf(`
@@ -569,7 +569,7 @@ resource "azurerm_resource_group_policy_assignment" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r ResourceGroupAssignmentTestResource) withCustomPolicyRequiresImport(data acceptance.TestData) string {
+func (r ResourceGroupPolicyAssignmentResource) withCustomPolicyRequiresImport(data acceptance.TestData) string {
 	template := r.withCustomPolicyBasic(data)
 	return fmt.Sprintf(`
 %s
@@ -582,7 +582,7 @@ resource "azurerm_resource_group_policy_assignment" "import" {
 `, template)
 }
 
-func (r ResourceGroupAssignmentTestResource) withCustomPolicyUpdated(data acceptance.TestData) string {
+func (r ResourceGroupPolicyAssignmentResource) withCustomPolicyUpdated(data acceptance.TestData) string {
 	template := r.templateWithCustomPolicy(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -602,7 +602,7 @@ resource "azurerm_resource_group_policy_assignment" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r ResourceGroupAssignmentTestResource) templateWithCustomPolicy(data acceptance.TestData) string {
+func (r ResourceGroupPolicyAssignmentResource) templateWithCustomPolicy(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
@@ -630,7 +630,7 @@ POLICY_RULE
 `, template, data.RandomInteger)
 }
 
-func (r ResourceGroupAssignmentTestResource) template(data acceptance.TestData) string {
+func (r ResourceGroupPolicyAssignmentResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctest%[1]d"
@@ -639,7 +639,7 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ResourceGroupAssignmentTestResource) systemAssignedIdentity(data acceptance.TestData) string {
+func (r ResourceGroupPolicyAssignmentResource) systemAssignedIdentity(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -665,7 +665,7 @@ resource "azurerm_resource_group_policy_assignment" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r ResourceGroupAssignmentTestResource) userAssignedIdentity(data acceptance.TestData) string {
+func (r ResourceGroupPolicyAssignmentResource) userAssignedIdentity(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -698,7 +698,7 @@ resource "azurerm_resource_group_policy_assignment" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r ResourceGroupAssignmentTestResource) withOverrideAndSelectorsBasic(data acceptance.TestData) string {
+func (r ResourceGroupPolicyAssignmentResource) withOverrideAndSelectorsBasic(data acceptance.TestData) string {
 	template := r.templateWithCustomPolicy(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -736,7 +736,7 @@ resource "azurerm_resource_group_policy_assignment" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r ResourceGroupAssignmentTestResource) withOverrideAndSelectorsUpdate(data acceptance.TestData) string {
+func (r ResourceGroupPolicyAssignmentResource) withOverrideAndSelectorsUpdate(data acceptance.TestData) string {
 	template := r.templateWithCustomPolicy(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
