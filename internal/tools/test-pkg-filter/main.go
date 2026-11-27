@@ -77,7 +77,7 @@ func findMatchingPackages(mode, rootPath, runExpr string) ([]string, error) {
 
 	filesByDir := make(map[string][]string)
 
-	err = filepath.WalkDir(cleanRoot, func(path string, d fs.DirEntry, walkErr error) error {
+	if err = filepath.WalkDir(cleanRoot, func(path string, d fs.DirEntry, walkErr error) error {
 		if walkErr != nil {
 			return walkErr
 		}
@@ -96,8 +96,7 @@ func findMatchingPackages(mode, rootPath, runExpr string) ([]string, error) {
 		}
 
 		return nil
-	})
-	if err != nil {
+	}); err != nil {
 		return nil, err
 	}
 

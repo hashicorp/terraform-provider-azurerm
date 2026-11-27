@@ -76,7 +76,7 @@ func TestFindMatchingPackages(t *testing.T) {
 	write("resources/res_a/resource_test.go", "package res_a_test\nimport \"testing\"\nfunc TestAccResA_basic(t *testing.T) {}\n")
 	write("resources/res_b/resource_test.go", "package res_b_test\nimport \"testing\"\nfunc TestAccResB_basic(t *testing.T) {}\n")
 	write("resources/res_seq/resource_test.go", "package res_seq_test\nimport (\"testing\"; \"example/acceptance\")\nfunc TestAccSeq(t *testing.T) { acceptance.RunTestsInSequence(t, nil) }\n")
-	write("testdata/ignored_test.go", "package testdata\nimport \"testing\"\nfunc TestIgnored(t *testing.T) {}\n")
+	write(filepath.Join("testdata", "ignored_test.go"), "package testdata\nimport \"testing\"\nfunc TestIgnored(t *testing.T) {}\n")
 
 	unitPkgs, err := findMatchingPackages("unit", tmp, "")
 	if err != nil {
