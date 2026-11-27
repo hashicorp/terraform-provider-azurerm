@@ -76,6 +76,10 @@ func (SubnetNetworkSecurityGroupAssociationListResource) List(ctx context.Contex
 			result := request.NewListResult(ctx)
 			result.DisplayName = pointer.From(item.Name)
 
+			if item.Properties == nil || item.Properties.NetworkSecurityGroup == nil {
+				continue
+			}
+
 			rd := resourceSubnetNetworkSecurityGroupAssociation().Data(&terraform.InstanceState{})
 			id, err := commonids.ParseSubnetIDInsensitively(pointer.From(item.Id))
 			if err != nil {
