@@ -346,8 +346,14 @@ func expandNetAppVolumeExportPolicyRule(input []any) *volumes.VolumePropertiesEx
 			kerberos5pro := v["kerberos_5p_read_only_enabled"].(bool)
 			kerberos5prw := v["kerberos_5p_read_write_enabled"].(bool)
 
+			var chownMode *volumes.ChownMode
+			if chownModeRaw, ok := v["chown_mode"]; ok && chownModeRaw.(string) != "" {
+				chownMode = pointer.ToEnum[volumes.ChownMode](chownModeRaw.(string))
+			}
+
 			result := volumes.ExportPolicyRule{
 				AllowedClients:      pointer.To(allowedClients),
+				ChownMode:           chownMode,
 				Cifs:                pointer.To(cifsEnabled),
 				Nfsv3:               pointer.To(nfsv3Enabled),
 				Nfsv41:              pointer.To(nfsv41Enabled),
@@ -422,8 +428,14 @@ func expandNetAppVolumeExportPolicyRulePatch(input []any, overrideProtocols []st
 			unixReadWrite := v["unix_read_write"].(bool)
 			rootAccessEnabled := v["root_access_enabled"].(bool)
 
+			var chownMode *volumes.ChownMode
+			if chownModeRaw, ok := v["chown_mode"]; ok && chownModeRaw.(string) != "" {
+				chownMode = pointer.ToEnum[volumes.ChownMode](chownModeRaw.(string))
+			}
+
 			result := volumes.ExportPolicyRule{
 				AllowedClients: pointer.To(allowedClients),
+				ChownMode:      chownMode,
 				Cifs:           pointer.To(cifsEnabled),
 				Nfsv3:          pointer.To(nfsv3Enabled),
 				Nfsv41:         pointer.To(nfsv41Enabled),

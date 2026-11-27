@@ -36,8 +36,14 @@ func flattenNetAppVolumeExportPolicyRule(input *volumes.VolumePropertiesExportPo
 			protocolsEnabled = append(protocolsEnabled, "NFSv4.1")
 		}
 
+		chownMode := ""
+		if item.ChownMode != nil {
+			chownMode = string(*item.ChownMode)
+		}
+
 		results = append(results, map[string]any{
 			"allowed_clients":                pluginsdk.FlattenSlice(&allowedClients),
+			"chown_mode":                     chownMode,
 			"kerberos_5_read_only_enabled":   pointer.From(item.Kerberos5ReadOnly),
 			"kerberos_5_read_write_enabled":  pointer.From(item.Kerberos5ReadWrite),
 			"kerberos_5i_read_only_enabled":  pointer.From(item.Kerberos5iReadOnly),

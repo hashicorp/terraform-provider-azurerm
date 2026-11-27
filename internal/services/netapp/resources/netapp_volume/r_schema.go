@@ -228,6 +228,13 @@ func netappVolumeSchema() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 					},
+
+					"chown_mode": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: validation.StringInSlice(volumes.PossibleValuesForChownMode(), false),
+					},
 				},
 			},
 		},
