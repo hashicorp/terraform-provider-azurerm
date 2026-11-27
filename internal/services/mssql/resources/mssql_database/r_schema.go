@@ -111,6 +111,15 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"catalog_collation": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C Azure sets the value when it is omitted, and existing databases may hold either value, so a `Default` could force them to be replaced
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(databases.PossibleValuesForCatalogCollationType(), false),
+		},
+
 		"collation": {
 			Description:  "The collation of the database.",
 			Type:         pluginsdk.TypeString,
