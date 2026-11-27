@@ -88,6 +88,8 @@ func (r Registration) Resources() []sdk.Resource {
 		windows_function_app_slot.Resource{},
 		windows_web_app.Resource{},
 		windows_web_app_slot.Resource{},
+		FunctionAppSlotHybridConnectionResource{},
+		WebAppSlotHybridConnectionResource{},
 	}
 }
 
