@@ -65,6 +65,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+			Description:  "The user assigned Managed Identity ID to access the storage account.",
+		},
+
+		"storage_user_assigned_identity_client_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.IsUUID,
+			Description:  "The user assigned Managed Identity client ID to access the storage account",
 		},
 
 		"runtime_name": {

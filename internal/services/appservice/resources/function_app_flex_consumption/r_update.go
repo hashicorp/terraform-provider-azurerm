@@ -97,17 +97,19 @@ func (r Resource) Update() sdk.ResourceFunc {
 				model.Tags = pointer.To(state.Tags)
 			}
 
-			var storageString string
+			var storageConnectionString string
 			if state.StorageContainerEndpoint != "" || metadata.ResourceData.HasChange("storage_container_endpoint") {
 				model.Properties.FunctionAppConfig.Deployment.Storage.Value = pointer.To(state.StorageContainerEndpoint)
 				if storageName, _, ok := strings.Cut(strings.TrimPrefix(state.StorageContainerEndpoint, "https://"), "."); ok {
-					storageString = fmt.Sprintf(StorageStringFmt, storageName, state.StorageAccessKey, *storageDomainSuffix)
+					storageConnectionString = fmt.Sprintf(StorageStringFmt, storageName, state.StorageAccessKey, *storageDomainSuffix)
 				} else {
 					return fmt.Errorf("retrieving storage container endpoint error, the expected format is https://storagename.blob.core.windows.net/containername, the received value is %s", state.StorageContainerEndpoint)
 				}
 			}
 
 			storageConnStringForFCApp := "DEPLOYMENT_STORAGE_CONNECTION_STRING"
+
+			storageAuthType := webapps.AuthenticationType(state.StorageAuthType)
 			if metadata.ResourceData.HasChange("storage_authentication_type") {
 				storageAuth := webapps.FunctionsDeploymentStorageAuthentication{
 					Type: pointer.ToEnum[webapps.AuthenticationType](state.StorageAuthType),
@@ -123,6 +125,9 @@ func (r Resource) Update() sdk.ResourceFunc {
 						if state.StorageUserAssignedIdentityID == "" {
 							return errors.New("the user assigned identity id must be specified when using the user assigned identity to access the storage account")
 						}
+						if state.StorageUserAssignedIdentityClientID == "" {
+							return fmt.Errorf("the user assigned identity client id must be specified when using the user assigned identity to access the storage account")
+						}
 						storageAuth.UserAssignedIdentityResourceId = &state.StorageUserAssignedIdentityID
 					}
 				}
@@ -133,8 +138,15 @@ func (r Resource) Update() sdk.ResourceFunc {
 				model.Properties.FunctionAppConfig.Deployment.Storage.Authentication.UserAssignedIdentityResourceId = &state.StorageUserAssignedIdentityID
 			}
 
+			var storageClientID string
+			if state.StorageAuthType == string(webapps.AuthenticationTypeUserAssignedIdentity) {
+				storageClientID = state.StorageUserAssignedIdentityClientID
+			} else {
+				storageClientID = ""
+			}
+
 			// Note: We process this regardless to give us a "clean" view of service-side app_settings, so we can reconcile the user-defined entries later
-			siteConfig, err := helpers.ExpandSiteConfigFunctionFlexConsumptionApp(state.SiteConfig, model.Properties.SiteConfig, metadata, false, storageString, storageConnStringForFCApp)
+			siteConfig, err := helpers.ExpandSiteConfigFunctionFlexConsumptionApp(state.SiteConfig, model.Properties.SiteConfig, metadata, &storageAuthType, storageConnectionString, storageClientID, storageConnStringForFCApp)
 			if err != nil {
 				return fmt.Errorf("expanding Site Config for %s: %+v", id, err)
 			}

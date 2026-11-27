@@ -29,20 +29,21 @@ type FunctionAppFlexConsumptionModel struct {
 	ZipDeployFile                    string                     `tfschema:"zip_deploy_file"`
 	PublishingDeployBasicAuthEnabled bool                       `tfschema:"webdeploy_publish_basic_authentication_enabled"`
 
-	StorageContainerType          string                                         `tfschema:"storage_container_type"`
-	StorageContainerEndpoint      string                                         `tfschema:"storage_container_endpoint"`
-	StorageAuthType               string                                         `tfschema:"storage_authentication_type"`
-	StorageAccessKey              string                                         `tfschema:"storage_access_key"`
-	StorageUserAssignedIdentityID string                                         `tfschema:"storage_user_assigned_identity_id"`
-	RuntimeName                   string                                         `tfschema:"runtime_name"`
-	RuntimeVersion                string                                         `tfschema:"runtime_version"`
-	MaximumInstanceCount          int64                                          `tfschema:"maximum_instance_count"`
-	InstanceMemoryInMB            int64                                          `tfschema:"instance_memory_in_mb"`
-	HttpConcurrency               int64                                          `tfschema:"http_concurrency"`
-	AlwaysReady                   []FunctionAppAlwaysReady                       `tfschema:"always_ready"`
-	SiteConfig                    []helpers.SiteConfigFunctionAppFlexConsumption `tfschema:"site_config"`
-	Identity                      []identity.ModelSystemAssignedUserAssigned     `tfschema:"identity"`
-	Tags                          map[string]string                              `tfschema:"tags"`
+	StorageContainerType                string                                         `tfschema:"storage_container_type"`
+	StorageContainerEndpoint            string                                         `tfschema:"storage_container_endpoint"`
+	StorageAuthType                     string                                         `tfschema:"storage_authentication_type"`
+	StorageAccessKey                    string                                         `tfschema:"storage_access_key"`
+	StorageUserAssignedIdentityID       string                                         `tfschema:"storage_user_assigned_identity_id"`
+	StorageUserAssignedIdentityClientID string                                         `tfschema:"storage_user_assigned_identity_client_id"`
+	RuntimeName                         string                                         `tfschema:"runtime_name"`
+	RuntimeVersion                      string                                         `tfschema:"runtime_version"`
+	MaximumInstanceCount                int64                                          `tfschema:"maximum_instance_count"`
+	InstanceMemoryInMB                  int64                                          `tfschema:"instance_memory_in_mb"`
+	HttpConcurrency                     int64                                          `tfschema:"http_concurrency"`
+	AlwaysReady                         []FunctionAppAlwaysReady                       `tfschema:"always_ready"`
+	SiteConfig                          []helpers.SiteConfigFunctionAppFlexConsumption `tfschema:"site_config"`
+	Identity                            []identity.ModelSystemAssignedUserAssigned     `tfschema:"identity"`
+	Tags                                map[string]string                              `tfschema:"tags"`
 
 	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
 	DefaultHostname               string   `tfschema:"default_hostname"`

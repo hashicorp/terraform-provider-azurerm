@@ -216,6 +216,11 @@ func (m *FunctionAppFlexConsumptionModel) unpackFunctionAppFlexConsumptionSettin
 		case "AzureWebJobsStorage":
 			_, m.StorageAccessKey = helpers.ParseWebJobsStorageString(v)
 
+		case "AzureWebJobsStorage__accountName":
+
+		case "AzureWebJobsStorage__clientId":
+			m.StorageUserAssignedIdentityClientID = v
+
 		case "WEBSITE_HEALTHCHECK_MAXPINGFAILURES":
 			i, _ := strconv.Atoi(v)
 			m.SiteConfig[0].HealthCheckEvictionTime = int64(i)
