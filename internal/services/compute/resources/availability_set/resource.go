@@ -23,11 +23,12 @@ type Output struct {
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create:   resourceAvailabilitySetCreateUpdate,
-		Read:     resourceAvailabilitySetRead,
-		Update:   resourceAvailabilitySetCreateUpdate,
-		Delete:   resourceAvailabilitySetDelete,
-		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.AvailabilitySetId{}),
+		Description: "Manages an Availability Set for Virtual Machines.",
+		Create:      resourceAvailabilitySetCreateUpdate,
+		Read:        resourceAvailabilitySetRead,
+		Update:      resourceAvailabilitySetCreateUpdate,
+		Delete:      resourceAvailabilitySetDelete,
+		Importer:    pluginsdk.ImporterValidatingIdentity(&commonids.AvailabilitySetId{}),
 
 		Identity: &schema.ResourceIdentity{
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(&commonids.AvailabilitySetId{}),

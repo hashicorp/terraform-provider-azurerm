@@ -17,6 +17,10 @@ func (m Resource) ResourceType() string {
 	return "azurerm_mssql_server_dns_alias"
 }
 
+func (m Resource) Description() string {
+	return "Manages an MS SQL Server DNS Alias."
+}
+
 func (m Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return serverdnsaliases.ValidateDnsAliasID
 }

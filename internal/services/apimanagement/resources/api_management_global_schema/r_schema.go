@@ -13,19 +13,21 @@ import (
 
 func apiManagementGlobalSchemaSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"schema_id": schemaz.SchemaApiManagementChildName(),
+		"schema_id": schemaz.SchemaApiManagementChildName("A unique identifier for this Schema."),
 
 		"api_management_name": schemaz.SchemaApiManagementName(),
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"type": {
+			Description:  "The content type of the Schema.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice(schema.PossibleValuesForSchemaType(), false),
 		},
 
 		"value": {
+			Description:      "The string defining the document representing the Schema.",
 			Type:             pluginsdk.TypeString,
 			Required:         true,
 			ValidateFunc:     validation.StringIsNotEmpty,
@@ -33,6 +35,7 @@ func apiManagementGlobalSchemaSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"description": {
+			Description:  "The description of the schema.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,

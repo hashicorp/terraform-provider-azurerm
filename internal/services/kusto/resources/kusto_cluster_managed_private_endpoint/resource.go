@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceKustoClusterManagedPrivateEndpointCreateUpdate,
-		Read:   resourceKustoClusterManagedPrivateEndpointRead,
-		Update: resourceKustoClusterManagedPrivateEndpointCreateUpdate,
-		Delete: resourceKustoClusterManagedPrivateEndpointDelete,
+		Description: "Manages a Managed Private Endpoint for a Kusto Cluster.",
+		Create:      resourceKustoClusterManagedPrivateEndpointCreateUpdate,
+		Read:        resourceKustoClusterManagedPrivateEndpointRead,
+		Update:      resourceKustoClusterManagedPrivateEndpointCreateUpdate,
+		Delete:      resourceKustoClusterManagedPrivateEndpointDelete,
 
 		SchemaVersion: 2,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{

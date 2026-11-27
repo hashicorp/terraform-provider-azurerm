@@ -5,7 +5,7 @@ package schema
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"log"
 	"testing"
 
@@ -23,7 +23,7 @@ func TestValidateResourceIDPriorToImport(t *testing.T) {
 			name:             "returns an error",
 			shouldBeImported: false,
 			validator: func(input string) error {
-				return fmt.Errorf("Returns an error")
+				return errors.New("Returns an error")
 			},
 		},
 		{

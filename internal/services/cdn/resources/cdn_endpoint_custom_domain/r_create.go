@@ -5,6 +5,7 @@ package cdn_endpoint_custom_domain
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" //nolint:staticcheck
@@ -67,7 +68,7 @@ func resourceArmCdnEndpointCustomDomainCreate(d *pluginsdk.ResourceData, meta an
 	var params cdn.BasicCustomDomainHTTPSParameters
 	if v, ok := d.GetOk("user_managed_https"); ok {
 		// User managed certificate is only available for Azure CDN from Microsoft and Azure CDN from Verizon profiles.
-		// https://docs.microsoft.com/azure/cdn/cdn-custom-ssl?tabs=option-2-enable-https-with-your-own-certificate#tlsssl-certificates
+		// https://learn.microsoft.com/azure/cdn/cdn-custom-ssl?tabs=option-2-enable-https-with-your-own-certificate#tlsssl-certificates
 		pfClient := meta.(*clients.Client).Cdn.ProfilesClient
 		cdnEndpointResp, err := pfClient.Get(ctx, id.ResourceGroupName, id.ProfileName)
 		if err != nil {
@@ -80,7 +81,7 @@ func resourceArmCdnEndpointCustomDomainCreate(d *pluginsdk.ResourceData, meta an
 			cdn.SkuNameStandardMicrosoft: true,
 		}
 		if cdnEndpointResp.Sku != nil && !supportedSku[cdnEndpointResp.Sku.Name] {
-			return fmt.Errorf("user managed HTTPS certificate is only available for Azure CDN from Microsoft or Azure CDN from Verizon profiles")
+			return errors.New("user managed HTTPS certificate is only available for Azure CDN from Microsoft or Azure CDN from Verizon profiles")
 		}
 		params, err = expandArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx, v.([]any), meta.(*clients.Client))
 		if err != nil {

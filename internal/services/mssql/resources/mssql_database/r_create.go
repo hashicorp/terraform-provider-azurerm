@@ -4,6 +4,7 @@
 package mssql_database
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -48,7 +49,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta any) error {
 	defer cancel()
 
 	if strings.HasPrefix(d.Get("sku_name").(string), "GP_S_") && d.Get("license_type").(string) != "" {
-		return fmt.Errorf("serverless databases do not support license type")
+		return errors.New("serverless databases do not support license type")
 	}
 
 	name := d.Get("name").(string)
@@ -76,7 +77,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta any) error {
 	}
 
 	if server.Model == nil {
-		return fmt.Errorf("server model was nil")
+		return errors.New("server model was nil")
 	}
 
 	if server.Model.Location == "" {
@@ -133,7 +134,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta any) error {
 				return fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.Id, err)
 			}
 
-			// See: https://docs.microsoft.com/azure/azure-sql/database/active-geo-replication-overview#configuring-secondary-database
+			// See: https://learn.microsoft.com/azure/azure-sql/database/active-geo-replication-overview#configuring-secondary-database
 			if partnerDatabase.Sku != nil && partnerDatabase.Sku.Name != "" && CompareDatabaseSkuServiceTiers(skuName, partnerDatabase.Sku.Name) {
 				if err := client.UpdateThenPoll(ctx, *partnerDatabaseId, databases.DatabaseUpdate{
 					Sku: &databases.Sku{
@@ -354,7 +355,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta any) error {
 
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
+		return errors.New("internal-error: context had no deadline")
 	}
 
 	// NOTE: Internal x-ref, this is another case of hashicorp/go-azure-sdk#307 so this can be removed once that's fixed

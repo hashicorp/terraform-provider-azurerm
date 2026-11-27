@@ -130,10 +130,10 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta any) error 
 
 	if expandSignalRServiceSku(sku).Name == "Free_F1" {
 		if publicNetworkAcc == "Disabled" {
-			return fmt.Errorf("SKU Free_F1 does not support disabling public network access")
+			return errors.New("SKU Free_F1 does not support disabling public network access")
 		}
 		if tlsClientCertEnabled {
-			return fmt.Errorf("SKU Free_F1 does not support enabling tls client cert")
+			return errors.New("SKU Free_F1 does not support enabling tls client cert")
 		}
 	}
 
@@ -396,7 +396,7 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta any) error 
 				publicNetworkAcc = "Disabled"
 			}
 			if currentSku == "Free_F1" && publicNetworkAcc == "Disabled" {
-				return fmt.Errorf("SKU Free_F1 does not support disabling public network access")
+				return errors.New("SKU Free_F1 does not support disabling public network access")
 			}
 			resourceType.Properties.PublicNetworkAccess = pointer.To(publicNetworkAcc)
 		}
@@ -415,7 +415,7 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta any) error 
 				ClientCertEnabled: pointer.To(tlsClientCertEnabled),
 			}
 			if currentSku == "Free_F1" && tlsClientCertEnabled {
-				return fmt.Errorf("SKU Free_F1 does not support enabling tls client cert")
+				return errors.New("SKU Free_F1 does not support enabling tls client cert")
 			}
 		}
 
@@ -475,7 +475,7 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta any) error 
 
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
+		return errors.New("internal-error: context had no deadline")
 	}
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending: []string{
@@ -893,20 +893,20 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 
 					"connectivity_logs_enabled": {
 						Type:     pluginsdk.TypeBool,
-						Default:  true,
 						Optional: true,
+						Default:  true,
 					},
 
 					"messaging_logs_enabled": {
 						Type:     pluginsdk.TypeBool,
-						Default:  true,
 						Optional: true,
+						Default:  true,
 					},
 
 					"http_request_logs_enabled": {
 						Type:     pluginsdk.TypeBool,
-						Default:  true,
 						Optional: true,
+						Default:  true,
 					},
 				},
 			},
@@ -1080,6 +1080,6 @@ func signalrServiceProvisioningStateRefreshFunc(ctx context.Context, client *sig
 			}
 		}
 
-		return nil, "", fmt.Errorf("unable to read provisioning state")
+		return nil, "", errors.New("unable to read provisioning state")
 	}
 }

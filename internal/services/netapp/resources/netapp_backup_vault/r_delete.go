@@ -5,6 +5,7 @@ package netapp_backup_vault
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -54,7 +55,7 @@ func (r Resource) Delete() sdk.ResourceFunc {
 				return err // If it's a different error, return it immediately
 			}
 
-			return fmt.Errorf("failed to delete backup vault after 5 attempts")
+			return errors.New("failed to delete backup vault after 5 attempts")
 		},
 	}
 }

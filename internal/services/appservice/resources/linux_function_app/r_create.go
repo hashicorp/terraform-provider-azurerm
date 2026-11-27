@@ -5,6 +5,7 @@ package linux_function_app
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -89,7 +90,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 					availabilityRequest.IsFqdn = pointer.To(true)
 
 					if !functionApp.VnetImagePullEnabled {
-						return fmt.Errorf("`vnet_image_pull_enabled` cannot be disabled for app running in an app service environment")
+						return errors.New("`vnet_image_pull_enabled` cannot be disabled for app running in an app service environment")
 					}
 				}
 			}
@@ -143,7 +144,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				}
 			}
 			// for function premium app with WEBSITE_CONTENTOVERVNET sets to 1, the user has to specify a predefined fire share.
-			// https://docs.microsoft.com/azure/azure-functions/functions-app-settings#website_contentovervnet
+			// https://learn.microsoft.com/azure/azure-functions/functions-app-settings#website_contentovervnet
 			if sendContentSettings {
 				if functionApp.AppSettings == nil {
 					functionApp.AppSettings = make(map[string]string)
@@ -158,7 +159,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 					if !contentSharePresent {
 						if contentOverVnetEnabled {
-							return fmt.Errorf("the app_setting WEBSITE_CONTENTSHARE must be specified and set to a valid share when WEBSITE_CONTENTOVERVNET is specified")
+							return errors.New("the app_setting WEBSITE_CONTENTSHARE must be specified and set to a valid share when WEBSITE_CONTENTOVERVNET is specified")
 						}
 						functionApp.AppSettings["WEBSITE_CONTENTSHARE"] = fmt.Sprintf("%s-%s", strings.ToLower(functionApp.Name), suffix)
 					}

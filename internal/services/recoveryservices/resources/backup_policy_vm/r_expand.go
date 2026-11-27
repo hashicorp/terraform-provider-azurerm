@@ -5,7 +5,6 @@ package backup_policy_vm
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2024-10-01/protectionpolicies"
@@ -45,26 +44,26 @@ func expandBackupProtectionPolicyVMSchedule(d *pluginsdk.ResourceData, times []s
 			case string(protectionpolicies.ScheduleRunTypeHourly):
 				interval, ok := block["hour_interval"].(int)
 				if !ok {
-					return nil, fmt.Errorf("`hour_interval` must be specified when `backup.0.frequency` is `Hourly`")
+					return nil, errors.New("`hour_interval` must be specified when `backup.0.frequency` is `Hourly`")
 				}
 
 				duration, ok := block["hour_duration"].(int)
 				if !ok {
-					return nil, fmt.Errorf("`hour_duration` must be specified when `backup.0.frequency` is `Hourly`")
+					return nil, errors.New("`hour_duration` must be specified when `backup.0.frequency` is `Hourly`")
 				}
 
 				if interval == 0 && duration == 0 {
-					return nil, fmt.Errorf("`hour_interval` and `hour_duration` must be specified when `backup.0.frequency` is `Hourly`")
+					return nil, errors.New("`hour_interval` and `hour_duration` must be specified when `backup.0.frequency` is `Hourly`")
 				}
 				if interval == 0 {
-					return nil, fmt.Errorf("`hour_interval` must be specified when `backup.0.frequency` is `Hourly`")
+					return nil, errors.New("`hour_interval` must be specified when `backup.0.frequency` is `Hourly`")
 				}
 				if duration == 0 {
-					return nil, fmt.Errorf("`hour_duration` must be specified when `backup.0.frequency` is `Hourly`")
+					return nil, errors.New("`hour_duration` must be specified when `backup.0.frequency` is `Hourly`")
 				}
 
 				if duration%interval != 0 {
-					return nil, fmt.Errorf("`hour_duration` must be multiplier of `hour_interval`")
+					return nil, errors.New("`hour_duration` must be multiplier of `hour_interval`")
 				}
 
 				schedule.HourlySchedule = &protectionpolicies.HourlySchedule{
@@ -79,7 +78,7 @@ func expandBackupProtectionPolicyVMSchedule(d *pluginsdk.ResourceData, times []s
 			case string(protectionpolicies.ScheduleRunTypeWeekly):
 				weekDays, ok := block["weekdays"].(*pluginsdk.Set)
 				if !ok {
-					return nil, fmt.Errorf("`weekdays` must be specified when `backup.0.frequency` is `Weekly`")
+					return nil, errors.New("`weekdays` must be specified when `backup.0.frequency` is `Weekly`")
 				}
 
 				days := make([]protectionpolicies.DayOfWeek, 0)

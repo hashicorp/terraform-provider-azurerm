@@ -74,15 +74,15 @@ func (r UserAssignedIdentityResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.Location(),
 		"name": {
-			ForceNew: true,
-			Required: true,
 			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
 		},
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"isolation_scope": {
-			Optional: true,
 			Type:     pluginsdk.TypeString,
+			Optional: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				// `None` is not exposed
 				string(identities.IsolationScopeRegional),
@@ -96,16 +96,16 @@ func (r UserAssignedIdentityResource) Arguments() map[string]*pluginsdk.Schema {
 func (r UserAssignedIdentityResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"client_id": {
-			Computed: true,
 			Type:     pluginsdk.TypeString,
+			Computed: true,
 		},
 		"principal_id": {
-			Computed: true,
 			Type:     pluginsdk.TypeString,
+			Computed: true,
 		},
 		"tenant_id": {
-			Computed: true,
 			Type:     pluginsdk.TypeString,
+			Computed: true,
 		},
 	}
 }

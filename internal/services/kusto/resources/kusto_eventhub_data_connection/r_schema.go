@@ -17,6 +17,7 @@ import (
 func kustoEventhubDataConnectionSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Kusto EventHub Data Connection to create.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -28,6 +29,7 @@ func kustoEventhubDataConnectionSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"cluster_name": {
+			Description:  "The name of the Kusto Cluster this data connection will be added to.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -35,6 +37,7 @@ func kustoEventhubDataConnectionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"compression": {
+			Description:  "The compression type for the connection.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -43,6 +46,7 @@ func kustoEventhubDataConnectionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"database_name": {
+			Description:  "The name of the Kusto Database this data connection will be added to.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -50,6 +54,7 @@ func kustoEventhubDataConnectionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"eventhub_id": {
+			Description:  "The resource ID of the EventHub this data connection will use for ingestion.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -57,9 +62,10 @@ func kustoEventhubDataConnectionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"event_system_properties": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Computed: true, // azignore:AZS007 - pre-existing violation
+			Description: "A list of system properties for the Event Hub.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -67,9 +73,10 @@ func kustoEventhubDataConnectionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"consumer_group": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The EventHub consumer group this data connection will use for ingestion.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.Any(
 				eventhubValidate.ValidateEventHubConsumerName(),
 				validation.StringInSlice([]string{"$Default"}, false),
@@ -77,14 +84,16 @@ func kustoEventhubDataConnectionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"table_name": {
+			Description:  "The target table name used for the message ingestion. Table must exist before resource is created.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validate.EntityName,
 		},
 
 		"identity_id": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The resource ID of a Managed Identity (system or user assigned) to be used to authenticate with Event Hub.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			ValidateFunc: validation.Any(
 				commonids.ValidateKustoClusterID,
 				commonids.ValidateUserAssignedIdentityID,
@@ -92,18 +101,21 @@ func kustoEventhubDataConnectionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"mapping_rule_name": {
+			Description:  "The mapping rule used for the message ingestion. Mapping rule must exist before resource is created.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validate.EntityName,
 		},
 
 		"data_format": {
+			Description:  "The data format of the EventHub messages.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringInSlice(dataconnections.PossibleValuesForEventHubDataFormat(), false),
 		},
 
 		"database_routing_type": {
+			Description:  "Indication for database routing information from the data connection, by default only database routing information is allowed.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -112,6 +124,7 @@ func kustoEventhubDataConnectionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"retrieval_start_date": {
+			Description:  "The date after which data should be retrieved from Event Hub. When defined, the data connection retrieves existing events created since the specified retrieval start date. It can only retrieve events retained by the Event Hub, based on its retention period.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation

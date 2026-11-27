@@ -5,7 +5,7 @@ package api_management_api_diagnostic
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apidiagnostic"
@@ -14,10 +14,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementApiDiagnosticCreateUpdate,
-		Read:   resourceApiManagementApiDiagnosticRead,
-		Update: resourceApiManagementApiDiagnosticCreateUpdate,
-		Delete: resourceApiManagementApiDiagnosticDelete,
+		Description: "Manages an API Management Service API Diagnostics Logs.",
+		Create:      resourceApiManagementApiDiagnosticCreateUpdate,
+		Read:        resourceApiManagementApiDiagnosticRead,
+		Update:      resourceApiManagementApiDiagnosticCreateUpdate,
+		Delete:      resourceApiManagementApiDiagnosticDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := apidiagnostic.ParseApiDiagnosticID(id)
@@ -36,12 +37,12 @@ func RegisterResource() *pluginsdk.Resource {
 		CustomizeDiff: func(ctx context.Context, d *pluginsdk.ResourceDiff, i any) error {
 			if _, n := d.GetChange("operation_name_format"); n != "" {
 				if d.Get("identifier") != "applicationinsights" {
-					return fmt.Errorf("`operation_name_format` cannot be set when `identifier` is not `applicationinsights`")
+					return errors.New("`operation_name_format` cannot be set when `identifier` is not `applicationinsights`")
 				}
 			}
 
 			if v := d.GetRawConfig().AsValueMap()["metrics_enabled"]; !v.IsNull() && d.Get("identifier") != "applicationinsights" {
-				return fmt.Errorf("`metrics_enabled` can only be set when `identifier` is set to `applicationinsights`")
+				return errors.New("`metrics_enabled` can only be set when `identifier` is set to `applicationinsights`")
 			}
 
 			return nil

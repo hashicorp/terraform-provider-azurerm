@@ -4,7 +4,7 @@
 package dns_caa_record
 
 import (
-	"fmt"
+	"errors"
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/recordsets"
@@ -14,10 +14,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDnsCaaRecordCreateUpdate,
-		Read:   resourceDnsCaaRecordRead,
-		Update: resourceDnsCaaRecordCreateUpdate,
-		Delete: resourceDnsCaaRecordDelete,
+		Description: "Enables you to manage DNS CAA Records within Azure DNS.",
+		Create:      resourceDnsCaaRecordCreateUpdate,
+		Read:        resourceDnsCaaRecordRead,
+		Update:      resourceDnsCaaRecordCreateUpdate,
+		Delete:      resourceDnsCaaRecordDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -32,7 +33,7 @@ func RegisterResource() *pluginsdk.Resource {
 				return err
 			}
 			if parsed.RecordType != recordsets.RecordTypeCAA {
-				return fmt.Errorf("this resource only supports 'CAA' records")
+				return errors.New("this resource only supports 'CAA' records")
 			}
 			return nil
 		}),

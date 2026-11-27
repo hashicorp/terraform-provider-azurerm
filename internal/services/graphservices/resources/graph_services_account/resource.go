@@ -23,3 +23,7 @@ func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 func (r Resource) ResourceType() string {
 	return "azurerm_graph_services_account"
 }
+
+func (r Resource) Description() string {
+	return "Manages a Microsoft Graph Services Account."
+}

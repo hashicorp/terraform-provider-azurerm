@@ -5,6 +5,7 @@ package helpers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"slices"
@@ -102,7 +103,7 @@ func ExpandNetAppVolumeGroupDataProtectionSnapshotPolicy(input []models.DataProt
 
 func ExpandNetAppVolumeGroupSAPHanaVolumes(input []models.NetAppVolumeGroupSAPHanaVolume) (*[]volumegroups.VolumeGroupVolumeProperties, error) {
 	if len(input) == 0 {
-		return &[]volumegroups.VolumeGroupVolumeProperties{}, fmt.Errorf("received empty NetAppVolumeGroupSAPHanaVolume slice")
+		return &[]volumegroups.VolumeGroupVolumeProperties{}, errors.New("received empty NetAppVolumeGroupSAPHanaVolume slice")
 	}
 
 	results := make([]volumegroups.VolumeGroupVolumeProperties, 0)
@@ -171,7 +172,7 @@ func ExpandNetAppVolumeGroupSAPHanaVolumes(input []models.NetAppVolumeGroupSAPHa
 
 func ExpandNetAppVolumeGroupOracleVolumes(input []models.NetAppVolumeGroupOracleVolume) (*[]volumegroups.VolumeGroupVolumeProperties, error) {
 	if len(input) == 0 {
-		return &[]volumegroups.VolumeGroupVolumeProperties{}, fmt.Errorf("received empty NetAppVolumeGroupSAPHanaVolume slice")
+		return &[]volumegroups.VolumeGroupVolumeProperties{}, errors.New("received empty NetAppVolumeGroupSAPHanaVolume slice")
 	}
 
 	results := make([]volumegroups.VolumeGroupVolumeProperties, 0)
@@ -363,7 +364,7 @@ func FlattenNetAppVolumeGroupSAPHanaVolumes(ctx context.Context, input *[]volume
 	results := make([]models.NetAppVolumeGroupSAPHanaVolume, 0)
 
 	if input == nil || len(pointer.From(input)) == 0 {
-		return results, fmt.Errorf("received empty volumegroups.VolumeGroupVolumeProperties slice")
+		return results, errors.New("received empty volumegroups.VolumeGroupVolumeProperties slice")
 	}
 
 	for _, item := range *input {
@@ -445,7 +446,7 @@ func FlattenNetAppVolumeGroupOracleVolumes(ctx context.Context, input *[]volumeg
 	results := make([]models.NetAppVolumeGroupOracleVolume, 0)
 
 	if input == nil || len(pointer.From(input)) == 0 {
-		return results, fmt.Errorf("received empty volumegroups.VolumeGroupVolumeProperties slice")
+		return results, errors.New("received empty volumegroups.VolumeGroupVolumeProperties slice")
 	}
 
 	for _, item := range *input {
@@ -718,7 +719,7 @@ func DeleteVolume(ctx context.Context, metadata sdk.ResourceMetaData, volumeId s
 func WaitForVolumeCreateOrUpdate(ctx context.Context, client *volumes.VolumesClient, id volumes.VolumeId) error {
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
+		return errors.New("internal-error: context had no deadline")
 	}
 	stateConf := &pluginsdk.StateChangeConf{
 		ContinuousTargetOccurence: 5,
@@ -740,7 +741,7 @@ func WaitForVolumeCreateOrUpdate(ctx context.Context, client *volumes.VolumesCli
 func WaitForVolumeGroupCreateOrUpdate(ctx context.Context, client *volumegroups.VolumeGroupsClient, id volumegroups.VolumeGroupId) error {
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
+		return errors.New("internal-error: context had no deadline")
 	}
 	stateConf := &pluginsdk.StateChangeConf{
 		ContinuousTargetOccurence: 5,
@@ -762,7 +763,7 @@ func WaitForVolumeGroupCreateOrUpdate(ctx context.Context, client *volumegroups.
 func WaitForVolumeGroupDelete(ctx context.Context, client *volumegroups.VolumeGroupsClient, id volumegroups.VolumeGroupId) error {
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
+		return errors.New("internal-error: context had no deadline")
 	}
 	stateConf := &pluginsdk.StateChangeConf{
 		ContinuousTargetOccurence: 5,
@@ -784,7 +785,7 @@ func WaitForVolumeGroupDelete(ctx context.Context, client *volumegroups.VolumeGr
 func WaitForReplAuthorization(ctx context.Context, client *volumes.VolumesClient, id volumes.VolumeId) error {
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
+		return errors.New("internal-error: context had no deadline")
 	}
 	stateConf := &pluginsdk.StateChangeConf{
 		ContinuousTargetOccurence: 5,
@@ -806,7 +807,7 @@ func WaitForReplAuthorization(ctx context.Context, client *volumes.VolumesClient
 func WaitForReplMirrorState(ctx context.Context, client *volumes.VolumesClient, id volumes.VolumeId, desiredState string) error {
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
+		return errors.New("internal-error: context had no deadline")
 	}
 	stateConf := &pluginsdk.StateChangeConf{
 		ContinuousTargetOccurence: 5,
@@ -828,7 +829,7 @@ func WaitForReplMirrorState(ctx context.Context, client *volumes.VolumesClient, 
 func WaitForReplicationDeletion(ctx context.Context, client *volumes.VolumesClient, id volumes.VolumeId) error {
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
+		return errors.New("internal-error: context had no deadline")
 	}
 
 	stateConf := &pluginsdk.StateChangeConf{
@@ -851,7 +852,7 @@ func WaitForReplicationDeletion(ctx context.Context, client *volumes.VolumesClie
 func WaitForVolumeDeletion(ctx context.Context, client *volumes.VolumesClient, id volumes.VolumeId) error {
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
+		return errors.New("internal-error: context had no deadline")
 	}
 	stateConf := &pluginsdk.StateChangeConf{
 		ContinuousTargetOccurence: 5,

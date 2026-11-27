@@ -5,6 +5,7 @@ package helpers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"maps"
@@ -107,7 +108,7 @@ func (br AssignmentBaseResource) CreateFunc(resourceName, scopeFieldName string)
 
 			if len(config.Identity) > 0 {
 				if assignment.Location == nil {
-					return fmt.Errorf("`location` must be set when `identity` is assigned")
+					return errors.New("`location` must be set when `identity` is assigned")
 				}
 				identityIns, err := identity.ExpandSystemOrUserAssignedMapFromModel(config.Identity)
 				if err != nil {
@@ -217,7 +218,7 @@ func (br AssignmentBaseResource) ReadFunc(scopeFieldName string) sdk.ResourceFun
 				return fmt.Errorf("reading %s: %+v", *id, err)
 			}
 			if resp.Model == nil {
-				return fmt.Errorf("reading nil model")
+				return errors.New("reading nil model")
 			}
 
 			respModel := resp.Model
@@ -315,7 +316,7 @@ func (br AssignmentBaseResource) UpdateFunc() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("identity") {
 				if update.Location == nil {
-					return fmt.Errorf("`location` must be set when `identity` is assigned")
+					return errors.New("`location` must be set when `identity` is assigned")
 				}
 				identityIns, err := identity.ExpandSystemOrUserAssignedMapFromModel(config.Identity)
 				if err != nil {

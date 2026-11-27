@@ -21,7 +21,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceAvailabilitySetRead,
+		Description: "Use this data source to access information about an existing Availability Set.",
+		Read:        dataSourceAvailabilitySetRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -29,6 +30,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Availability Set.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -39,18 +41,21 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"location": commonschema.LocationComputed(),
 
 			"platform_update_domain_count": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The number of update domains that are used.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"platform_fault_domain_count": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The number of fault domains that are used.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"managed": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether the Availability Set is managed.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"tags": commonschema.TagsDataSource(),

@@ -17,6 +17,10 @@ func (Resource) ResourceType() string {
 	return "azurerm_container_registry_cache_rule"
 }
 
+func (Resource) Description() string {
+	return "Manages an Azure Container Registry Cache Rule."
+}
+
 func (Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return cacherules.ValidateCacheRuleID
 }

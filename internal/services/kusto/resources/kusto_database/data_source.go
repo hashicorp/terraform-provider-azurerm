@@ -20,7 +20,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceKustoDatabaseRead,
+		Description: "Use this data source to access information about an existing Kusto Database.",
+		Read:        dataSourceKustoDatabaseRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -28,6 +29,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Kusto Database.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.DatabaseName,
@@ -36,6 +38,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"cluster_name": {
+				Description:  "The name of the Kusto Cluster this database is added to.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.ClusterName,
@@ -44,18 +47,21 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"location": commonschema.LocationComputed(),
 
 			"soft_delete_period": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The time the data should be kept before it stops being accessible to queries as ISO 8601 timespan.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"hot_cache_period": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The time the data that should be kept in cache for fast queries as ISO 8601 timespan.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"size": {
-				Type:     pluginsdk.TypeFloat,
-				Computed: true,
+				Description: "The size of the database in bytes.",
+				Type:        pluginsdk.TypeFloat,
+				Computed:    true,
 			},
 		},
 	}

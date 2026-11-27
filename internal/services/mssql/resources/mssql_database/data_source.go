@@ -24,7 +24,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceMsSqlDatabaseRead,
+		Description: "Use this data source to access information about an existing SQL database.",
+		Read:        dataSourceMsSqlDatabaseRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -32,82 +33,97 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the MS SQL Database.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.ValidateMsSqlDatabaseName,
 			},
 
 			"server_id": {
+				Description:  "The ID of the MS SQL Server on which to read the database.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.AsGeneratedID(commonids.ParseSqlServerIDInsensitively),
 			},
 
 			"collation": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The collation of the database.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"elastic_pool_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ID of the elastic pool containing this database.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"license_type": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The license type to apply for this database.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"max_size_gb": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The max size of the database in gigabytes.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"read_replica_count": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The number of readonly secondary replicas associated with the database to which readonly application intent connections may be routed.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"read_scale": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "If enabled, connections that have application intent set to readonly in their connection string may be routed to a readonly secondary replica.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The name of the SKU of the database.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"storage_account_type": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Storage Account type used to store backups for this database.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"zone_redundant": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether this database is zone redundant, which means the replicas of this database will be spread across multiple Availability Zones.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"enclave_type": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The type of enclave being used by the database.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"identity": commonschema.UserAssignedIdentityComputed(),
 
 			"transparent_data_encryption_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether Transparent Data Encryption is enabled.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"transparent_data_encryption_key_vault_key_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Key Vault Key URI to be used as the `Customer Managed Key` (CMK/BYOK) for the `Transparent Data Encryption` (TDE) layer.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"transparent_data_encryption_key_automatic_rotation_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether TDE automatically rotates the encryption Key to latest version.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"tags": commonschema.TagsDataSource(),

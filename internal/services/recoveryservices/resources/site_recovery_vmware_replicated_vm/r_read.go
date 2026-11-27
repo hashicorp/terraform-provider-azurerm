@@ -162,9 +162,9 @@ func resourceSiteRecoveryVMWareReplicatedVMManagedDiskSchema() *pluginsdk.Resour
 				ValidateFunc: validation.StringInSlice(replicationprotecteditems.PossibleValuesForDiskAccountType(), false),
 			},
 
-			"target_disk_encryption_set_id": commonschema.ResourceIDReferenceOptional(&commonids.DiskEncryptionSetId{}),
+			"target_disk_encryption_set_id": commonschema.ResourceIDReferenceOptional(&commonids.DiskEncryptionSetId{}, "Disk Encryption Set"),
 
-			"log_storage_account_id": commonschema.ResourceIDReferenceOptional(&commonids.StorageAccountId{}),
+			"log_storage_account_id": commonschema.ResourceIDReferenceOptional(&commonids.StorageAccountId{}, "Storage Account"),
 		},
 	}
 }

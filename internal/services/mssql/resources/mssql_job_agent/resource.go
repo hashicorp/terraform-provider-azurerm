@@ -15,10 +15,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceMsSqlJobAgentCreate,
-		Read:   resourceMsSqlJobAgentRead,
-		Update: resourceMsSqlJobAgentUpdate,
-		Delete: resourceMsSqlJobAgentDelete,
+		Description: "Manages an Elastic Job Agent.",
+		Create:      resourceMsSqlJobAgentCreate,
+		Read:        resourceMsSqlJobAgentRead,
+		Update:      resourceMsSqlJobAgentUpdate,
+		Delete:      resourceMsSqlJobAgentDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&jobagents.JobAgentId{}),
 

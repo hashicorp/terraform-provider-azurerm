@@ -4,6 +4,7 @@
 package redis_linked_server
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -64,7 +65,7 @@ func resourceRedisLinkedServerCreate(d *pluginsdk.ResourceData, meta any) error 
 	// TODO: is this still required now that this is using polling methods from `go-azure-sdk`?
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
+		return errors.New("internal-error: context had no deadline")
 	}
 	log.Printf("[DEBUG] Waiting for %s to become available", id)
 	stateConf := &pluginsdk.StateChangeConf{

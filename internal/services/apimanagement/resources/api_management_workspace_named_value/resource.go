@@ -20,6 +20,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_api_management_workspace_named_value"
 }
 
+func (r Resource) Description() string {
+	return "Manages an API Management Workspace Named Value."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return namedvalue.ValidateWorkspaceNamedValueID
 }

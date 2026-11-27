@@ -4,6 +4,7 @@
 package api_management_product
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -64,7 +65,7 @@ func resourceApiManagementProductCreateUpdate(d *pluginsdk.ResourceData, meta an
 	// API/Portal says: Cannot provide values for approvalRequired and subscriptionsLimit when subscriptionRequired is set to false in the request payload
 	if subscriptionRequired {
 		if approvalRequired && subscriptionsLimit <= 0 {
-			return fmt.Errorf("`subscriptions_limit` must be greater than 0 to use `approval_required`")
+			return errors.New("`subscriptions_limit` must be greater than 0 to use `approval_required`")
 		}
 		// Set `subscriptions_limit` to null or omit to allow unlimited per user subscriptions
 		// When `subscriptions_limit` is specified as `0` it means the maximum number of subscriptions is 0, rather than allowing unlimited per user subscriptions
@@ -73,7 +74,7 @@ func resourceApiManagementProductCreateUpdate(d *pluginsdk.ResourceData, meta an
 			properties.Properties.SubscriptionsLimit = pointer.To(int64(subscriptionsLimit))
 		}
 	} else if approvalRequired {
-		return fmt.Errorf("`subscription_required` must be true to use `approval_required`")
+		return errors.New("`subscription_required` must be true to use `approval_required`")
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, properties, product.CreateOrUpdateOperationOptions{}); err != nil {

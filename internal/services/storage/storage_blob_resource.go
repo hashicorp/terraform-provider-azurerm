@@ -5,6 +5,7 @@ package storage
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -149,8 +150,8 @@ func resourceStorageBlob() *pluginsdk.Resource {
 				// TODO: @tombuildsstuff - a note this only works for Page blobs
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Default:      8,
 				ForceNew:     true,
+				Default:      8,
 				ValidateFunc: validation.IntAtLeast(1),
 			},
 
@@ -160,7 +161,7 @@ func resourceStorageBlob() *pluginsdk.Resource {
 		CustomizeDiff: func(ctx context.Context, diff *pluginsdk.ResourceDiff, i any) error {
 			if content := diff.Get("source_content"); content != "" && diff.Get("type") == "Page" {
 				if len(content.(string))%512 != 0 {
-					return fmt.Errorf(`"source" must be aligned to 512-byte boundary for "type" set to "Page"`)
+					return errors.New(`"source" must be aligned to 512-byte boundary for "type" set to "Page"`)
 				}
 			}
 			return nil

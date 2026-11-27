@@ -16,10 +16,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceMonitorScheduledQueryRulesAlertCreateUpdate,
-		Read:   resourceMonitorScheduledQueryRulesAlertRead,
-		Update: resourceMonitorScheduledQueryRulesAlertCreateUpdate,
-		Delete: resourceMonitorScheduledQueryRulesAlertDelete,
+		Description: "Manages an AlertingAction Scheduled Query Rules resource within Azure Monitor.",
+		Create:      resourceMonitorScheduledQueryRulesAlertCreateUpdate,
+		Read:        resourceMonitorScheduledQueryRulesAlertRead,
+		Update:      resourceMonitorScheduledQueryRulesAlertCreateUpdate,
+		Delete:      resourceMonitorScheduledQueryRulesAlertDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&scheduledqueryrules.ScheduledQueryRuleId{}),
 

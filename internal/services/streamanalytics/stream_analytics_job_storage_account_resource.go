@@ -4,6 +4,7 @@ package streamanalytics
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -119,11 +120,11 @@ func (r JobStorageAccountResource) Create() sdk.ResourceFunc {
 			}
 
 			if model.AuthenticationMode == string(streamingjobs.AuthenticationModeMsi) && model.StorageAccountKey != "" {
-				return fmt.Errorf("`storage_account_key` cannot be set if `authentication_mode` is `Msi`")
+				return errors.New("`storage_account_key` cannot be set if `authentication_mode` is `Msi`")
 			}
 
 			if model.AuthenticationMode == string(streamingjobs.AuthenticationModeConnectionString) && model.StorageAccountKey == "" {
-				return fmt.Errorf("`storage_account_key` cannot be empty if `authentication_mode` is `ConnectionString`")
+				return errors.New("`storage_account_key` cannot be empty if `authentication_mode` is `ConnectionString`")
 			}
 
 			if model.StorageAccountKey != "" {

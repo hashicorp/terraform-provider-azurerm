@@ -5,6 +5,7 @@ package site_recovery_vmware_replication_policy_association
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -79,7 +80,7 @@ func validateReplicationPolicyAssociationVaultConfig(ctx context.Context, settin
 	}
 
 	if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.VMwareToAzureProviderType != nil {
-		return fmt.Errorf("can not associate a modern policy to classic VMWare vault")
+		return errors.New("can not associate a modern policy to classic VMWare vault")
 	}
 
 	return nil

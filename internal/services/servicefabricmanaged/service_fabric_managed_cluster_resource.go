@@ -5,6 +5,7 @@ package servicefabricmanaged
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"maps"
 	"reflect"
@@ -204,11 +205,11 @@ func (k ClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		"sku": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Default:      "Basic",
 			ForceNew:     true,
+			Default:      "Basic",
 			ValidateFunc: validation.StringInSlice(managedcluster.PossibleValuesForSkuName(), false),
 		},
-		"subnet_id": commonschema.ResourceIDReferenceOptionalForceNew(&commonids.SubnetId{}),
+		"subnet_id": commonschema.ResourceIDReferenceOptionalForceNew(&commonids.SubnetId{}, "Subnet"),
 		"tags":      commonschema.Tags(),
 		"upgrade_wave": {
 			Type:         pluginsdk.TypeString,
@@ -492,15 +493,15 @@ func (k ClusterResource) CustomizeDiff() sdk.ResourceFunc {
 				nt := nti.(map[string]any)
 				vmCount := nt["vm_instance_count"].(int)
 				if sku == string(managedcluster.SkuNameBasic) && vmCount < 3 {
-					return fmt.Errorf("basic SKU requires at least 3 instances in a node type")
+					return errors.New("basic SKU requires at least 3 instances in a node type")
 				} else if sku == string(managedcluster.SkuNameStandard) && vmCount < 5 {
-					return fmt.Errorf("standard SKU requires at least 5 instances in a node type")
+					return errors.New("standard SKU requires at least 5 instances in a node type")
 				}
 				isPrimary := nt["primary"].(bool)
 				if isPrimary && !primary {
 					primary = true
 				} else if isPrimary {
-					return fmt.Errorf("only one node type can be primary at any given time. ")
+					return errors.New("only one node type can be primary at any given time. ")
 				}
 			}
 
@@ -896,7 +897,7 @@ func expandNodeTypeProperties(nt *NodeType) (*nodetype.NodeTypeProperties, error
 
 func parsePortRange(input string) (int64, int64, error) {
 	if len(input) == 0 {
-		return 0, 0, fmt.Errorf("port range is an empty string")
+		return 0, 0, errors.New("port range is an empty string")
 	}
 	toks := strings.Split(input, "-")
 	if len(toks) != 2 {

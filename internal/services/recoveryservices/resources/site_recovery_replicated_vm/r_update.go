@@ -4,6 +4,7 @@
 package site_recovery_replicated_vm
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -126,10 +127,10 @@ func resourceSiteRecoveryReplicatedItemUpdate(d *pluginsdk.ResourceData, meta an
 			if a2aDetails.SelectedRecoveryAzureNetworkId != nil {
 				targetNetworkId = *a2aDetails.SelectedRecoveryAzureNetworkId
 			} else {
-				return fmt.Errorf("target_network_id must be set when a network_interface is configured")
+				return errors.New("target_network_id must be set when a network_interface is configured")
 			}
 		} else {
-			return fmt.Errorf("target_network_id must be set when a network_interface is configured")
+			return errors.New("target_network_id must be set when a network_interface is configured")
 		}
 	}
 

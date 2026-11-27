@@ -14,6 +14,7 @@ import (
 func monitorPrivateLinkScopeSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Azure Monitor Private Link Scope.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

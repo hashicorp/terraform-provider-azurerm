@@ -4,6 +4,7 @@
 package nginx_deployment
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -64,7 +65,7 @@ func expandCreateForNginxDeployment(model DeploymentModel) (nginxdeployment.Ngin
 	isBasicSKU := strings.HasPrefix(model.Sku, "basic")
 	hasScaling := model.Capacity > 0 || len(model.AutoScaleProfile) > 0
 	if isBasicSKU && hasScaling {
-		return req, fmt.Errorf("basic SKUs are incompatible with `capacity` or `auto_scale_profiles`")
+		return req, errors.New("basic SKUs are incompatible with `capacity` or `auto_scale_profiles`")
 	}
 	if !isBasicSKU && !hasScaling {
 		return req, fmt.Errorf("scaling is required for `sku` '%s', please provide `capacity` or `auto_scale_profiles`", model.Sku)

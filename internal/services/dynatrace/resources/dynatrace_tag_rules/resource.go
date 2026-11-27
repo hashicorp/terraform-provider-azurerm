@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_dynatrace_tag_rules"
 }
 
+func (r Resource) Description() string {
+	return "Manages Dynatrace tag rules."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return tagrules.ValidateTagRuleID
 }

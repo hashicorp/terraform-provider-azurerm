@@ -81,54 +81,55 @@ func AuthV2SettingsSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"auth_enabled": {
+					Description: "Whether the AuthV2 Settings should be enabled.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
-					Description: "Should the AuthV2 Settings be enabled. Defaults to `false`",
+					Default:     false,
 				},
 
 				"runtime_version": {
+					Description:  "The Runtime Version of the Authentication and Authorisation feature of this App.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      `~1`,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The Runtime Version of the Authentication and Authorisation feature of this App. Defaults to `~1`",
 				},
 
 				"config_file_path": {
+					Description:  "The path to the App Auth settings. **Note:** Relative Paths are evaluated from the Site Root directory.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The path to the App Auth settings. **Note:** Relative Paths are evaluated from the Site Root directory.",
 				},
 
 				"require_authentication": {
+					Description: "Whether the authentication flow should be used for all requests.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
-					Description: "Should the authentication flow be used for all requests.",
 				},
 
 				"unauthenticated_action": {
+					Description:  "The action to take for requests made without authentication.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      string(webapps.UnauthenticatedClientActionV2RedirectToLoginPage),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForUnauthenticatedClientActionV2(), false),
-					Description:  "The action to take for requests made without authentication. Possible values include `RedirectToLoginPage`, `AllowAnonymous`, `Return401`, and `Return403`. Defaults to `RedirectToLoginPage`.",
 				},
 
 				"default_provider": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
 					// ValidateFunc: validation.StringInSlice([]string{}, false), // TODO - find the correct strings for the Auth names
 					Description: "The Default Authentication Provider to use when the `unauthenticated_action` is set to `RedirectToLoginPage`. Possible values include: `apple`, `azureactivedirectory`, `facebook`, `github`, `google`, `twitter` and the `name` of your `custom_oidc_v2` provider.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
 				},
 
 				"excluded_paths": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
+					Description: "The paths which should be excluded from the `unauthenticated_action` when it is set to `RedirectToLoginPage`.",
+					Type:        pluginsdk.TypeList,
+					Optional:    true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "The paths which should be excluded from the `unauthenticated_action` when it is set to `RedirectToLoginPage`.",
 				},
 
 				"apple_v2": AppleAuthV2SettingsSchema(),
@@ -152,40 +153,40 @@ func AuthV2SettingsSchema() *pluginsdk.Schema {
 				"login": AuthV2LoginSchema(),
 
 				"require_https": {
+					Description: "Whether HTTPS should be required on connections.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     true,
-					Description: "Should HTTPS be required on connections? Defaults to true.",
 				},
 
 				"http_route_api_prefix": {
+					Description:  "The prefix that should precede all the authentication and authorisation paths.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      "/.auth",
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The prefix that should precede all the authentication and authorisation paths. Defaults to `/.auth`",
 				},
 
 				"forward_proxy_convention": {
+					Description:  "The convention used to determine the URL of the request made.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      string(webapps.ForwardProxyConventionNoProxy),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForForwardProxyConvention(), false),
-					Description:  "The convention used to determine the url of the request made. Possible values include `ForwardProxyConventionNoProxy`, `ForwardProxyConventionStandard`, `ForwardProxyConventionCustom`. Defaults to `ForwardProxyConventionNoProxy`",
 				},
 
 				"forward_proxy_custom_host_header_name": {
+					Description:  "The name of the header containing the host of the request.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The name of the header containing the host of the request.",
 				},
 
 				"forward_proxy_custom_scheme_header_name": {
+					Description:  "The name of the header containing the scheme of the request.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The name of the header containing the scheme of the request.",
 				},
 			},
 		},
@@ -199,27 +200,27 @@ func AuthV2SettingsComputedSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"auth_enabled": {
+					Description: "Whether the AuthV2 Settings are enabled.",
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Is the AuthV2 Settings be enabled.",
 				},
 
 				"runtime_version": {
+					Description: "The Runtime Version of the Authentication and Authorisation feature of this App.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The Runtime Version of the Authentication and Authorisation feature of this App.",
 				},
 
 				"config_file_path": {
+					Description: "The path to the App Auth settings.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The path to the App Auth settings.",
 				},
 
 				"require_authentication": {
+					Description: "Whether the authentication flow is used for all requests.",
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Is the authentication flow used for all requests.",
 				},
 
 				"unauthenticated_action": {
@@ -228,18 +229,18 @@ func AuthV2SettingsComputedSchema() *pluginsdk.Schema {
 				},
 
 				"default_provider": {
+					Description: "The Default Authentication Provider used when the `unauthenticated_action` is set to `RedirectToLoginPage`.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The Default Authentication Provider used when the `unauthenticated_action` is set to `RedirectToLoginPage`.",
 				},
 
 				"excluded_paths": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
+					Description: "The paths which are excluded from the `unauthenticated_action` when it is set to `RedirectToLoginPage`.",
+					Type:        pluginsdk.TypeList,
+					Computed:    true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "The paths which are excluded from the `unauthenticated_action` when it is set to `RedirectToLoginPage`.",
 				},
 
 				"apple_v2": AppleAuthV2SettingsSchemaComputed(),
@@ -263,33 +264,33 @@ func AuthV2SettingsComputedSchema() *pluginsdk.Schema {
 				"login": AuthV2LoginSchemaComputed(),
 
 				"require_https": {
+					Description: "Whether HTTPS is required on connections.",
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Is HTTPS required on connections?",
 				},
 
 				"http_route_api_prefix": {
+					Description: "The prefix that precedes all the authentication and authorisation paths.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The prefix that precedes all the authentication and authorisation paths.",
 				},
 
 				"forward_proxy_convention": {
+					Description: "The convention used to determine the URL of the request made.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The convention used to determine the url of the request made.",
 				},
 
 				"forward_proxy_custom_host_header_name": {
+					Description: "The name of the header containing the host of the request.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The name of the header containing the host of the request.",
 				},
 
 				"forward_proxy_custom_scheme_header_name": {
+					Description: "The name of the header containing the scheme of the request.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The name of the header containing the scheme of the request.",
 				},
 			},
 		},
@@ -313,97 +314,97 @@ type AuthV2Login struct {
 func AuthV2LoginSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		MaxItems: 1,
 		Required: true,
+		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"logout_endpoint": {
+					Description: "The endpoint to which logout requests should be made.",
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
-					Description: "The endpoint to which logout requests should be made.",
 				},
 
 				"token_store_enabled": {
+					Description: "Whether the Token Store configuration should be enabled.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should the Token Store configuration Enabled. Defaults to `false`",
 				},
 
 				"token_refresh_extension_time": {
+					Description:  "The number of hours after session token expiration that a session token can be used to call the token refresh API.",
 					Type:         pluginsdk.TypeFloat,
 					Optional:     true,
 					Default:      72,
 					ValidateFunc: validation.FloatAtLeast(0),
-					Description:  "The number of hours after session token expiration that a session token can be used to call the token refresh API. Defaults to `72` hours.",
 				},
 
 				"token_store_path": {
+					Description:  "The directory path in the App Filesystem in which the tokens will be stored.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 					ConflictsWith: []string{
 						"auth_settings_v2.0.login.0.token_store_sas_setting_name",
 					},
-					Description: "The directory path in the App Filesystem in which the tokens will be stored.",
 				},
 
 				"token_store_sas_setting_name": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Description:  "The name of the app setting which contains the SAS URL of the blob storage containing the tokens.",
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
 					ConflictsWith: []string{
 						"auth_settings_v2.0.login.0.token_store_path",
 					},
-					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The name of the app setting which contains the SAS URL of the blob storage containing the tokens.",
 				},
 
 				"preserve_url_fragments_for_logins": {
+					Description: "Whether the fragments from the request should be preserved after the login request is made.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should the fragments from the request be preserved after the login request is made. Defaults to `false`.",
 				},
 
 				"allowed_external_redirect_urls": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
+					Description: "External URLs that can be redirected to as part of logging in or logging out of the app. This is an advanced setting typically only needed by Windows Store application backends. **Note:** URLs within the current domain are always implicitly allowed.",
+					Type:        pluginsdk.TypeList,
+					Optional:    true,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
-					Description: "External URLs that can be redirected to as part of logging in or logging out of the app. This is an advanced setting typically only needed by Windows Store application backends. **Note:** URLs within the current domain are always implicitly allowed.",
 				},
 
 				"cookie_expiration_convention": {
+					Description:  "The method by which cookies expire.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      string(webapps.CookieExpirationConventionFixedTime),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForCookieExpirationConvention(), false),
-					Description:  "The method by which cookies expire. Possible values include: `FixedTime`, and `IdentityProviderDerived`. Defaults to `FixedTime`.",
 				},
 
 				"cookie_expiration_time": {
+					Description:  "The time after the request is made when the session cookie should expire.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      "08:00:00",
 					ValidateFunc: validate.TimeInterval,
-					Description:  "The time after the request is made when the session cookie should expire. Defaults to `08:00:00`.",
 				},
 
 				"validate_nonce": {
+					Description: "Whether the nonce should be validated while completing the login flow.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     true,
-					Description: "Should the nonce be validated while completing the login flow. Defaults to `true`.",
 				},
 
 				"nonce_expiration_time": {
+					Description:  "The time after the request is made when the nonce should expire.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      "00:05:00",
 					ValidateFunc: validate.TimeInterval,
-					Description:  "The time after the request is made when the nonce should expire. Defaults to `00:05:00`.",
 				},
 			},
 		},
@@ -417,48 +418,48 @@ func AuthV2LoginSchemaComputed() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"logout_endpoint": {
+					Description: "The endpoint to which logout requests are made.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The endpoint to which logout requests are made.",
 				},
 
 				"token_store_enabled": {
+					Description: "Whether the Token Store configuration is enabled.",
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Is the Token Store configuration Enabled.",
 				},
 
 				"token_refresh_extension_time": {
+					Description: "The number of hours after session token expiration that a session token can be used to call the token refresh API.",
 					Type:        pluginsdk.TypeFloat,
 					Computed:    true,
-					Description: "The number of hours after session token expiration that a session token can be used to call the token refresh API.",
 				},
 
 				"token_store_path": {
+					Description: "The directory path in the App Filesystem in which the tokens are stored.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The directory path in the App Filesystem in which the tokens are stored.",
 				},
 
 				"token_store_sas_setting_name": {
+					Description: "The name of the app setting which contains the SAS URL of the blob storage containing the tokens.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The name of the app setting which contains the SAS URL of the blob storage containing the tokens.",
 				},
 
 				"preserve_url_fragments_for_logins": {
+					Description: "Whether the fragments from the request are preserved after the login request is made.",
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Are the fragments from the request be preserved after the login request is made.",
 				},
 
 				"allowed_external_redirect_urls": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
+					Description: "External URLs that can be redirected to as part of logging in or logging out of the app. This is an advanced setting typically only needed by Windows Store application backends. **Note:** URLs within the current domain are always implicitly allowed.",
+					Type:        pluginsdk.TypeList,
+					Computed:    true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "External URLs that can be redirected to as part of logging in or logging out of the app. This is an advanced setting typically only needed by Windows Store application backends. **Note:** URLs within the current domain are always implicitly allowed.",
 				},
 
 				"cookie_expiration_convention": {
@@ -467,21 +468,21 @@ func AuthV2LoginSchemaComputed() *pluginsdk.Schema {
 				},
 
 				"cookie_expiration_time": {
+					Description: "The time after the request is made when the session cookie will expire.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The time after the request is made when the session cookie will expire.",
 				},
 
 				"validate_nonce": {
+					Description: "Whether the nonce is validated while completing the login flow.",
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Is the nonce be validated while completing the login flow.",
 				},
 
 				"nonce_expiration_time": {
+					Description: "The time after the request is made when the nonce will expire.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The time after the request is made when the nonce will expire.",
 				},
 			},
 		},
@@ -606,17 +607,17 @@ func AppleAuthV2SettingsSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"client_id": {
+					Description:  "The OpenID Connect Client ID for the Apple web application.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The OpenID Connect Client ID for the Apple web application.",
 				},
 
 				"client_secret_setting_name": {
+					Description:  "The app setting name that contains the `client_secret` value used for Apple Login.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The app setting name that contains the `client_secret` value used for Apple Login.",
 				},
 
 				"login_scopes": {
@@ -638,24 +639,24 @@ func AppleAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"client_id": {
+					Description: "The OpenID Connect Client ID for the Apple web application.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The OpenID Connect Client ID for the Apple web application.",
 				},
 
 				"client_secret_setting_name": {
+					Description: "The app setting name that contains the `client_secret` value used for Apple Login.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The app setting name that contains the `client_secret` value used for Apple Login.",
 				},
 
 				"login_scopes": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
+					Description: "A list of OAuth 2.0 scopes that will be requested as part of Apple Sign-In authentication. If not specified, `openid`, `profile`, and `email` are used as default scopes.",
+					Type:        pluginsdk.TypeList,
+					Computed:    true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of OAuth 2.0 scopes that will be requested as part of Apple Sign-In authentication. If not specified, \"openid\", \"profile\", and \"email\" are used as default scopes.",
 				},
 			},
 		},
@@ -734,111 +735,112 @@ func AadAuthV2SettingsSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"client_id": {
+					Description:  "The ID of the Client to use to authenticate with Azure Active Directory.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The ID of the Client to use to authenticate with Azure Active Directory.",
 				},
 
 				"tenant_auth_endpoint": {
+					Description:  "The Azure Tenant Endpoint for the Authenticating Tenant. e.g. `https://login.microsoftonline.com/v2.0/{tenant-guid}/`.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.IsURLWithHTTPorHTTPS,
-					Description:  "The Azure Tenant Endpoint for the Authenticating Tenant. e.g. `https://login.microsoftonline.com/v2.0/{tenant-guid}/`.",
 				},
 
 				"client_secret_setting_name": {
+					Description:  "The App Setting name that contains the client secret of the Client.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 					ConflictsWith: []string{
 						"auth_settings_v2.0.active_directory_v2.0.client_secret_certificate_thumbprint",
 					},
-					Description: "The App Setting name that contains the client secret of the Client.",
 				},
 
 				"client_secret_certificate_thumbprint": {
+					Description:  "The thumbprint of the certificate used for signing purposes.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 					ConflictsWith: []string{
 						"auth_settings_v2.0.active_directory_v2.0.client_secret_setting_name",
 					},
-					Description: "The thumbprint of the certificate used for signing purposes.",
 				},
 
 				"jwt_allowed_groups": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
+					Description: "A list of Allowed Groups in the JWT Claim.",
+					Type:        pluginsdk.TypeList,
+					Optional:    true,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
-					Description: "A list of Allowed Groups in the JWT Claim.",
 				},
 
 				"jwt_allowed_client_applications": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
+					Description: "A list of Allowed Client Applications in the JWT Claim.",
+					Type:        pluginsdk.TypeList,
+					Optional:    true,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
-					Description: "A list of Allowed Client Applications in the JWT Claim.",
 				},
 
 				"www_authentication_disabled": {
+					Description: "Whether the www-authenticate provider should be omitted from the request.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
-					Description: "Should the www-authenticate provider should be omitted from the request? Defaults to `false`",
+					Default:     false,
 				},
 
 				"allowed_groups": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
+					Description: "The list of allowed Group Names for the Default Authorisation Policy.",
+					Type:        pluginsdk.TypeList,
+					Optional:    true,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
-					Description: "The list of allowed Group Names for the Default Authorisation Policy.",
 				},
 
 				"allowed_identities": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
+					Description: "The list of allowed Identities for the Default Authorisation Policy.",
+					Type:        pluginsdk.TypeList,
+					Optional:    true,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty, // TODO - Can we use identity Validation here?
 					},
-					Description: "The list of allowed Identities for the Default Authorisation Policy.",
 				},
 
 				"allowed_applications": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
+					Description: "The list of allowed Applications for the Default Authorisation Policy.",
+					Type:        pluginsdk.TypeList,
+					Optional:    true,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty, // TODO - Can we use identity Validation here?
 					},
-					Description: "The list of allowed Applications for the Default Authorisation Policy.",
 				},
 
 				"login_parameters": {
-					Type:     pluginsdk.TypeMap,
-					Optional: true,
+					Description: "A map of key-value pairs to send to the Authorisation Endpoint when a user logs in.",
+					Type:        pluginsdk.TypeMap,
+					Optional:    true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "A map of key-value pairs to send to the Authorisation Endpoint when a user logs in.",
 				},
 
 				"allowed_audiences": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
+					Description: "A list of Allowed audience values to consider when validating JWTs issued by Azure Active Directory.",
+					Type:        pluginsdk.TypeList,
+					Optional:    true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of Allowed audience values to consider when validating JWTs issued by Azure Active Directory.",
 				},
 			},
 		},
@@ -852,51 +854,51 @@ func AadAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"client_id": {
+					Description: "The ID of the Client to use to authenticate with Azure Active Directory.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The ID of the Client to use to authenticate with Azure Active Directory.",
 				},
 
 				"tenant_auth_endpoint": {
+					Description: "The Azure Tenant URI for the Authenticating Tenant. e.g. `https://login.microsoftonline.com/v2.0/{tenant-guid}/`.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The Azure Tenant URI for the Authenticating Tenant. e.g. `https://login.microsoftonline.com/v2.0/{tenant-guid}/`",
 				},
 
 				"client_secret_setting_name": {
+					Description: "The App Setting name that contains the client secret of the Client.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The App Setting name that contains the client secret of the Client.",
 				},
 
 				"client_secret_certificate_thumbprint": {
+					Description: "The thumbprint of the certificate used for signing purposes.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The thumbprint of the certificate used for signing purposes.",
 				},
 
 				"jwt_allowed_groups": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
+					Description: "A list of Allowed Groups in the JWT Claim.",
+					Type:        pluginsdk.TypeList,
+					Computed:    true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "A list of Allowed Groups in the JWT Claim.",
 				},
 
 				"jwt_allowed_client_applications": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
+					Description: "A list of Allowed Client Applications in the JWT Claim.",
+					Type:        pluginsdk.TypeList,
+					Computed:    true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "A list of Allowed Client Applications in the JWT Claim.",
 				},
 
 				"www_authentication_disabled": {
+					Description: "Whether the www-authenticate provider is omitted from the request.",
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Is the www-authenticate provider omitted from the request?",
 				},
 
 				"allowed_groups": {
@@ -932,12 +934,12 @@ func AadAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 				},
 
 				"allowed_audiences": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
+					Description: "A list of Allowed audience values to consider when validating JWTs issued by Azure Active Directory.",
+					Type:        pluginsdk.TypeList,
+					Computed:    true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of Allowed audience values to consider when validating JWTs issued by Azure Active Directory.",
 				},
 			},
 		},
@@ -1097,10 +1099,10 @@ func StaticWebAppAuthV2SettingsSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"client_id": {
+					Description:  "The ID of the Client to use to authenticate with Azure Static Web App Authentication.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The ID of the Client to use to authenticate with Azure Static Web App Authentication.",
 				},
 			},
 		},
@@ -1114,9 +1116,9 @@ func StaticWebAppAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"client_id": {
+					Description: "The ID of the Client used to authenticate with Azure Static Web App Authentication.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The ID of the Client used to authenticate with Azure Static Web App Authentication.",
 				},
 			},
 		},
@@ -1187,76 +1189,76 @@ func CustomOIDCAuthV2SettingsSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
+					Description:  "The name of the Custom OIDC Authentication Provider.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The name of the Custom OIDC Authentication Provider.",
 				},
 
 				"client_id": {
+					Description:  "The ID of the Client to use to authenticate with this Custom OIDC.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The ID of the Client to use to authenticate with this Custom OIDC.",
 				},
 
 				"openid_configuration_endpoint": {
+					Description: "The endpoint that contains all the configuration endpoints for this Custom OIDC provider.",
 					Type:        pluginsdk.TypeString,
 					Required:    true,
-					Description: "The endpoint that contains all the configuration endpoints for this Custom OIDC provider.",
 				},
 
 				"name_claim_type": {
+					Description:  "The name of the claim that contains the users name.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The name of the claim that contains the users name.",
 				},
 
 				"scopes": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
+					Description: "The list of the scopes that should be requested while authenticating.",
+					Type:        pluginsdk.TypeList,
+					Optional:    true,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
-					Description: "The list of the scopes that should be requested while authenticating.",
 				},
 
 				"client_credential_method": {
+					Description: "The Client Credential Method used.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The Client Credential Method used. Currently the only supported value is `ClientSecretPost`.",
 				},
 
 				"client_secret_setting_name": {
+					Description: "The App Setting name that contains the secret for this Custom OIDC Client.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The App Setting name that contains the secret for this Custom OIDC Client.",
 				},
 
 				"authorisation_endpoint": {
+					Description: "The endpoint to make the Authorisation Request.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The endpoint to make the Authorisation Request.",
 				},
 
 				"token_endpoint": {
+					Description: "The endpoint used to request a Token.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The endpoint used to request a Token.",
 				},
 
 				"issuer_endpoint": {
+					Description: "The endpoint that issued the Token.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The endpoint that issued the Token.",
 				},
 
 				"certification_uri": {
+					Description: "The endpoint that provides the keys necessary to validate the token.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The endpoint that provides the keys necessary to validate the token.",
 				},
 			},
 		},
@@ -1270,72 +1272,72 @@ func CustomOIDCAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
+					Description: "The name of the Custom OIDC Authentication Provider.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The name of the Custom OIDC Authentication Provider.",
 				},
 
 				"client_id": {
+					Description: "The ID of the Client used to authenticate with this Custom OIDC.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The ID of the Client used to authenticate with this Custom OIDC.",
 				},
 
 				"name_claim_type": {
+					Description: "The name of the claim that contains the users name.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The name of the claim that contains the users name.",
 				},
 
 				"openid_configuration_endpoint": {
+					Description: "The endpoint that contains all the configuration endpoints for this Custom OIDC provider.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The endpoint that contains all the configuration endpoints for this Custom OIDC provider.",
 				},
 
 				"scopes": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
+					Description: "The list of the scopes that should be requested while authenticating.",
+					Type:        pluginsdk.TypeList,
+					Computed:    true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "The list of the scopes that should be requested while authenticating.",
 				},
 
 				"client_credential_method": {
+					Description: "The Client Credential Method used.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The Client Credential Method used. Currently the only supported value is `ClientSecretPost`",
 				},
 
 				"client_secret_setting_name": {
+					Description: "The App Setting name that contains the secret for this Custom OIDC Client.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The App Setting name that contains the secret for this Custom OIDC Client.",
 				},
 
 				"authorisation_endpoint": {
+					Description: "The endpoint to make the Authorisation Request.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The endpoint to make the Authorisation Request.",
 				},
 
 				"token_endpoint": {
+					Description: "The endpoint used to request a Token.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The endpoint used to request a Token.",
 				},
 
 				"issuer_endpoint": {
+					Description: "The endpoint that issued the Token.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The endpoint that issued the Token.",
 				},
 
 				"certification_uri": {
+					Description: "The endpoint that provides the keys necessary to validate the token.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The endpoint that provides the keys necessary to validate the token.",
 				},
 			},
 		},
@@ -1444,34 +1446,34 @@ func FacebookAuthV2SettingsSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"app_id": {
+					Description:  "The App ID of the Facebook app used for login.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The App ID of the Facebook app used for login.",
 				},
 
 				"app_secret_setting_name": {
+					Description:  "The app setting name that contains the `app_secret` value used for Facebook Login.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The app setting name that contains the `app_secret` value used for Facebook Login.",
 				},
 
 				"graph_api_version": {
+					Description:  "The version of the Facebook API to be used while logging in.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Computed:     true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The version of the Facebook API to be used while logging in.",
 				},
 
 				"login_scopes": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
+					Description: "A list of scopes to be requested as part of Facebook Login authentication.",
+					Type:        pluginsdk.TypeList,
+					Optional:    true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of scopes to be requested as part of Facebook Login authentication.",
 				},
 			},
 		},
@@ -1485,30 +1487,30 @@ func FacebookAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"app_id": {
+					Description: "The App ID of the Facebook app used for login.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The App ID of the Facebook app used for login.",
 				},
 
 				"app_secret_setting_name": {
+					Description: "The app setting name that contains the `app_secret` value used for Facebook Login.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The app setting name that contains the `app_secret` value used for Facebook Login.",
 				},
 
 				"graph_api_version": {
+					Description: "The version of the Facebook API to be used while logging in.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The version of the Facebook API to be used while logging in.",
 				},
 
 				"login_scopes": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
+					Description: "A list of OAuth 2.0 scopes to be requested as part of Facebook Login authentication.",
+					Type:        pluginsdk.TypeList,
+					Computed:    true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of OAuth 2.0 scopes to be requested as part of Facebook Login authentication.",
 				},
 			},
 		},
@@ -1584,24 +1586,24 @@ func GithubAuthV2SettingsSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"client_id": {
+					Description: "The ID of the GitHub app used for login.",
 					Type:        pluginsdk.TypeString,
 					Required:    true,
-					Description: "The ID of the GitHub app used for login.",
 				},
 
 				"client_secret_setting_name": {
+					Description: "The app setting name that contains the `client_secret` value used for GitHub Login.",
 					Type:        pluginsdk.TypeString,
 					Required:    true,
-					Description: "The app setting name that contains the `client_secret` value used for GitHub Login.",
 				},
 
 				"login_scopes": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
+					Description: "A list of OAuth 2.0 scopes that will be requested as part of GitHub Login authentication.",
+					Type:        pluginsdk.TypeList,
+					Optional:    true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of OAuth 2.0 scopes that will be requested as part of GitHub Login authentication.",
 				},
 			},
 		},
@@ -1615,24 +1617,24 @@ func GithubAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"client_id": {
+					Description: "The ID of the GitHub app used for login.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The ID of the GitHub app used for login.",
 				},
 
 				"client_secret_setting_name": {
+					Description: "The app setting name that contains the `client_secret` value used for GitHub Login.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The app setting name that contains the `client_secret` value used for GitHub Login.",
 				},
 
 				"login_scopes": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
+					Description: "A list of OAuth 2.0 scopes that will be requested as part of GitHub Login authentication.",
+					Type:        pluginsdk.TypeList,
+					Computed:    true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of OAuth 2.0 scopes that will be requested as part of GitHub Login authentication.",
 				},
 			},
 		},
@@ -1703,37 +1705,37 @@ func GoogleAuthV2SettingsSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"client_id": {
+					Description:  "The OpenID Connect Client ID for the Google web application.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The OpenID Connect Client ID for the Google web application.",
 				},
 
 				"client_secret_setting_name": {
+					Description:  "The app setting name that contains the `client_secret` value used for Google Login.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The app setting name that contains the `client_secret` value used for Google Login.",
 				},
 
 				"allowed_audiences": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
+					Description: "A list of Allowed Audiences that will be requested as part of Google Sign-In authentication.",
+					Type:        pluginsdk.TypeList,
+					Optional:    true,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
-					Description: "Specifies a list of Allowed Audiences that will be requested as part of Google Sign-In authentication.",
 				},
 
 				"login_scopes": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
+					Description: "A list of Login scopes that will be requested as part of Google Sign-In authentication.",
+					Type:        pluginsdk.TypeList,
+					Optional:    true,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
-					Description: "Specifies a list of Login scopes that will be requested as part of Google Sign-In authentication.",
 				},
 			},
 		},
@@ -1747,33 +1749,33 @@ func GoogleAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"client_id": {
+					Description: "The OpenID Connect Client ID for the Google web application.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The OpenID Connect Client ID for the Google web application.",
 				},
 
 				"client_secret_setting_name": {
+					Description: "The app setting name that contains the `client_secret` value used for Google Login.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The app setting name that contains the `client_secret` value used for Google Login.",
 				},
 
 				"allowed_audiences": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
+					Description: "A list of Allowed Audiences that will be requested as part of Google Sign-In authentication. If not specified, `openid`, `profile`, and `email` are used as default scopes.",
+					Type:        pluginsdk.TypeList,
+					Computed:    true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of Allowed Audiences that will be requested as part of Google Sign-In authentication. If not specified, \"openid\", \"profile\", and \"email\" are used as default scopes.",
 				},
 
 				"login_scopes": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
+					Description: "The list of OAuth 2.0 scopes requested as part of Google Sign-In authentication. If not specified, `openid`, `profile`, and `email` are used as default scopes.",
+					Type:        pluginsdk.TypeList,
+					Computed:    true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "The list of OAuth 2.0 scopes requested as part of Google Sign-In authentication. If not specified, \"openid\", \"profile\", and \"email\" are used as default scopes.",
 				},
 			},
 		},
@@ -1850,36 +1852,36 @@ func MicrosoftAuthV2SettingsSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"client_id": {
+					Description:  "The OAuth 2.0 client ID that was created for the app used for authentication.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The OAuth 2.0 client ID that was created for the app used for authentication.",
 				},
 
 				"client_secret_setting_name": {
+					Description:  "The app setting name containing the OAuth 2.0 client secret that was created for the app used for authentication.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The app setting name containing the OAuth 2.0 client secret that was created for the app used for authentication.",
 				},
 
 				"allowed_audiences": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
+					Description: "A list of Allowed Audiences that will be requested as part of Microsoft Sign-In authentication.",
+					Type:        pluginsdk.TypeList,
+					Optional:    true,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
-					Description: "Specifies a list of Allowed Audiences that will be requested as part of Microsoft Sign-In authentication.",
 				},
 
 				"login_scopes": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
+					Description: "The list of Login scopes that will be requested as part of Microsoft Account authentication.",
+					Type:        pluginsdk.TypeList,
+					Optional:    true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "The list of Login scopes that will be requested as part of Microsoft Account authentication.",
 				},
 			},
 		},
@@ -1893,33 +1895,33 @@ func MicrosoftAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"client_id": {
+					Description: "The OAuth 2.0 client ID that was created for the app used for authentication.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The OAuth 2.0 client ID that was created for the app used for authentication.",
 				},
 
 				"client_secret_setting_name": {
+					Description: "The app setting name containing the OAuth 2.0 client secret that was created for the app used for authentication.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The app setting name containing the OAuth 2.0 client secret that was created for the app used for authentication.",
 				},
 
 				"allowed_audiences": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
+					Description: "A list of Allowed Audiences that will be requested as part of Microsoft Sign-In authentication.",
+					Type:        pluginsdk.TypeList,
+					Computed:    true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of Allowed Audiences that will be requested as part of Microsoft Sign-In authentication.",
 				},
 
 				"login_scopes": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
+					Description: "The list of Login scopes that will be requested as part of Microsoft Account authentication.",
+					Type:        pluginsdk.TypeList,
+					Computed:    true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "The list of Login scopes that will be requested as part of Microsoft Account authentication.",
 				},
 			},
 		},
@@ -1994,15 +1996,15 @@ func TwitterAuthV2SettingsSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"consumer_key": {
+					Description: "The OAuth 1.0a consumer key of the Twitter application used for sign-in.",
 					Type:        pluginsdk.TypeString,
 					Required:    true,
-					Description: "The OAuth 1.0a consumer key of the Twitter application used for sign-in.",
 				},
 
 				"consumer_secret_setting_name": {
+					Description: "The app setting name that contains the OAuth 1.0a consumer secret of the Twitter application used for sign-in.",
 					Type:        pluginsdk.TypeString,
 					Required:    true,
-					Description: "The app setting name that contains the OAuth 1.0a consumer secret of the Twitter application used for sign-in.",
 				},
 			},
 		},
@@ -2016,15 +2018,15 @@ func TwitterAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"consumer_key": {
+					Description: "The OAuth 1.0a consumer key of the Twitter application used for sign-in.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The OAuth 1.0a consumer key of the Twitter application used for sign-in.",
 				},
 
 				"consumer_secret_setting_name": {
+					Description: "The app setting name that contains the OAuth 1.0a consumer secret of the Twitter application used for sign-in.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The app setting name that contains the OAuth 1.0a consumer secret of the Twitter application used for sign-in.",
 				},
 			},
 		},

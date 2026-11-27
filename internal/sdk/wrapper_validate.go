@@ -4,6 +4,7 @@
 package sdk
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"strings"
@@ -18,7 +19,7 @@ func ValidateModelObject(input any) error {
 	}
 
 	if reflect.TypeOf(input).Kind() != reflect.Pointer {
-		return fmt.Errorf("need a pointer to the model object")
+		return errors.New("need a pointer to the model object")
 	}
 
 	// TODO: could we also validate that each `tfschema` tag exists in the schema?
@@ -27,7 +28,7 @@ func ValidateModelObject(input any) error {
 	objVal := reflect.ValueOf(input).Elem()
 
 	if objVal.Kind() == reflect.Interface {
-		return fmt.Errorf("cannot resolve pointer to interface")
+		return errors.New("cannot resolve pointer to interface")
 	}
 
 	return validateModelObjectRecursively("", objType, objVal)
