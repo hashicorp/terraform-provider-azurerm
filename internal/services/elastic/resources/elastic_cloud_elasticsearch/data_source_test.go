@@ -48,7 +48,7 @@ func TestAccElasticsearchDataSource_basic(t *testing.T) {
 }
 
 func (ElasticsearchDataSource) basic(data acceptance.TestData) string {
-	template := ElasticsearchResource{}.basic(data)
+	template := ElasticCloudElasticsearchResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 

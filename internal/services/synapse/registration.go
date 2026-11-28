@@ -7,6 +7,28 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/resources/synapse_firewall_rule"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/resources/synapse_integration_runtime_azure"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/resources/synapse_integration_runtime_self_hosted"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/resources/synapse_linked_service"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/resources/synapse_managed_private_endpoint"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/resources/synapse_private_link_hub"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/resources/synapse_role_assignment"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/resources/synapse_spark_pool"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/resources/synapse_sql_pool"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/resources/synapse_sql_pool_extended_auditing_policy"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/resources/synapse_sql_pool_security_alert_policy"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/resources/synapse_sql_pool_vulnerability_assessment"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/resources/synapse_sql_pool_vulnerability_assessment_baseline"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/resources/synapse_sql_pool_workload_classifier"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/resources/synapse_sql_pool_workload_group"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/resources/synapse_workspace"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/resources/synapse_workspace_aad_admin"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/resources/synapse_workspace_extended_auditing_policy"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/resources/synapse_workspace_key"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/resources/synapse_workspace_security_alert_policy"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/resources/synapse_workspace_sql_aad_admin"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/resources/synapse_workspace_vulnerability_assessment"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -36,35 +58,35 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_synapse_workspace": dataSourceSynapseWorkspace(),
+		"azurerm_synapse_workspace": synapse_workspace.RegisterDataSource(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_synapse_firewall_rule":                              resourceSynapseFirewallRule(),
-		"azurerm_synapse_integration_runtime_azure":                  resourceSynapseIntegrationRuntimeAzure(),
-		"azurerm_synapse_integration_runtime_self_hosted":            resourceSynapseIntegrationRuntimeSelfHosted(),
-		"azurerm_synapse_linked_service":                             resourceSynapseLinkedService(),
-		"azurerm_synapse_managed_private_endpoint":                   resourceSynapseManagedPrivateEndpoint(),
-		"azurerm_synapse_private_link_hub":                           resourceSynapsePrivateLinkHub(),
-		"azurerm_synapse_role_assignment":                            resourceSynapseRoleAssignment(),
-		"azurerm_synapse_spark_pool":                                 resourceSynapseSparkPool(),
-		"azurerm_synapse_sql_pool":                                   resourceSynapseSqlPool(),
-		"azurerm_synapse_sql_pool_extended_auditing_policy":          resourceSynapseSqlPoolExtendedAuditingPolicy(),
-		"azurerm_synapse_sql_pool_security_alert_policy":             resourceSynapseSqlPoolSecurityAlertPolicy(),
-		"azurerm_synapse_sql_pool_vulnerability_assessment":          resourceSynapseSqlPoolVulnerabilityAssessment(),
-		"azurerm_synapse_sql_pool_vulnerability_assessment_baseline": resourceSynapseSqlPoolVulnerabilityAssessmentBaseline(),
-		"azurerm_synapse_sql_pool_workload_classifier":               resourceSynapseSQLPoolWorkloadClassifier(),
-		"azurerm_synapse_sql_pool_workload_group":                    resourceSynapseSQLPoolWorkloadGroup(),
-		"azurerm_synapse_workspace":                                  resourceSynapseWorkspace(),
-		"azurerm_synapse_workspace_aad_admin":                        resourceSynapseWorkspaceAADAdmin(),
-		"azurerm_synapse_workspace_extended_auditing_policy":         resourceSynapseWorkspaceExtendedAuditingPolicy(),
-		"azurerm_synapse_workspace_key":                              resourceSynapseWorkspaceKey(),
-		"azurerm_synapse_workspace_security_alert_policy":            resourceSynapseWorkspaceSecurityAlertPolicy(),
-		"azurerm_synapse_workspace_sql_aad_admin":                    resourceSynapseWorkspaceSqlAADAdmin(),
-		"azurerm_synapse_workspace_vulnerability_assessment":         resourceSynapseWorkspaceVulnerabilityAssessment(),
+		"azurerm_synapse_firewall_rule":                              synapse_firewall_rule.RegisterResource(),
+		"azurerm_synapse_integration_runtime_azure":                  synapse_integration_runtime_azure.RegisterResource(),
+		"azurerm_synapse_integration_runtime_self_hosted":            synapse_integration_runtime_self_hosted.RegisterResource(),
+		"azurerm_synapse_linked_service":                             synapse_linked_service.RegisterResource(),
+		"azurerm_synapse_managed_private_endpoint":                   synapse_managed_private_endpoint.RegisterResource(),
+		"azurerm_synapse_private_link_hub":                           synapse_private_link_hub.RegisterResource(),
+		"azurerm_synapse_role_assignment":                            synapse_role_assignment.RegisterResource(),
+		"azurerm_synapse_spark_pool":                                 synapse_spark_pool.RegisterResource(),
+		"azurerm_synapse_sql_pool":                                   synapse_sql_pool.RegisterResource(),
+		"azurerm_synapse_sql_pool_extended_auditing_policy":          synapse_sql_pool_extended_auditing_policy.RegisterResource(),
+		"azurerm_synapse_sql_pool_security_alert_policy":             synapse_sql_pool_security_alert_policy.RegisterResource(),
+		"azurerm_synapse_sql_pool_vulnerability_assessment":          synapse_sql_pool_vulnerability_assessment.RegisterResource(),
+		"azurerm_synapse_sql_pool_vulnerability_assessment_baseline": synapse_sql_pool_vulnerability_assessment_baseline.RegisterResource(),
+		"azurerm_synapse_sql_pool_workload_classifier":               synapse_sql_pool_workload_classifier.RegisterResource(),
+		"azurerm_synapse_sql_pool_workload_group":                    synapse_sql_pool_workload_group.RegisterResource(),
+		"azurerm_synapse_workspace":                                  synapse_workspace.RegisterResource(),
+		"azurerm_synapse_workspace_aad_admin":                        synapse_workspace_aad_admin.RegisterResource(),
+		"azurerm_synapse_workspace_extended_auditing_policy":         synapse_workspace_extended_auditing_policy.RegisterResource(),
+		"azurerm_synapse_workspace_key":                              synapse_workspace_key.RegisterResource(),
+		"azurerm_synapse_workspace_security_alert_policy":            synapse_workspace_security_alert_policy.RegisterResource(),
+		"azurerm_synapse_workspace_sql_aad_admin":                    synapse_workspace_sql_aad_admin.RegisterResource(),
+		"azurerm_synapse_workspace_vulnerability_assessment":         synapse_workspace_vulnerability_assessment.RegisterResource(),
 	}
 }
 

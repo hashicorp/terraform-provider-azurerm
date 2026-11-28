@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type KeyVaultMHSMKeyTestResource struct{}
+type KeyVaultManagedHardwareSecurityModuleKeyResource struct{}
 
 func testAccKeyVaultMHSMKey_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_hardware_security_module_key", "test")
-	r := KeyVaultMHSMKeyTestResource{}
+	r := KeyVaultManagedHardwareSecurityModuleKeyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,7 +36,7 @@ func testAccKeyVaultMHSMKey_basic(t *testing.T) {
 
 func testAccKeyVaultMHSMKey_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_hardware_security_module_key", "test")
-	r := KeyVaultMHSMKeyTestResource{}
+	r := KeyVaultManagedHardwareSecurityModuleKeyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -65,7 +65,7 @@ func testAccKeyVaultMHSMKey_complete(t *testing.T) {
 
 func testAccKeyVaultHSMKey_purge(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_hardware_security_module_key", "test")
-	r := KeyVaultMHSMKeyTestResource{}
+	r := KeyVaultManagedHardwareSecurityModuleKeyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -83,7 +83,7 @@ func testAccKeyVaultHSMKey_purge(t *testing.T) {
 
 func testAccKeyVaultHSMKey_softDeleteRecovery(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_hardware_security_module_key", "test")
-	r := KeyVaultMHSMKeyTestResource{}
+	r := KeyVaultManagedHardwareSecurityModuleKeyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -114,7 +114,7 @@ func testAccKeyVaultHSMKey_softDeleteRecovery(t *testing.T) {
 	})
 }
 
-func (r KeyVaultMHSMKeyTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r KeyVaultManagedHardwareSecurityModuleKeyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	domainSuffix, ok := clients.Account.Environment.ManagedHSM.DomainSuffix()
 	if !ok {
 		return nil, fmt.Errorf("could not determine Managed HSM domain suffix for environment %q", clients.Account.Environment.Name)
@@ -141,7 +141,7 @@ func (r KeyVaultMHSMKeyTestResource) Exists(ctx context.Context, clients *client
 	return pointer.To(resp.Key != nil), nil
 }
 
-func (r KeyVaultMHSMKeyTestResource) basic(data acceptance.TestData) string {
+func (r KeyVaultManagedHardwareSecurityModuleKeyResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -164,7 +164,7 @@ resource "azurerm_key_vault_managed_hardware_security_module_key" "test" {
 `, r.template(data), data.RandomString)
 }
 
-func (r KeyVaultMHSMKeyTestResource) complete(data acceptance.TestData) string {
+func (r KeyVaultManagedHardwareSecurityModuleKeyResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -194,7 +194,7 @@ resource "azurerm_key_vault_managed_hardware_security_module_key" "test" {
 `, r.template(data), data.RandomString)
 }
 
-func (r KeyVaultMHSMKeyTestResource) completeUpdate(data acceptance.TestData) string {
+func (r KeyVaultManagedHardwareSecurityModuleKeyResource) completeUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -220,7 +220,7 @@ resource "azurerm_key_vault_managed_hardware_security_module_key" "test" {
 `, r.template(data), data.RandomString)
 }
 
-func (r KeyVaultMHSMKeyTestResource) softDeleteRecovery(data acceptance.TestData, purge bool) string {
+func (r KeyVaultManagedHardwareSecurityModuleKeyResource) softDeleteRecovery(data acceptance.TestData, purge bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -254,7 +254,7 @@ resource "azurerm_key_vault_managed_hardware_security_module_key" "test" {
 `, purge, r.template(data), data.RandomString)
 }
 
-func (r KeyVaultMHSMKeyTestResource) template(data acceptance.TestData) string {
+func (r KeyVaultManagedHardwareSecurityModuleKeyResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {
 }

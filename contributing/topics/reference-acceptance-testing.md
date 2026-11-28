@@ -12,7 +12,7 @@ As a general rule, the more complex the resource the more tests there are - for 
 
 * When selecting SKUs for testing, **pick the lowest or cheapest SKU** which covers the test - unless there's good reason to otherwise (e.g. some configurations can provision more quickly using one SKU over another).
 
-* Always put the resource being tested **at the end of each configuration**, especially if a test requires multiple resource or data declarations. This makes it easy to find the resource being tested, especially in large configurations. Example: note how the `azurerm_virtual_machine` is positioned at the end of each configuration [virtual_machine_resource_test.go](../../internal/services/legacy/virtual_machine_resource_test.go)
+* Always put the resource being tested **at the end of each configuration**, especially if a test requires multiple resource or data declarations. This makes it easy to find the resource being tested, especially in large configurations. Example: note how the `azurerm_virtual_machine` is positioned at the end of each configuration [virtual_machine_resource_test.go](../../internal/services/legacy/resources/virtual_machine/resource_test.go)
 
 * Use a fixed password that meets the service's rules rather than generating one, unless the test is about generated passwords.
 
@@ -396,3 +396,26 @@ resource "azurerm_example_resource" "example" {
 `, data.Locations.Primary, enabled)
 }
 ```
+
+### Example - Resource - Regression
+
+This test creates the resource with the last released version of the provider, then applies the same config with the local build and checks the resource is not recreated. Use the `complete` config so every property is covered, falling back to `basic` when there is no `complete`:
+
+```go
+func TestAccExampleResource_regressionTest(t *testing.T) {
+    data := acceptance.BuildTestData(t, "azurerm_example_resource", "test")
+    r := ExampleResource{}
+
+    data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+        {
+            Config: r.complete(data),
+        },
+    }, "")
+}
+```
+
+An empty version means the release in `version/VERSION`.
+
+When a change adds a resource, data source or property that the config uses, the released version cannot read the config yet, so the test skips until a release includes it and then runs again by itself. Keep using the shared config rather than a copy in the test, as a copy would never cover the new property. Tests are only skipped when a resource, data source or property is added. A misspelt or removed property, or any other error, does not cause the test to be skipped.
+
+A test that pins a version, such as a state migration test, is never skipped, as that version will never gain what is missing. If a shared config it uses gains a new property the test fails; give it a config of its own.

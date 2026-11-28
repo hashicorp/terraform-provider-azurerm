@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type AppInsightsAnalyticsItemResource struct{}
+type ApplicationInsightsAnalyticsItemResource struct{}
 
 func TestAccApplicationInsightsAnalyticsItem_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_analytics_item", "test")
-	r := AppInsightsAnalyticsItemResource{}
+	r := ApplicationInsightsAnalyticsItemResource{}
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -31,7 +31,7 @@ func TestAccApplicationInsightsAnalyticsItem_regressionTest(t *testing.T) {
 
 func TestAccApplicationInsightsAnalyticsItem_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_analytics_item", "test")
-	r := AppInsightsAnalyticsItemResource{}
+	r := ApplicationInsightsAnalyticsItemResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccApplicationInsightsAnalyticsItem_basic(t *testing.T) {
 
 func TestAccApplicationInsightsAnalyticsItem_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_analytics_item", "test")
-	r := AppInsightsAnalyticsItemResource{}
+	r := ApplicationInsightsAnalyticsItemResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -82,7 +82,7 @@ func TestAccApplicationInsightsAnalyticsItem_multiple(t *testing.T) {
 	r1 := acceptance.BuildTestData(t, "azurerm_application_insights_analytics_item", "test1")
 	r2 := acceptance.BuildTestData(t, "azurerm_application_insights_analytics_item", "test2")
 	r3 := acceptance.BuildTestData(t, "azurerm_application_insights_analytics_item", "test3")
-	r := AppInsightsAnalyticsItemResource{}
+	r := ApplicationInsightsAnalyticsItemResource{}
 
 	r1.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -114,7 +114,7 @@ func TestAccApplicationInsightsAnalyticsItem_multiple(t *testing.T) {
 
 func TestAccApplicationInsightsAnalyticsItem_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_analytics_item", "test")
-	r := AppInsightsAnalyticsItemResource{}
+	r := ApplicationInsightsAnalyticsItemResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -127,7 +127,7 @@ func TestAccApplicationInsightsAnalyticsItem_requiresImport(t *testing.T) {
 	})
 }
 
-func (t AppInsightsAnalyticsItemResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t ApplicationInsightsAnalyticsItemResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, itemId, err := application_insights_analytics_item.ParseGeneratedAnalyticsItemId(state.ID)
 	if err != nil {
 		return nil, err
@@ -145,7 +145,7 @@ func (t AppInsightsAnalyticsItemResource) Exists(ctx context.Context, clients *c
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (AppInsightsAnalyticsItemResource) basic(data acceptance.TestData) string {
+func (ApplicationInsightsAnalyticsItemResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -173,7 +173,7 @@ resource "azurerm_application_insights_analytics_item" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (AppInsightsAnalyticsItemResource) basic2(data acceptance.TestData) string {
+func (ApplicationInsightsAnalyticsItemResource) basic2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -201,7 +201,7 @@ resource "azurerm_application_insights_analytics_item" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (AppInsightsAnalyticsItemResource) multiple(data acceptance.TestData) string {
+func (ApplicationInsightsAnalyticsItemResource) multiple(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -246,8 +246,8 @@ resource "azurerm_application_insights_analytics_item" "test3" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (AppInsightsAnalyticsItemResource) requiresImport(data acceptance.TestData) string {
-	template := AppInsightsAnalyticsItemResource{}.basic(data)
+func (ApplicationInsightsAnalyticsItemResource) requiresImport(data acceptance.TestData) string {
+	template := ApplicationInsightsAnalyticsItemResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 

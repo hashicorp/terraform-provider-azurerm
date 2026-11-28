@@ -1,0 +1,52 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
+package static_web_app_custom_domain
+
+import (
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/staticsites"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+)
+
+func (r Resource) Arguments() map[string]*schema.Schema {
+	return map[string]*pluginsdk.Schema{
+		"static_web_app_id": {
+			Description:  "The ID of the Static Site.",
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: staticsites.ValidateStaticSiteID,
+		},
+
+		"domain_name": {
+			Description:  "The Domain Name which should be associated with this Static Site.",
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"validation_type": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				ValidationTypeTXT,
+				ValidationTypeCName,
+			}, false),
+		},
+	}
+}
+
+func (r Resource) Attributes() map[string]*schema.Schema {
+	return map[string]*pluginsdk.Schema{
+		"validation_token": {
+			Description: "Token to be used with `dns-txt-token` validation.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
+		},
+	}
+}

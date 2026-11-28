@@ -62,9 +62,9 @@ func (r KeyVaultMHSMRoleDefinitionResource) Arguments() map[string]*pluginsdk.Sc
 
 		"managed_hsm_id": {
 			Type:         pluginsdk.TypeString,
+			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: managedhsms.ValidateManagedHSMID,
-			Required:     true,
 		},
 
 		"role_name": {
@@ -99,6 +99,7 @@ func (r KeyVaultMHSMRoleDefinitionResource) Arguments() map[string]*pluginsdk.Sc
 					"data_actions": {
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
+						Set:      pluginsdk.HashString,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 							ValidateFunc: validation.StringInSlice(func() (res []string) {
@@ -108,12 +109,12 @@ func (r KeyVaultMHSMRoleDefinitionResource) Arguments() map[string]*pluginsdk.Sc
 								return
 							}(), false),
 						},
-						Set: pluginsdk.HashString,
 					},
 
 					"not_data_actions": {
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
+						Set:      pluginsdk.HashString,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 							ValidateFunc: validation.StringInSlice(func() (res []string) {
@@ -123,7 +124,6 @@ func (r KeyVaultMHSMRoleDefinitionResource) Arguments() map[string]*pluginsdk.Sc
 								return
 							}(), false),
 						},
-						Set: pluginsdk.HashString,
 					},
 				},
 			},
@@ -300,7 +300,7 @@ func (r KeyVaultMHSMRoleDefinitionResource) Read() sdk.ResourceFunc {
 			if v := pointer.From(result.ID); v != "" {
 				roleID, err := roledefinitions.ParseScopedRoleDefinitionIDInsensitively(v)
 				if err != nil {
-					return fmt.Errorf("paring role definition id %q: %+v", v, err)
+					return err
 				}
 				state.ResourceManagerId = roleID.ID()
 			}

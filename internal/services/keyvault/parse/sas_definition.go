@@ -43,7 +43,7 @@ func SasDefinitionID(id string) (*SasDefinitionId, error) {
 	}
 
 	sasDefinitionId := SasDefinitionId{
-		KeyVaultBaseUrl:    fmt.Sprintf("https://%s", idURL.Host),
+		KeyVaultBaseUrl:    "https://" + idURL.Host,
 		StorageAccountName: components[1],
 		Name:               components[3],
 	}

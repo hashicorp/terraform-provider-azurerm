@@ -4,6 +4,7 @@
 package lb_backend_address_pool
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -24,7 +25,7 @@ func resourceArmLoadBalancerBackendAddressPoolCreateUpdate(d *pluginsdk.Resource
 
 	loadBalancerId, err := loadbalancers.ParseLoadBalancerID(d.Get("loadbalancer_id").(string))
 	if err != nil {
-		return fmt.Errorf("parsing Load Balancer Name and Group: %+v", err)
+		return err
 	}
 
 	name := d.Get("name").(string)
@@ -87,7 +88,7 @@ func resourceArmLoadBalancerBackendAddressPoolCreateUpdate(d *pluginsdk.Resource
 	}
 
 	if _, ok := d.GetOk("synchronous_mode"); ok && *sku.Name != loadbalancers.LoadBalancerSkuNameStandard {
-		return fmt.Errorf("`synchronous_mode` can set only for Load Balancer with `Standard` SKU")
+		return errors.New("`synchronous_mode` can set only for Load Balancer with `Standard` SKU")
 	}
 
 	if v, ok := d.GetOk("virtual_network_id"); ok {

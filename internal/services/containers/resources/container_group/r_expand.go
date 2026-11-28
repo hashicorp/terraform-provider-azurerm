@@ -4,6 +4,7 @@
 package container_group
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -369,25 +370,25 @@ func expandSingleContainerVolume(input any) (*[]containerinstance.VolumeMount, *
 		switch {
 		case emptyDir:
 			if shareName != "" || storageAccountName != "" || storageAccountKey != "" || secret != nil || gitRepoVolume != nil {
-				return nil, nil, fmt.Errorf("only one of `empty_dir` volume, `git_repo` volume, `secret` volume or storage account volume (`share_name`, `storage_account_name`, and `storage_account_key`) can be specified")
+				return nil, nil, errors.New("only one of `empty_dir` volume, `git_repo` volume, `secret` volume or storage account volume (`share_name`, `storage_account_name`, and `storage_account_key`) can be specified")
 			}
 			var m any = map[string]string{}
 			cv.EmptyDir = &m
 		case gitRepoVolume != nil:
 			if shareName != "" || storageAccountName != "" || storageAccountKey != "" || secret != nil {
-				return nil, nil, fmt.Errorf("only one of `empty_dir` volume, `git_repo` volume, `secret` volume or storage account volume (`share_name`, `storage_account_name`, and `storage_account_key`) can be specified")
+				return nil, nil, errors.New("only one of `empty_dir` volume, `git_repo` volume, `secret` volume or storage account volume (`share_name`, `storage_account_name`, and `storage_account_key`) can be specified")
 			}
 			cv.GitRepo = gitRepoVolume
 		case secret != nil:
 			if shareName != "" || storageAccountName != "" || storageAccountKey != "" {
-				return nil, nil, fmt.Errorf("only one of `empty_dir` volume, `git_repo` volume, `secret` volume or storage account volume (`share_name`, `storage_account_name`, and `storage_account_key`) can be specified")
+				return nil, nil, errors.New("only one of `empty_dir` volume, `git_repo` volume, `secret` volume or storage account volume (`share_name`, `storage_account_name`, and `storage_account_key`) can be specified")
 			}
 			cv.Secret = &secret
 		default:
 			if shareName == "" && storageAccountName == "" && storageAccountKey == "" {
-				return nil, nil, fmt.Errorf("exactly one of `empty_dir` volume, `git_repo` volume, `secret` volume or storage account volume (`share_name`, `storage_account_name`, and `storage_account_key`) must be specified")
+				return nil, nil, errors.New("exactly one of `empty_dir` volume, `git_repo` volume, `secret` volume or storage account volume (`share_name`, `storage_account_name`, and `storage_account_key`) must be specified")
 			} else if shareName == "" || storageAccountName == "" || storageAccountKey == "" {
-				return nil, nil, fmt.Errorf("when using a storage account volume, all of `share_name`, `storage_account_name`, `storage_account_key` must be specified")
+				return nil, nil, errors.New("when using a storage account volume, all of `share_name`, `storage_account_name`, `storage_account_key` must be specified")
 			}
 			cv.AzureFile = &containerinstance.AzureFileVolume{
 				ShareName:          shareName,
@@ -585,7 +586,7 @@ func expandContainerGroupSubnets(input []any) (*[]containerinstance.ContainerGro
 	for _, item := range input {
 		id, err := commonids.ParseSubnetID(item.(string))
 		if err != nil {
-			return nil, fmt.Errorf(`parsing subnet id %q: %v`, item, err)
+			return nil, err
 		}
 
 		results = append(results, containerinstance.ContainerGroupSubnetId{

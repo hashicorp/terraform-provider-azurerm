@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type LinkedServiceSFTPResource struct{}
+type DataFactoryLinkedServiceSftpResource struct{}
 
 func TestAccDataFactoryLinkedServiceSFTP_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sftp", "test")
-	r := LinkedServiceSFTPResource{}
+	r := DataFactoryLinkedServiceSftpResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccDataFactoryLinkedServiceSFTP_regressionTest(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceSFTP_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sftp", "test")
-	r := LinkedServiceSFTPResource{}
+	r := DataFactoryLinkedServiceSftpResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,7 +46,7 @@ func TestAccDataFactoryLinkedServiceSFTP_basic(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceSFTP_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sftp", "test")
-	r := LinkedServiceSFTPResource{}
+	r := DataFactoryLinkedServiceSftpResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -61,7 +61,7 @@ func TestAccDataFactoryLinkedServiceSFTP_complete(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceSFTP_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sftp", "test")
-	r := LinkedServiceSFTPResource{}
+	r := DataFactoryLinkedServiceSftpResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -83,7 +83,7 @@ func TestAccDataFactoryLinkedServiceSFTP_update(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceSFTP_sshAuth(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sftp", "test")
-	r := LinkedServiceSFTPResource{}
+	r := DataFactoryLinkedServiceSftpResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -98,7 +98,7 @@ func TestAccDataFactoryLinkedServiceSFTP_sshAuth(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceSFTP_keyVaultReference(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sftp", "test")
-	r := LinkedServiceSFTPResource{}
+	r := DataFactoryLinkedServiceSftpResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -120,7 +120,7 @@ func TestAccDataFactoryLinkedServiceSFTP_keyVaultReference(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceSFTP_mfa(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sftp", "test")
-	r := LinkedServiceSFTPResource{}
+	r := DataFactoryLinkedServiceSftpResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -133,7 +133,7 @@ func TestAccDataFactoryLinkedServiceSFTP_mfa(t *testing.T) {
 	})
 }
 
-func (LinkedServiceSFTPResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (DataFactoryLinkedServiceSftpResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.LinkedServiceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -147,7 +147,7 @@ func (LinkedServiceSFTPResource) Exists(ctx context.Context, clients *clients.Cl
 	return pointer.To(resp.ID != nil), nil
 }
 
-func (r LinkedServiceSFTPResource) basic(data acceptance.TestData) string {
+func (r DataFactoryLinkedServiceSftpResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_data_factory_linked_service_sftp" "test" {
@@ -162,7 +162,7 @@ resource "azurerm_data_factory_linked_service_sftp" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LinkedServiceSFTPResource) update1(data acceptance.TestData) string {
+func (r DataFactoryLinkedServiceSftpResource) update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_data_factory_linked_service_sftp" "test" {
@@ -189,7 +189,7 @@ resource "azurerm_data_factory_linked_service_sftp" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LinkedServiceSFTPResource) update2(data acceptance.TestData) string {
+func (r DataFactoryLinkedServiceSftpResource) update2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_data_factory_linked_service_sftp" "test" {
@@ -218,7 +218,7 @@ resource "azurerm_data_factory_linked_service_sftp" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LinkedServiceSFTPResource) sshAuth(data acceptance.TestData) string {
+func (r DataFactoryLinkedServiceSftpResource) sshAuth(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_data_factory_linked_service_sftp" "test" {
@@ -234,7 +234,7 @@ resource "azurerm_data_factory_linked_service_sftp" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (LinkedServiceSFTPResource) keyKeyVault(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceSftpResource) keyKeyVault(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -255,7 +255,7 @@ resource "azurerm_data_factory_linked_service_key_vault" "test" {
 `, data.RandomString)
 }
 
-func (r LinkedServiceSFTPResource) sshKeyKeyVaultReference(data acceptance.TestData) string {
+func (r DataFactoryLinkedServiceSftpResource) sshKeyKeyVaultReference(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 %[2]s
@@ -280,7 +280,7 @@ resource "azurerm_data_factory_linked_service_sftp" "test" {
 `, r.template(data), r.keyKeyVault(data), data.RandomInteger)
 }
 
-func (r LinkedServiceSFTPResource) passwordKeyVaultReference(data acceptance.TestData) string {
+func (r DataFactoryLinkedServiceSftpResource) passwordKeyVaultReference(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 %[2]s
@@ -300,7 +300,7 @@ resource "azurerm_data_factory_linked_service_sftp" "test" {
 `, r.template(data), r.keyKeyVault(data), data.RandomInteger)
 }
 
-func (r LinkedServiceSFTPResource) mfa(data acceptance.TestData) string {
+func (r DataFactoryLinkedServiceSftpResource) mfa(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 %[2]s
@@ -326,7 +326,7 @@ resource "azurerm_data_factory_linked_service_sftp" "test" {
 `, r.template(data), r.keyKeyVault(data), data.RandomInteger)
 }
 
-func (r LinkedServiceSFTPResource) complete(data acceptance.TestData) string {
+func (r DataFactoryLinkedServiceSftpResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_data_factory_integration_runtime_azure" "test" {
@@ -362,7 +362,7 @@ resource "azurerm_data_factory_linked_service_sftp" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (LinkedServiceSFTPResource) template(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceSftpResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

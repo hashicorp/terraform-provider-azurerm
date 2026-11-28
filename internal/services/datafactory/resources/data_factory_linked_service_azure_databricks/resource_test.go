@@ -16,12 +16,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type LinkedServiceDatabricksResource struct{}
+type DataFactoryLinkedServiceAzureDatabricksResource struct{}
 
 func TestAccDataFactoryLinkedServiceDatabricks_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_databricks", "test")
 
-	r := LinkedServiceDatabricksResource{}
+	r := DataFactoryLinkedServiceAzureDatabricksResource{}
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.msi(data),
@@ -32,7 +32,7 @@ func TestAccDataFactoryLinkedServiceDatabricks_regressionTest(t *testing.T) {
 func TestAccDataFactoryLinkedServiceDatabricks_authViaMSI(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_databricks", "test")
 
-	r := LinkedServiceDatabricksResource{}
+	r := DataFactoryLinkedServiceAzureDatabricksResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.msi(data),
@@ -47,7 +47,7 @@ func TestAccDataFactoryLinkedServiceDatabricks_authViaMSI(t *testing.T) {
 func TestAccDataFactoryLinkedServiceDatabricks_authViaAccessToken(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_databricks", "test")
 
-	r := LinkedServiceDatabricksResource{}
+	r := DataFactoryLinkedServiceAzureDatabricksResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.access_token(data),
@@ -62,7 +62,7 @@ func TestAccDataFactoryLinkedServiceDatabricks_authViaAccessToken(t *testing.T) 
 func TestAccDataFactoryLinkedServiceDatabricks_authViaKeyVault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_databricks", "test")
 
-	r := LinkedServiceDatabricksResource{}
+	r := DataFactoryLinkedServiceAzureDatabricksResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.key_vault(data),
@@ -76,7 +76,7 @@ func TestAccDataFactoryLinkedServiceDatabricks_authViaKeyVault(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceDatabricks_newClusterConfig(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_databricks", "test")
-	r := LinkedServiceDatabricksResource{}
+	r := DataFactoryLinkedServiceAzureDatabricksResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -91,7 +91,7 @@ func TestAccDataFactoryLinkedServiceDatabricks_newClusterConfig(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceDatabricks_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_databricks", "test")
-	r := LinkedServiceDatabricksResource{}
+	r := DataFactoryLinkedServiceAzureDatabricksResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -110,7 +110,7 @@ func TestAccDataFactoryLinkedServiceDatabricks_update(t *testing.T) {
 	})
 }
 
-func (t LinkedServiceDatabricksResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t DataFactoryLinkedServiceAzureDatabricksResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.LinkedServiceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -124,7 +124,7 @@ func (t LinkedServiceDatabricksResource) Exists(ctx context.Context, clients *cl
 	return pointer.To(resp.ID != nil), nil
 }
 
-func (LinkedServiceDatabricksResource) msi(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceAzureDatabricksResource) msi(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -157,7 +157,7 @@ resource "azurerm_data_factory_linked_service_azure_databricks" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceDatabricksResource) access_token(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceAzureDatabricksResource) access_token(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -189,7 +189,7 @@ resource "azurerm_data_factory_linked_service_azure_databricks" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceDatabricksResource) key_vault(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceAzureDatabricksResource) key_vault(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -246,7 +246,7 @@ resource "azurerm_data_factory_linked_service_azure_databricks" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger)
 }
 
-func (LinkedServiceDatabricksResource) newClusterConfig(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceAzureDatabricksResource) newClusterConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -301,7 +301,7 @@ resource "azurerm_data_factory_linked_service_azure_databricks" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceDatabricksResource) update1(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceAzureDatabricksResource) update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -359,7 +359,7 @@ resource "azurerm_data_factory_linked_service_azure_databricks" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceDatabricksResource) update2(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceAzureDatabricksResource) update2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

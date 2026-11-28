@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type DataFactoryCustomerManagedKeyTestResource struct{}
+type DataFactoryCustomerManagedKeyResource struct{}
 
 func TestAccDataFactoryCustomerManagedKey_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_customer_managed_key", "test")
-	r := DataFactoryCustomerManagedKeyTestResource{}
+	r := DataFactoryCustomerManagedKeyResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccDataFactoryCustomerManagedKey_regressionTest(t *testing.T) {
 
 func TestAccDataFactoryCustomerManagedKey_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_customer_managed_key", "test")
-	r := DataFactoryCustomerManagedKeyTestResource{}
+	r := DataFactoryCustomerManagedKeyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,7 +46,7 @@ func TestAccDataFactoryCustomerManagedKey_basic(t *testing.T) {
 
 func TestAccDataFactoryCustomerManagedKey_userAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_customer_managed_key", "test")
-	r := DataFactoryCustomerManagedKeyTestResource{}
+	r := DataFactoryCustomerManagedKeyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -61,7 +61,7 @@ func TestAccDataFactoryCustomerManagedKey_userAssignedIdentity(t *testing.T) {
 
 func TestAccDataFactoryCustomerManagedKey_systemAssignedUserAssignedUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_customer_managed_key", "test")
-	r := DataFactoryCustomerManagedKeyTestResource{}
+	r := DataFactoryCustomerManagedKeyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -90,7 +90,7 @@ func TestAccDataFactoryCustomerManagedKey_systemAssignedUserAssignedUpdate(t *te
 
 func TestAccDataFactoryCustomerManagedKey_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_customer_managed_key", "test")
-	r := DataFactoryCustomerManagedKeyTestResource{}
+	r := DataFactoryCustomerManagedKeyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -110,7 +110,7 @@ func TestAccDataFactoryCustomerManagedKey_complete(t *testing.T) {
 	})
 }
 
-func (DataFactoryCustomerManagedKeyTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (DataFactoryCustomerManagedKeyResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := factories.ParseFactoryID(state.ID)
 	if err != nil {
 		return nil, err
@@ -124,7 +124,7 @@ func (DataFactoryCustomerManagedKeyTestResource) Exists(ctx context.Context, cli
 	return pointer.To(resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.Encryption != nil), nil
 }
 
-func (r DataFactoryCustomerManagedKeyTestResource) systemAssignedKey(data acceptance.TestData) string {
+func (r DataFactoryCustomerManagedKeyResource) systemAssignedKey(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_data_factory_customer_managed_key" "test" {
@@ -134,7 +134,7 @@ resource "azurerm_data_factory_customer_managed_key" "test" {
 `, r.systemAssignedTemplate(data))
 }
 
-func (r DataFactoryCustomerManagedKeyTestResource) systemAssignedKeyUpdate(data acceptance.TestData) string {
+func (r DataFactoryCustomerManagedKeyResource) systemAssignedKeyUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -145,7 +145,7 @@ resource "azurerm_data_factory_customer_managed_key" "test" {
 `, r.systemAssignedTemplate(data))
 }
 
-func (r DataFactoryCustomerManagedKeyTestResource) userAssignedIdentityKey(data acceptance.TestData) string {
+func (r DataFactoryCustomerManagedKeyResource) userAssignedIdentityKey(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -157,7 +157,7 @@ resource "azurerm_data_factory_customer_managed_key" "test" {
 `, r.userAssignedTemplate(data))
 }
 
-func (r DataFactoryCustomerManagedKeyTestResource) systemAssignedUserAssignedUpdate(data acceptance.TestData, userAssigned bool) string {
+func (r DataFactoryCustomerManagedKeyResource) systemAssignedUserAssignedUpdate(data acceptance.TestData, userAssigned bool) string {
 	userAssignedIdentityId := ""
 	if userAssigned {
 		userAssignedIdentityId = "user_assigned_identity_id = azurerm_user_assigned_identity.test.id"
@@ -174,7 +174,7 @@ resource "azurerm_data_factory_customer_managed_key" "test" {
 `, r.systemAssignedUserAssignedTemplate(data), userAssignedIdentityId)
 }
 
-func (r DataFactoryCustomerManagedKeyTestResource) systemAssignedTemplate(data acceptance.TestData) string {
+func (r DataFactoryCustomerManagedKeyResource) systemAssignedTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -204,7 +204,7 @@ resource "azurerm_data_factory" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r DataFactoryCustomerManagedKeyTestResource) userAssignedTemplate(data acceptance.TestData) string {
+func (r DataFactoryCustomerManagedKeyResource) userAssignedTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -223,7 +223,7 @@ resource "azurerm_data_factory" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r DataFactoryCustomerManagedKeyTestResource) systemAssignedUserAssignedTemplate(data acceptance.TestData) string {
+func (r DataFactoryCustomerManagedKeyResource) systemAssignedUserAssignedTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -254,7 +254,7 @@ resource "azurerm_data_factory" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r DataFactoryCustomerManagedKeyTestResource) template(data acceptance.TestData) string {
+func (r DataFactoryCustomerManagedKeyResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {

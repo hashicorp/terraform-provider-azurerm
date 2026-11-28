@@ -6,6 +6,7 @@ package eventhub_namespace
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -134,7 +135,7 @@ func flattenEventHubNamespaceNetworkRuleset(ruleset networkrulesets.NamespacesGe
 					// for some reason the DiffSuppressFunc for `subnet_id` isn't working as intended, so we'll also flatten the id insensitively
 					subnetId, err := commonids.ParseSubnetIDInsensitively(*v)
 					if err != nil {
-						return nil, fmt.Errorf("parsing `subnet_id`: %+v", err)
+						return nil, err
 					}
 					block["subnet_id"] = subnetId.ID()
 				}
@@ -199,7 +200,7 @@ func resourceVnetRuleHash(v any) int {
 func eventhubTLSVersionDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ any) (err error) {
 	old, new := d.GetChange("minimum_tls_version")
 	if old != "" && new == "" {
-		err = fmt.Errorf("`minimum_tls_version` has been set before, please set a valid value for this property ")
+		err = errors.New("`minimum_tls_version` has been set before, please set a valid value for this property ")
 	}
 	return
 }

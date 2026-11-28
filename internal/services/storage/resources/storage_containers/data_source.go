@@ -1,0 +1,159 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
+package storage_containers
+
+import (
+	"context"
+	"fmt"
+	"strings"
+	"time"
+
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/blobservices"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/containers"
+)
+
+type DataSource struct{}
+
+var _ sdk.DataSource = DataSource{}
+
+type storageContainersDataSourceModel struct {
+	StorageAccountId string           `tfschema:"storage_account_id"`
+	NamePrefix       string           `tfschema:"name_prefix"`
+	Containers       []containerModel `tfschema:"containers"`
+}
+
+type containerModel struct {
+	Name              string `tfschema:"name"`
+	DataPlaneId       string `tfschema:"data_plane_id"`
+	ResourceManagerId string `tfschema:"resource_manager_id"`
+}
+
+func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"storage_account_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: commonids.ValidateStorageAccountID,
+		},
+		"name_prefix": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+	}
+}
+
+func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"containers": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"data_plane_id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"resource_manager_id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+				},
+			},
+		},
+	}
+}
+
+func (r DataSource) ResourceType() string {
+	return "azurerm_storage_containers"
+}
+
+func (r DataSource) ModelObject() any {
+	return &storageContainersDataSourceModel{}
+}
+
+func (r DataSource) Read() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			blobServicesClient := metadata.Client.Storage.ResourceManager.BlobServices
+
+			var plan storageContainersDataSourceModel
+			if err := metadata.Decode(&plan); err != nil {
+				return fmt.Errorf("decoding %+v", err)
+			}
+
+			id, err := commonids.ParseStorageAccountID(plan.StorageAccountId)
+			if err != nil {
+				return err
+			}
+
+			account, err := metadata.Client.Storage.GetAccount(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retrieving Storage Account %q: %v", id.StorageAccountName, err)
+			}
+			if account == nil {
+				return fmt.Errorf("locating Storage Account %q", id.StorageAccountName)
+			}
+
+			// Determine the blob endpoint, so we can build a data plane ID
+			endpoint, err := account.DataPlaneEndpoint(client.EndpointTypeBlob)
+			if err != nil {
+				return fmt.Errorf("determining Blob endpoint: %v", err)
+			}
+
+			// Parse the blob endpoint as a data plane account ID
+			accountId, err := accounts.ParseAccountID(*endpoint, metadata.Client.Storage.StorageDomainSuffix)
+			if err != nil {
+				return err
+			}
+
+			resp, err := blobServicesClient.BlobContainersListCompleteMatchingPredicate(ctx, *id, blobservices.BlobContainersListOperationOptions{}, blobservices.ListContainerItemOperationPredicate{})
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", id, err)
+			}
+
+			plan.Containers = flattenStorageContainersContainers(resp.Items, *accountId, plan.NamePrefix)
+
+			if err := metadata.Encode(&plan); err != nil {
+				return fmt.Errorf("encoding %s: %+v", id, err)
+			}
+
+			metadata.SetID(id)
+
+			return nil
+		},
+	}
+}
+
+func flattenStorageContainersContainers(l []blobservices.ListContainerItem, accountId accounts.AccountId, prefix string) []containerModel {
+	output := make([]containerModel, 0, len(l))
+	for _, item := range l {
+		name := pointer.From(item.Name)
+
+		if prefix != "" && !strings.HasPrefix(name, prefix) {
+			continue
+		}
+
+		output = append(output, containerModel{
+			Name:              name,
+			ResourceManagerId: pointer.From(item.Id),
+			DataPlaneId:       containers.NewContainerID(accountId, name).ID(),
+		})
+	}
+
+	return output
+}

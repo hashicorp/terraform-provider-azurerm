@@ -27,7 +27,7 @@ func (c *Client) FindPrivateDnsZoneId(ctx context.Context, resourceGroupsClient 
 		itemId := *item.Id
 		parsed, err := privatezones.ParsePrivateDnsZoneIDInsensitively(itemId)
 		if err != nil {
-			return nil, fmt.Errorf("parsing %q as a Private DNS Zone ID: %+v", itemId, err)
+			return nil, err
 		}
 
 		if parsed.PrivateDnsZoneName != name {

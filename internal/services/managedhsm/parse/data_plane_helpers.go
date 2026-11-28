@@ -4,6 +4,7 @@
 package parse
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -39,7 +40,7 @@ func parseDataPlaneEndpoint(input *url.URL, domainSuffix *string) (*ManagedHSMDa
 		if port != "443" {
 			return nil, fmt.Errorf("expected port to be '443' but got %q", port)
 		}
-		hostname = strings.TrimSuffix(hostname, fmt.Sprintf(":%s", input.Port()))
+		hostname = strings.TrimSuffix(hostname, ":"+input.Port())
 	}
 	hostnameComponents := strings.Split(hostname, ".")
 	if len(hostnameComponents) <= 2 {
@@ -107,10 +108,10 @@ func parseDataPlaneResource(input *url.URL, expectedType string, requireVersion 
 func validateSegment(input string) error {
 	val := strings.TrimSpace(input)
 	if val == "" {
-		return fmt.Errorf("unexpected empty value")
+		return errors.New("unexpected empty value")
 	}
 	if val != input {
-		return fmt.Errorf("contained extra whitespace")
+		return errors.New("contained extra whitespace")
 	}
 
 	return nil

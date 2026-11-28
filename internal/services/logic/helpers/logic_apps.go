@@ -4,6 +4,7 @@
 package helpers
 
 import (
+	"errors"
 	"fmt"
 	"log"
 
@@ -50,11 +51,11 @@ func ResourceLogicAppComponentUpdate(d *pluginsdk.ResourceData, meta any, kind s
 	}
 
 	if read.Model == nil || read.Model.Properties == nil {
-		return fmt.Errorf("[ERROR] Error parsing Logic App Workflow - `WorkflowProperties` is nil")
+		return errors.New("[ERROR] Error parsing Logic App Workflow - `WorkflowProperties` is nil")
 	}
 
 	if read.Model.Properties.Definition == nil {
-		return fmt.Errorf("[ERROR] Error parsing Logic App Workflow - `WorkflowProperties.Definition` is nil")
+		return errors.New("[ERROR] Error parsing Logic App Workflow - `WorkflowProperties.Definition` is nil")
 	}
 
 	rawDefinition := *read.Model.Properties.Definition
@@ -134,15 +135,15 @@ func ResourceLogicAppComponentRemove(d *pluginsdk.ResourceData, meta any, kind, 
 	}
 
 	if read.Model == nil {
-		return fmt.Errorf("[ERROR] Error parsing Logic App Workflow - `Model` is nil")
+		return errors.New("[ERROR] Error parsing Logic App Workflow - `Model` is nil")
 	}
 
 	if read.Model.Properties == nil {
-		return fmt.Errorf("[ERROR] Error parsing Logic App Workflow - `Properties` is nil")
+		return errors.New("[ERROR] Error parsing Logic App Workflow - `Properties` is nil")
 	}
 
 	if read.Model.Properties.Definition == nil {
-		return fmt.Errorf("[ERROR] Error parsing Logic App Workflow - `WorkflowProperties.Definition` is nil")
+		return errors.New("[ERROR] Error parsing Logic App Workflow - `WorkflowProperties.Definition` is nil")
 	}
 
 	var definition any
@@ -262,15 +263,15 @@ func RetrieveLogicAppComponent(d *pluginsdk.ResourceData, meta any, kind, proper
 	}
 
 	if read.Model == nil {
-		return nil, nil, fmt.Errorf("[ERROR] Error parsing Logic App Workflow - `Model` is nil")
+		return nil, nil, errors.New("[ERROR] Error parsing Logic App Workflow - `Model` is nil")
 	}
 
 	if read.Model.Properties == nil {
-		return nil, nil, fmt.Errorf("[ERROR] Error parsing Logic App Workflow - `Properties` is nil")
+		return nil, nil, errors.New("[ERROR] Error parsing Logic App Workflow - `Properties` is nil")
 	}
 
 	if read.Model.Properties.Definition == nil {
-		return nil, nil, fmt.Errorf("[ERROR] Error parsing Logic App Workflow - `Properties.Definition` is nil")
+		return nil, nil, errors.New("[ERROR] Error parsing Logic App Workflow - `Properties.Definition` is nil")
 	}
 
 	definitionRaw := *read.Model.Properties.Definition

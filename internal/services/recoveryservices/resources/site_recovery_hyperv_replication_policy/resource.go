@@ -1,0 +1,26 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
+package site_recovery_hyperv_replication_policy
+
+import (
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationpolicies"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+)
+
+type Resource struct{}
+
+var _ sdk.ResourceWithUpdate = Resource{}
+
+func (r Resource) ResourceType() string {
+	return "azurerm_site_recovery_hyperv_replication_policy"
+}
+
+func (r Resource) Description() string {
+	return "Manages an Azure Site Recovery replication policy for HyperV within a Recovery Vault. Replication policies define the frequency at which recovery points are created and how long they are stored."
+}
+
+func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return replicationpolicies.ValidateReplicationPolicyID
+}

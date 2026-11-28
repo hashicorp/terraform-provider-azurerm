@@ -6,7 +6,6 @@ package container_registry
 import (
 	"context"
 	"errors"
-	"fmt"
 	"slices"
 	"strings"
 	"time"
@@ -19,10 +18,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceContainerRegistryCreate,
-		Read:   resourceContainerRegistryRead,
-		Update: resourceContainerRegistryUpdate,
-		Delete: resourceContainerRegistryDelete,
+		Description: "Manages an Azure Container Registry.",
+		Create:      resourceContainerRegistryCreate,
+		Read:        resourceContainerRegistryRead,
+		Update:      resourceContainerRegistryUpdate,
+		Delete:      resourceContainerRegistryDelete,
 
 		SchemaVersion: 2,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
@@ -92,24 +92,24 @@ func RegisterResource() *pluginsdk.Resource {
 			// zone redundancy is only available for Premium Sku.
 			zoneRedundancyEnabled, ok := d.GetOk("zone_redundancy_enabled")
 			if ok && zoneRedundancyEnabled.(bool) && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
-				return fmt.Errorf("ACR zone redundancy can only be applied when using the Premium Sku")
+				return errors.New("ACR zone redundancy can only be applied when using the Premium Sku")
 			}
 			for _, loc := range geoReplications {
 				loc := loc.(map[string]any)
 				zoneRedundancyEnabled, ok := loc["zone_redundancy_enabled"]
 				if ok && zoneRedundancyEnabled.(bool) && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
-					return fmt.Errorf("ACR zone redundancy can only be applied when using the Premium Sku")
+					return errors.New("ACR zone redundancy can only be applied when using the Premium Sku")
 				}
 			}
 
 			// anonymous pull is only available for Standard/Premium Sku.
 			if d.Get("anonymous_pull_enabled").(bool) && (!strings.EqualFold(sku, string(registries.SkuNameStandard)) && !strings.EqualFold(sku, string(registries.SkuNamePremium))) {
-				return fmt.Errorf("`anonymous_pull_enabled` can only be applied when using the Standard/Premium Sku")
+				return errors.New("`anonymous_pull_enabled` can only be applied when using the Standard/Premium Sku")
 			}
 
 			// data endpoint is only available for Premium Sku.
 			if d.Get("data_endpoint_enabled").(bool) && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
-				return fmt.Errorf("`data_endpoint_enabled` can only be applied when using the Premium Sku")
+				return errors.New("`data_endpoint_enabled` can only be applied when using the Premium Sku")
 			}
 
 			return nil

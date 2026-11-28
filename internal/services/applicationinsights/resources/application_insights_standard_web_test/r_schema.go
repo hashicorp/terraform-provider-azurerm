@@ -5,7 +5,7 @@ package application_insights_standard_web_test
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"strings"
 	"time"
 
@@ -28,10 +28,10 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 			if ok {
 				if !strings.HasPrefix(strings.ToLower(url.(string)), "https://") {
 					if v, ok := rd.GetOkExists("validation_rules.0.ssl_check_enabled"); ok && v.(bool) {
-						return fmt.Errorf("cannot set ssl_check_enabled to true if request.0.url is not https")
+						return errors.New("cannot set ssl_check_enabled to true if request.0.url is not https")
 					}
 					if v, ok := rd.GetOkExists("validation_rules.0.ssl_cert_remaining_lifetime"); ok && v.(int) != 0 {
-						return fmt.Errorf("cannot set ssl_cert_remaining_lifetime if request.0.url is not https")
+						return errors.New("cannot set ssl_cert_remaining_lifetime if request.0.url is not https")
 					}
 				}
 			}
@@ -44,6 +44,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 func (Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Application Insights Standard WebTest.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -53,6 +54,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"application_insights_id": {
+			Description:  "The ID of the Application Insights instance on which the WebTest operates.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -62,9 +64,10 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"frequency": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
-			Default:  300,
+			Description: "Interval in seconds between test runs for this WebTest.",
+			Type:        pluginsdk.TypeInt,
+			Optional:    true,
+			Default:     300,
 			ValidateFunc: validation.IntInSlice([]int{
 				300,
 				600,
@@ -73,19 +76,22 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"timeout": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
-			Default:  30,
+			Description: "Seconds until this WebTest will timeout and fail.",
+			Type:        pluginsdk.TypeInt,
+			Optional:    true,
+			Default:     30,
 		},
 
 		"enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
+			Description: "Whether the WebTest should be enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
 		},
 
 		"retry_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
+			Description: "Whether the retry on WebTest failure should be enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
 		},
 
 		"request": {
@@ -95,24 +101,27 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"follow_redirects_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Description: "Whether the following of redirects should be enabled.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 
 					"http_verb": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  "GET",
+						Description: "Which HTTP verb to use for the call.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						Default:     "GET",
 						ValidateFunc: validation.StringInSlice([]string{
 							"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS",
 						}, false),
 					},
 
 					"parse_dependent_requests_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Description: "Whether the parsing of dependent requests should be enabled.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 
 					"header": {
@@ -121,25 +130,29 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
+									Description:  "The name which should be used for a header in the request.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 								"value": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
+									Description: "The value which should be used for a header in the request.",
+									Type:        pluginsdk.TypeString,
+									Required:    true,
 								},
 							},
 						},
 					},
 
 					"body": {
+						Description:  "The WebTest request body.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"url": {
+						Description:  "The WebTest request URL.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -155,27 +168,31 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"expected_status_code": {
-						Type:     pluginsdk.TypeInt,
-						Optional: true,
-						Default:  200,
+						Description: "The expected status code of the response.",
+						Type:        pluginsdk.TypeInt,
+						Optional:    true,
+						Default:     200,
 					},
 
 					"ignore_status_code": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Whether status code of the response should be ignored.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 
 					"ssl_cert_remaining_lifetime": {
+						Description:  "The number of days of SSL certificate validity remaining for the checked endpoint. If the certificate has a shorter remaining lifetime left, the test will fail.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						ValidateFunc: validation.IntBetween(1, 365),
 					},
 
 					"ssl_check_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Whether the SSL check should be enabled.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 
 					"content": {
@@ -185,19 +202,22 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"content_match": {
+									Description:  "A string value containing the content to match on.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 								"ignore_case": {
-									Type:     pluginsdk.TypeBool,
-									Optional: true,
-									Default:  false,
+									Description: "Ignore the casing in the `content_match` value.",
+									Type:        pluginsdk.TypeBool,
+									Optional:    true,
+									Default:     false,
 								},
 								"pass_if_text_found": {
-									Type:     pluginsdk.TypeBool,
-									Optional: true,
-									Default:  false,
+									Description: "If the content of `content_match` is found, pass the test. If set to `false`, the WebTest is failing if the content of `content_match` is found.",
+									Type:        pluginsdk.TypeBool,
+									Optional:    true,
+									Default:     false,
 								},
 							},
 						},
@@ -207,9 +227,10 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"geo_locations": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			MinItems: 1,
+			Description: "A list of where to physically run the tests from to give global coverage for accessibility of your application.",
+			Type:        pluginsdk.TypeList,
+			Required:    true,
+			MinItems:    1,
 			Elem: &pluginsdk.Schema{
 				Type:             pluginsdk.TypeString,
 				ValidateFunc:     validation.StringIsNotEmpty,
@@ -219,8 +240,9 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "Purpose/user defined descriptive test for this WebTest.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 
 		"tags": commonschema.Tags(),
@@ -230,8 +252,9 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 func (Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"synthetic_monitor_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "Unique ID of this WebTest. This is typically the same value as the Name field.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

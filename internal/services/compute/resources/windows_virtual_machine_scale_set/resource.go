@@ -5,7 +5,7 @@ package windows_virtual_machine_scale_set
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"slices"
 	"time"
 
@@ -27,10 +27,11 @@ type Output struct {
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceWindowsVirtualMachineScaleSetCreate,
-		Read:   resourceWindowsVirtualMachineScaleSetRead,
-		Update: resourceWindowsVirtualMachineScaleSetUpdate,
-		Delete: resourceWindowsVirtualMachineScaleSetDelete,
+		Description: "Manages a Windows Virtual Machine Scale Set.",
+		Create:      resourceWindowsVirtualMachineScaleSetCreate,
+		Read:        resourceWindowsVirtualMachineScaleSetRead,
+		Update:      resourceWindowsVirtualMachineScaleSetUpdate,
+		Delete:      resourceWindowsVirtualMachineScaleSetDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := commonids.ParseVirtualMachineScaleSetID(id)
@@ -74,11 +75,17 @@ func RegisterResource() *pluginsdk.Resource {
 					auxiliarySku := raw["auxiliary_sku"].(string)
 
 					if auxiliaryMode != "" && auxiliarySku == "" {
-						return fmt.Errorf("when `auxiliary_mode` is set, `auxiliary_sku` must also be set")
+						return errors.New("when `auxiliary_mode` is set, `auxiliary_sku` must also be set")
 					}
 
 					if auxiliarySku != "" && auxiliaryMode == "" {
-						return fmt.Errorf("when `auxiliary_sku` is set, `auxiliary_mode` must also be set")
+						return errors.New("when `auxiliary_sku` is set, `auxiliary_mode` must also be set")
+					}
+				}
+
+				if !diff.GetRawConfig().GetAttr("capacity_reservation_group_id").IsNull() {
+					if diff.Get("single_placement_group").(bool) {
+						return errors.New("`single_placement_group` must be set to `false` when `capacity_reservation_group_id` is specified")
 					}
 				}
 
@@ -86,6 +93,13 @@ func RegisterResource() *pluginsdk.Resource {
 			}),
 
 			pluginsdk.CustomizeDiffShim(helpers.VirtualMachineScaleSetAutomaticZoneRebalancingCustomizeDiff),
+
+			pluginsdk.ForceNewIf("capacity_reservation_group_id", func(ctx context.Context, d *pluginsdk.ResourceDiff, _ any) bool {
+				oldCRG, _ := d.GetChange("capacity_reservation_group_id")
+				oldZones, _ := d.GetChange("zones")
+				// In-place association is only supported when adding a CRG to an already-zonal scale set. Updating or de-associating still requires a force new (actually requires deallocation).
+				return oldZones.(*schema.Set).Len() == 0 || oldCRG.(string) != ""
+			}),
 		),
 	}
 }

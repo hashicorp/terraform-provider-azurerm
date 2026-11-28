@@ -40,6 +40,7 @@ linters:
     - noctx                     # finds http requests and exec commands made without a context.Context
     - nolintlint                # checks nolint comments are well formed, name a linter and still suppress something - see settings below
     - nosprintfhostport         # checks for misuse of Sprintf to construct host:port in a URL
+    - perfsprint                # swaps fmt calls for the plain errors/strconv/string call that does the same job, autofixable - see settings below
     - predeclared               # find code that shadows one of Go's predeclared identifiers
     - reassign                  # checks that package variables are not reassigned
     - staticcheck               # checks rules from staticcheck (not the same thing as the staticcheck binary)
@@ -91,6 +92,8 @@ linters:
         - newexpr # flags pointer.To(x) -> new(x), azurerm standardises on pointer.To (see AZG002 below)
     nolintlint:
       require-specific: true # a nolint that names no linter switches off every linter for the code below it
+    perfsprint:
+      err-error: true # fmt.Sprintf("%s", err) -> err.Error(), off by default as the two differ when err is nil
     predeclared:
       ignore: # widely used as ordinary variable/parameter names across the provider (old/new in diffs, min/max in validation)
         - new
@@ -118,6 +121,10 @@ linters:
             - AZP002 # resources with no corresponding data source - 768 findings, to determine if to be fixed later
             - AZP003 # data sources missing properties that exist on the resource - 185 findings, todo later
             - AZR010 # callers nil-checking before flatten* functions that already handle nil - 244 findings, new in v0.8.0, to fix later
+            - AZS018 # descriptions with a note in them - the fix drops what the note says, to decide later
+            - AZS010 # resources, properties and blocks with no description - most have none until the docs are generated from the schema
+            - AZS022 # TODO 6.0 - enable and fix the schema: strings that only take Enabled/Disabled, On/Off or true/false should be booleans
+            - AZS023 # TODO 6.0 - enable and fix the schema: property names should not start with is_
           AZG002:
             use: pointer.To # rather than the go1.26 new(<expr>) builtin
           AZG006:
@@ -134,6 +141,14 @@ linters:
             allow-extra-values: true
           AZS007:
             exclude-packages: "migration"
+          AZS020:
+            allow:
+              - 'azuread_.*' # the azuread provider's resources, which a description may point at
+          AZT010:
+            ignore: # notes and scripts on how test data was made: no test names them and they are kept on purpose
+              - '(^|/)HOWTO\.md$'
+              - '\.cnf$'
+              - '_testdata\.sh$'
       tfproviderlint:
         type: module
         settings: # all checks run (including the tfproviderlintx X* checks, via extended) except those disabled below

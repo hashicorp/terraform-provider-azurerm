@@ -5,6 +5,7 @@ package helpers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -37,20 +38,20 @@ func ValidateKubernetesCluster(d *pluginsdk.ResourceData, cluster *managedcluste
 
 				// Azure network plugin is not compatible with pod_cidr
 				if podCidr != "" && strings.EqualFold(networkPlugin, "azure") && !strings.EqualFold(networkPluginMode, string(managedclusters.NetworkPluginModeOverlay)) {
-					return fmt.Errorf("`pod_cidr` and `azure` cannot be set together unless specifying `network_plugin_mode` to `overlay`")
+					return errors.New("`pod_cidr` and `azure` cannot be set together unless specifying `network_plugin_mode` to `overlay`")
 				}
 
 				// if not All empty values or All set values.
 				if (dnsServiceIP != "" || isServiceCidrSet) && (dnsServiceIP == "" || !isServiceCidrSet) {
-					return fmt.Errorf("`dns_service_ip` and `service_cidr` should all be empty or both should be set")
+					return errors.New("`dns_service_ip` and `service_cidr` should all be empty or both should be set")
 				}
 
 				ipVersions := profile["ip_versions"].([]any)
 				if len(serviceCidrs) == 2 && len(ipVersions) != 2 {
-					return fmt.Errorf("dual-stack networking must be enabled and `ip_versions` must be set to [\"IPv4\", \"IPv6\"] in order to specify multiple values in `service_cidrs`")
+					return errors.New("dual-stack networking must be enabled and `ip_versions` must be set to [\"IPv4\", \"IPv6\"] in order to specify multiple values in `service_cidrs`")
 				}
 				if len(podCidrs) == 2 && len(ipVersions) != 2 {
-					return fmt.Errorf("dual-stack networking must be enabled and `ip_versions` must be set to [\"IPv4\", \"IPv6\"] in order to specify multiple values in `pod_cidrs`")
+					return errors.New("dual-stack networking must be enabled and `ip_versions` must be set to [\"IPv4\", \"IPv6\"] in order to specify multiple values in `pod_cidrs`")
 				}
 			}
 		}
@@ -206,7 +207,7 @@ which point this Cluster can be managed in Terraform as before`, ErrExistingClus
 }
 
 // an existing cluster exists with an SP, but it's not defined in the config
-var ErrExistingClusterServicePrincipalRemoved = fmt.Errorf(`
+var ErrExistingClusterServicePrincipalRemoved = errors.New(`
 A Service Principal exists for this Kubernetes Cluster but has not been defined in the Terraform
 Configuration.
 
@@ -219,7 +220,7 @@ To be able to continue managing this Kubernetes Cluster in Terraform, please re-
 resource in Terraform, which will cause all Pods running on this Kubernetes Cluster to be recreated`)
 
 // users trying to create a new cluster with an SP & MSI
-var ErrNewClusterWithBothServicePrincipalAndMSI = fmt.Errorf(`
+var ErrNewClusterWithBothServicePrincipalAndMSI = errors.New(`
 Azure Kubernetes Service has recently made several breaking changes to Cluster Authentication as
 the Managed Identity Preview has concluded and entered General Availability.
 
@@ -238,7 +239,7 @@ In order to create this Kubernetes Cluster, please remove either the 'identity' 
 var ErrClusterControlPlaneMustBeUpgraded = func(resourceGroup, clusterName, nodePoolName string, clusterVersion *string, desiredNodePoolVersion string, availableVersions []string) error {
 	versions := make([]string, 0)
 	for _, version := range availableVersions {
-		versions = append(versions, fmt.Sprintf(" * %s", version))
+		versions = append(versions, " * "+version)
 	}
 	versionsList := strings.Join(versions, "\n")
 	clusterVersionDetails := "We were unable to determine the version of Kubernetes available on the Kubernetes Cluster."

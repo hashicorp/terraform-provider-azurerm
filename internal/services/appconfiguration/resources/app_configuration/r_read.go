@@ -5,9 +5,11 @@ package app_configuration
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -180,7 +182,7 @@ func (p *purgeDeletedPoller) Poll(ctx context.Context) (*pollers.PollResult, err
 
 	status := "dropped connection"
 	if resp.HttpResponse != nil {
-		status = fmt.Sprintf("%d", resp.HttpResponse.StatusCode)
+		status = strconv.Itoa(resp.HttpResponse.StatusCode)
 	}
 
 	if response.WasNotFound(resp.HttpResponse) {
@@ -237,7 +239,7 @@ https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/fea
 func resourceConfigurationStoreWaitForNameAvailable(ctx context.Context, client *operations.OperationsClient, configurationStoreId configurationstores.ConfigurationStoreId) error {
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("internal error: context had no deadline")
+		return errors.New("internal error: context had no deadline")
 	}
 	state := &pluginsdk.StateChangeConf{
 		MinTimeout:                10 * time.Second,
@@ -305,7 +307,7 @@ func deleteReplicas(ctx context.Context, replicaClient *replicas.ReplicasClient,
 func resourceConfigurationStoreReplicaWaitForNameAvailable(ctx context.Context, client *operations.OperationsClient, configurationStoreReplicaId replicas.ReplicaId) error {
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("internal error: context had no deadline")
+		return errors.New("internal error: context had no deadline")
 	}
 	state := &pluginsdk.StateChangeConf{
 		MinTimeout:                10 * time.Second,

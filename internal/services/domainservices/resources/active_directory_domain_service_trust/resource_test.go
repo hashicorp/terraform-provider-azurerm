@@ -5,6 +5,7 @@ package active_directory_domain_service_trust_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"testing"
@@ -19,7 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type DomainServiceTrustResource struct {
+type ActiveDirectoryDomainServiceTrustResource struct {
 	// The name of the resource group contains the AADDS
 	AADDSResourceGroupName string
 	// The name the AADDS
@@ -34,38 +35,38 @@ type DomainServiceTrustResource struct {
 	TrustPassword string
 }
 
-func NewDomainServiceTrustResource() (*DomainServiceTrustResource, error) {
+func NewDomainServiceTrustResource() (*ActiveDirectoryDomainServiceTrustResource, error) {
 	aaddsRgName := os.Getenv("ARM_TEST_AADDS_RESOURCE_GROUP_NAME")
 	if aaddsRgName == "" {
-		return nil, fmt.Errorf("`ARM_TEST_AADDS_RESOURCE_GROUP_NAME` is not set")
+		return nil, errors.New("`ARM_TEST_AADDS_RESOURCE_GROUP_NAME` is not set")
 	}
 
 	aaddsName := os.Getenv("ARM_TEST_AADDS_NAME")
 	if aaddsName == "" {
-		return nil, fmt.Errorf("`ARM_TEST_AADDS_NAME` is not set")
+		return nil, errors.New("`ARM_TEST_AADDS_NAME` is not set")
 	}
 
 	addsFqdn := os.Getenv("ARM_TEST_ADDS_FQDN")
 	if addsFqdn == "" {
-		return nil, fmt.Errorf("`ARM_TEST_ADDS_FQDN` is not set")
+		return nil, errors.New("`ARM_TEST_ADDS_FQDN` is not set")
 	}
 
 	addsIp1 := os.Getenv("ARM_TEST_ADDS_IP1")
 	if addsIp1 == "" {
-		return nil, fmt.Errorf("`ARM_TEST_ADDS_IP1` is not set")
+		return nil, errors.New("`ARM_TEST_ADDS_IP1` is not set")
 	}
 
 	addsIp2 := os.Getenv("ARM_TEST_ADDS_IP2")
 	if addsIp2 == "" {
-		return nil, fmt.Errorf("`ARM_TEST_ADDS_IP2` is not set")
+		return nil, errors.New("`ARM_TEST_ADDS_IP2` is not set")
 	}
 
 	password := os.Getenv("ARM_TEST_PASSWORD")
 	if password == "" {
-		return nil, fmt.Errorf("`ARM_TEST_PASSWORD` is not set")
+		return nil, errors.New("`ARM_TEST_PASSWORD` is not set")
 	}
 
-	return &DomainServiceTrustResource{
+	return &ActiveDirectoryDomainServiceTrustResource{
 		AADDSResourceGroupName: aaddsRgName,
 		AADDSName:              aaddsName,
 		ADDSFqdn:               addsFqdn,
@@ -111,7 +112,7 @@ func TestAccDomainServiceTrust_requiresImport(t *testing.T) {
 	})
 }
 
-func (r DomainServiceTrustResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r ActiveDirectoryDomainServiceTrustResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	client := clients.DomainServices.DomainServicesClient
 
 	id, err := parse.DomainServiceTrustID(state.ID)
@@ -151,7 +152,7 @@ func (r DomainServiceTrustResource) Exists(ctx context.Context, clients *clients
 	return pointer.To(false), nil
 }
 
-func (r DomainServiceTrustResource) basic(data acceptance.TestData) string {
+func (r ActiveDirectoryDomainServiceTrustResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -166,7 +167,7 @@ resource "azurerm_active_directory_domain_service_trust" "test" {
 `, template, data.RandomString, r.ADDSFqdn, r.ADDSIp1, r.ADDSIp2, r.TrustPassword)
 }
 
-func (r DomainServiceTrustResource) requiresImport(data acceptance.TestData) string {
+func (r ActiveDirectoryDomainServiceTrustResource) requiresImport(data acceptance.TestData) string {
 	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -181,7 +182,7 @@ resource "azurerm_active_directory_domain_service_trust" "import" {
 `, template)
 }
 
-func (r DomainServiceTrustResource) template(_ acceptance.TestData) string {
+func (r ActiveDirectoryDomainServiceTrustResource) template(_ acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

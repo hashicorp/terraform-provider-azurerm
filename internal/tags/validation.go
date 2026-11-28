@@ -5,6 +5,7 @@ package tags
 
 import (
 	"fmt"
+	"strconv"
 )
 
 func TagValueToString(v any) (string, error) {
@@ -12,7 +13,7 @@ func TagValueToString(v any) (string, error) {
 	case string:
 		return value, nil
 	case int:
-		return fmt.Sprintf("%d", value), nil
+		return strconv.Itoa(value), nil
 	default:
 		return "", fmt.Errorf("unknown tag type %T in tag value", value)
 	}

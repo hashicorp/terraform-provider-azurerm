@@ -387,7 +387,7 @@ func (r WindowsVirtualMachineResource) scalingCapacityReservationGroup(data acce
 	}
 
 	if crgId != "" {
-		crgText = fmt.Sprintf(`capacity_reservation_group_id = %s`, crgId)
+		crgText = "capacity_reservation_group_id = " + crgId
 	}
 
 	return fmt.Sprintf(`

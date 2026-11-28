@@ -20,10 +20,10 @@ type ScalingPlanHostPoolAssociationId struct {
 
 func (id ScalingPlanHostPoolAssociationId) String() string {
 	components := []string{
-		fmt.Sprintf("Scaling Plan %s", id.ScalingPlan.String()),
-		fmt.Sprintf("Host Pool %s", id.HostPool.String()),
+		"Scaling Plan " + id.ScalingPlan.String(),
+		"Host Pool " + id.HostPool.String(),
 	}
-	return fmt.Sprintf("Scaling Plan Host Pool Association %s", strings.Join(components, " / "))
+	return "Scaling Plan Host Pool Association " + strings.Join(components, " / ")
 }
 
 func (id ScalingPlanHostPoolAssociationId) ID() string {
@@ -47,12 +47,12 @@ func ScalingPlanHostPoolAssociationID(input string) (*ScalingPlanHostPoolAssocia
 
 	scalingplanId, err := scalingplan.ParseScalingPlanID(segments[0])
 	if err != nil {
-		return nil, fmt.Errorf("parsing Scaling Plan ID for Scaling Plan/Host Pool Association %q: %+v", segments[0], err)
+		return nil, err
 	}
 
 	hostPoolId, err := scalingplan.ParseHostPoolID(segments[1])
 	if err != nil {
-		return nil, fmt.Errorf("parsing Host Pool ID for Scaling Plan/Host Pool Association %q: %+v", segments[1], err)
+		return nil, err
 	}
 
 	return &ScalingPlanHostPoolAssociationId{

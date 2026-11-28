@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type SubscriptionCostManagementExport struct{}
+type SubscriptionCostManagementExportResource struct{}
 
 func TestAccSubscriptionCostManagementExport_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subscription_cost_management_export", "test")
-	r := SubscriptionCostManagementExport{}
+	r := SubscriptionCostManagementExportResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -32,7 +32,7 @@ func TestAccSubscriptionCostManagementExport_regressionTest(t *testing.T) {
 
 func TestAccSubscriptionCostManagementExport_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subscription_cost_management_export", "test")
-	r := SubscriptionCostManagementExport{}
+	r := SubscriptionCostManagementExportResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -47,7 +47,7 @@ func TestAccSubscriptionCostManagementExport_basic(t *testing.T) {
 
 func TestAccSubscriptionCostManagementExport_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subscription_cost_management_export", "test")
-	r := SubscriptionCostManagementExport{}
+	r := SubscriptionCostManagementExportResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -76,7 +76,7 @@ func TestAccSubscriptionCostManagementExport_update(t *testing.T) {
 
 func TestAccSubscriptionCostManagementExport_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subscription_cost_management_export", "test")
-	r := SubscriptionCostManagementExport{}
+	r := SubscriptionCostManagementExportResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -92,7 +92,7 @@ func TestAccSubscriptionCostManagementExport_requiresImport(t *testing.T) {
 	})
 }
 
-func (t SubscriptionCostManagementExport) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t SubscriptionCostManagementExportResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := exports.ParseScopedExportID(state.ID)
 	if err != nil {
 		return nil, err
@@ -107,7 +107,7 @@ func (t SubscriptionCostManagementExport) Exists(ctx context.Context, clients *c
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (SubscriptionCostManagementExport) basic(data acceptance.TestData) string {
+func (SubscriptionCostManagementExportResource) basic(data acceptance.TestData) string {
 	start := time.Now().AddDate(0, 0, 1).Format("2006-01-02")
 	end := time.Now().AddDate(0, 0, 2).Format("2006-01-02")
 
@@ -157,7 +157,7 @@ resource "azurerm_subscription_cost_management_export" "test" {
 	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, start, end)
 }
 
-func (SubscriptionCostManagementExport) update(data acceptance.TestData) string {
+func (SubscriptionCostManagementExportResource) update(data acceptance.TestData) string {
 	start := time.Now().AddDate(0, 3, 0).Format("2006-01-02")
 	end := time.Now().AddDate(0, 4, 0).Format("2006-01-02")
 
@@ -207,8 +207,8 @@ resource "azurerm_subscription_cost_management_export" "test" {
 	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, start, end)
 }
 
-func (SubscriptionCostManagementExport) requiresImport(data acceptance.TestData) string {
-	template := SubscriptionCostManagementExport{}.basic(data)
+func (SubscriptionCostManagementExportResource) requiresImport(data acceptance.TestData) string {
+	template := SubscriptionCostManagementExportResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 

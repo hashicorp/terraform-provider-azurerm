@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/jobschedule"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/runbook"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/helper"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -89,7 +89,7 @@ func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta any) error {
 			// get job schedule from GET API, `ListByAutomationAccountComplete` lost parameters
 			jobscheduleID, err := jobschedule.ParseJobScheduleID(pointer.From(item.Id))
 			if err != nil {
-				return fmt.Errorf("parsing job schedule Id listed by Automation Account %q Job Schedule List: %v", id.AutomationAccountName, err)
+				return err
 			}
 			jsResult, err := jsClient.Get(ctx, *jobscheduleID)
 			if err != nil {
@@ -101,7 +101,7 @@ func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta any) error {
 		}
 	}
 
-	if err := d.Set("job_schedule", helper.FlattenAutomationJobSchedule(jsMap)); err != nil {
+	if err := d.Set("job_schedule", helpers.FlattenAutomationJobSchedule(jsMap)); err != nil {
 		return fmt.Errorf("setting `job_schedule`: %+v", err)
 	}
 
@@ -125,7 +125,7 @@ func updatedLinkedJobSchedules(ctx context.Context, subscriptionID string, clien
 
 	for _, item := range pointer.From(jsIterator.Model) {
 		prop := item.Properties
-		jobDigest := helper.ResourceAutomationJobScheduleDigest(prop)
+		jobDigest := helpers.ResourceAutomationJobScheduleDigest(prop)
 
 		if _, ok := jsMap[jobDigest]; ok {
 			delete(jsMap, jobDigest)

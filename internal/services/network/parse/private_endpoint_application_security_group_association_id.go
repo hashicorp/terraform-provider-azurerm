@@ -4,6 +4,7 @@
 package parse
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -25,10 +26,10 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationId) ID() string {
 
 func (p PrivateEndpointApplicationSecurityGroupAssociationId) String() string {
 	components := []string{
-		fmt.Sprintf("PrivateEndpointId %s", p.PrivateEndpointId.ID()),
-		fmt.Sprintf("ApplicationSecurityGroupId %s", p.ApplicationSecurityGroupId.ID()),
+		"PrivateEndpointId " + p.PrivateEndpointId.ID(),
+		"ApplicationSecurityGroupId " + p.ApplicationSecurityGroupId.ID(),
 	}
-	return fmt.Sprintf("Private Endpoint Application Security Group Association: %s", strings.Join(components, " / "))
+	return "Private Endpoint Application Security Group Association: " + strings.Join(components, " / ")
 }
 
 func NewPrivateEndpointApplicationSecurityGroupAssociationId(endpointId privateendpoints.PrivateEndpointId, securityGroupId applicationsecuritygroups.ApplicationSecurityGroupId) PrivateEndpointApplicationSecurityGroupAssociationId {
@@ -55,7 +56,7 @@ func PrivateEndpointApplicationSecurityGroupAssociationID(input string) (Private
 	}
 
 	if endpointId == nil || securityGroupId == nil {
-		return PrivateEndpointApplicationSecurityGroupAssociationId{}, fmt.Errorf("parse error, both PrivateEndpointId and ApplicationSecurityGroupId should not be nil")
+		return PrivateEndpointApplicationSecurityGroupAssociationId{}, errors.New("parse error, both PrivateEndpointId and ApplicationSecurityGroupId should not be nil")
 	}
 
 	return PrivateEndpointApplicationSecurityGroupAssociationId{

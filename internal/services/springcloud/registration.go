@@ -7,6 +7,35 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/resources/spring_cloud_accelerator"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/resources/spring_cloud_active_deployment"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/resources/spring_cloud_api_portal"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/resources/spring_cloud_api_portal_custom_domain"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/resources/spring_cloud_app"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/resources/spring_cloud_app_cosmosdb_association"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/resources/spring_cloud_app_dynamics_application_performance_monitoring"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/resources/spring_cloud_app_mysql_association"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/resources/spring_cloud_app_redis_association"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/resources/spring_cloud_application_insights_application_performance_monitoring"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/resources/spring_cloud_application_live_view"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/resources/spring_cloud_build_deployment"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/resources/spring_cloud_build_pack_binding"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/resources/spring_cloud_builder"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/resources/spring_cloud_certificate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/resources/spring_cloud_configuration_service"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/resources/spring_cloud_container_deployment"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/resources/spring_cloud_custom_domain"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/resources/spring_cloud_customized_accelerator"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/resources/spring_cloud_dev_tool_portal"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/resources/spring_cloud_dynatrace_application_performance_monitoring"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/resources/spring_cloud_elastic_application_performance_monitoring"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/resources/spring_cloud_gateway"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/resources/spring_cloud_gateway_custom_domain"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/resources/spring_cloud_gateway_route_config"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/resources/spring_cloud_java_deployment"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/resources/spring_cloud_new_relic_application_performance_monitoring"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/resources/spring_cloud_service"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/resources/spring_cloud_storage"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -37,31 +66,31 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_spring_cloud_app":     dataSourceSpringCloudApp(),
-		"azurerm_spring_cloud_service": dataSourceSpringCloudService(),
+		"azurerm_spring_cloud_app":     spring_cloud_app.RegisterDataSource(),
+		"azurerm_spring_cloud_service": spring_cloud_service.RegisterDataSource(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_spring_cloud_active_deployment":        resourceSpringCloudActiveDeployment(),
-		"azurerm_spring_cloud_api_portal_custom_domain": resourceSpringCloudAPIPortalCustomDomain(),
-		"azurerm_spring_cloud_app":                      resourceSpringCloudApp(),
-		"azurerm_spring_cloud_app_cosmosdb_association": resourceSpringCloudAppCosmosDBAssociation(),
-		"azurerm_spring_cloud_app_mysql_association":    resourceSpringCloudAppMysqlAssociation(),
-		"azurerm_spring_cloud_app_redis_association":    resourceSpringCloudAppRedisAssociation(),
-		"azurerm_spring_cloud_build_deployment":         resourceSpringCloudBuildDeployment(),
-		"azurerm_spring_cloud_build_pack_binding":       resourceSpringCloudBuildPackBinding(),
-		"azurerm_spring_cloud_builder":                  resourceSpringCloudBuildServiceBuilder(),
-		"azurerm_spring_cloud_certificate":              resourceSpringCloudCertificate(),
-		"azurerm_spring_cloud_container_deployment":     resourceSpringCloudContainerDeployment(),
-		"azurerm_spring_cloud_custom_domain":            resourceSpringCloudCustomDomain(),
-		"azurerm_spring_cloud_gateway_custom_domain":    resourceSpringCloudGatewayCustomDomain(),
-		"azurerm_spring_cloud_gateway_route_config":     resourceSpringCloudGatewayRouteConfig(),
-		"azurerm_spring_cloud_java_deployment":          resourceSpringCloudJavaDeployment(),
-		"azurerm_spring_cloud_service":                  resourceSpringCloudService(),
-		"azurerm_spring_cloud_storage":                  resourceSpringCloudStorage(),
+		"azurerm_spring_cloud_active_deployment":        spring_cloud_active_deployment.RegisterResource(),
+		"azurerm_spring_cloud_api_portal_custom_domain": spring_cloud_api_portal_custom_domain.RegisterResource(),
+		"azurerm_spring_cloud_app":                      spring_cloud_app.RegisterResource(),
+		"azurerm_spring_cloud_app_cosmosdb_association": spring_cloud_app_cosmosdb_association.RegisterResource(),
+		"azurerm_spring_cloud_app_mysql_association":    spring_cloud_app_mysql_association.RegisterResource(),
+		"azurerm_spring_cloud_app_redis_association":    spring_cloud_app_redis_association.RegisterResource(),
+		"azurerm_spring_cloud_build_deployment":         spring_cloud_build_deployment.RegisterResource(),
+		"azurerm_spring_cloud_build_pack_binding":       spring_cloud_build_pack_binding.RegisterResource(),
+		"azurerm_spring_cloud_builder":                  spring_cloud_builder.RegisterResource(),
+		"azurerm_spring_cloud_certificate":              spring_cloud_certificate.RegisterResource(),
+		"azurerm_spring_cloud_container_deployment":     spring_cloud_container_deployment.RegisterResource(),
+		"azurerm_spring_cloud_custom_domain":            spring_cloud_custom_domain.RegisterResource(),
+		"azurerm_spring_cloud_gateway_custom_domain":    spring_cloud_gateway_custom_domain.RegisterResource(),
+		"azurerm_spring_cloud_gateway_route_config":     spring_cloud_gateway_route_config.RegisterResource(),
+		"azurerm_spring_cloud_java_deployment":          spring_cloud_java_deployment.RegisterResource(),
+		"azurerm_spring_cloud_service":                  spring_cloud_service.RegisterResource(),
+		"azurerm_spring_cloud_storage":                  spring_cloud_storage.RegisterResource(),
 	}
 }
 
@@ -71,18 +100,18 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		SpringCloudAcceleratorResource{},
-		SpringCloudAPIPortalResource{},
-		SpringCloudAppDynamicsApplicationPerformanceMonitoringResource{},
-		SpringCloudApplicationInsightsApplicationPerformanceMonitoringResource{},
-		SpringCloudApplicationLiveViewResource{},
-		SpringCloudConfigurationServiceResource{},
-		SpringCloudCustomizedAcceleratorResource{},
-		SpringCloudDevToolPortalResource{},
-		SpringCloudDynatraceApplicationPerformanceMonitoringResource{},
-		SpringCloudElasticApplicationPerformanceMonitoringResource{},
-		SpringCloudGatewayResource{},
-		SpringCloudNewRelicApplicationPerformanceMonitoringResource{},
+		spring_cloud_accelerator.Resource{},
+		spring_cloud_api_portal.Resource{},
+		spring_cloud_app_dynamics_application_performance_monitoring.Resource{},
+		spring_cloud_application_insights_application_performance_monitoring.Resource{},
+		spring_cloud_application_live_view.Resource{},
+		spring_cloud_configuration_service.Resource{},
+		spring_cloud_customized_accelerator.Resource{},
+		spring_cloud_dev_tool_portal.Resource{},
+		spring_cloud_dynatrace_application_performance_monitoring.Resource{},
+		spring_cloud_elastic_application_performance_monitoring.Resource{},
+		spring_cloud_gateway.Resource{},
+		spring_cloud_new_relic_application_performance_monitoring.Resource{},
 	}
 }
 

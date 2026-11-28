@@ -20,6 +20,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_application_insights_workbook_template"
 }
 
+func (r Resource) Description() string {
+	return "Manages an Application Insights Workbook Template."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return workbooktemplatesapis.ValidateWorkbookTemplateID
 }

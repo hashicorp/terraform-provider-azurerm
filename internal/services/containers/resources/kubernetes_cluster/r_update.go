@@ -4,6 +4,7 @@
 package kubernetes_cluster
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -419,7 +420,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta any) error 
 	if d.HasChange(nodeOsUpgradeChannel) {
 		updateCluster = true
 		if d.Get(autoUpgradeChannel).(string) == string(managedclusters.UpgradeChannelNodeNegativeimage) && d.Get(nodeOsUpgradeChannel).(string) != string(managedclusters.NodeOSUpgradeChannelNodeImage) {
-			return fmt.Errorf("`node_os_upgrade_channel` must be set to `NodeImage` if `automatic_upgrade_channel` is set to `node-image`")
+			return errors.New("`node_os_upgrade_channel` must be set to `NodeImage` if `automatic_upgrade_channel` is set to `node-image`")
 		}
 		if existing.Model.Properties.AutoUpgradeProfile == nil {
 			existing.Model.Properties.AutoUpgradeProfile = &managedclusters.ManagedClusterAutoUpgradeProfile{}
@@ -540,7 +541,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta any) error 
 		upgradeOverrideSettingRaw := d.Get("upgrade_override").([]any)
 
 		if len(upgradeOverrideSettingRaw) == 0 {
-			return fmt.Errorf("`upgrade_override` cannot be unset")
+			return errors.New("`upgrade_override` cannot be unset")
 		}
 
 		updateCluster = true
@@ -612,15 +613,47 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta any) error 
 		agentProfile := helpers.ConvertDefaultNodePoolToAgentPool(agentProfiles)
 		defaultNodePoolId := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, *agentProfile.Name)
 
+		if d.HasChange("default_node_pool.0.security") {
+			// there is one specific case where default_node_pool.0.name can be updated so we need to grab the old name from state before calling GetNodePool
+			currentNodePoolId := defaultNodePoolId
+			if d.HasChange("default_node_pool.0.name") {
+				oldName, _ := d.GetChange("default_node_pool.0.name")
+				currentNodePoolId = agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, oldName.(string))
+			}
+
+			if agentProfile.Properties.SecurityProfile == nil {
+				agentProfile.Properties.SecurityProfile = &agentpools.AgentPoolSecurityProfile{
+					EnableSecureBoot: pointer.To(false),
+					EnableVTPM:       pointer.To(false),
+				}
+			}
+
+			existingNodePool, err := nodePoolsClient.Get(ctx, currentNodePoolId)
+			if err != nil && !response.WasNotFound(existingNodePool.HttpResponse) {
+				return fmt.Errorf("retrieving Default Node Pool %s: %+v", currentNodePoolId, err)
+			}
+
+			// Because SSHAccess is related to security, ensure the value set outside of Terraform is preserved until it is exposed in the provider.
+			if existingNodePool.Model != nil && existingNodePool.Model.Properties != nil && existingNodePool.Model.Properties.SecurityProfile != nil {
+				agentProfile.Properties.SecurityProfile.SshAccess = existingNodePool.Model.Properties.SecurityProfile.SshAccess
+			}
+		}
+
 		// if a users specified a version - confirm that version is supported on the cluster
 		if nodePoolVersion := agentProfile.Properties.CurrentOrchestratorVersion; nodePoolVersion != nil {
-			existingNodePool, err := nodePoolsClient.Get(ctx, defaultNodePoolId)
+			// there is one specific case where default_node_pool.0.name can be updated so we need to grab the old name from state before calling GetNodePool
+			currentNodePoolId := defaultNodePoolId
+			if d.HasChange("default_node_pool.0.name") {
+				oldName, _ := d.GetChange("default_node_pool.0.name")
+				currentNodePoolId = agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, oldName.(string))
+			}
+			existingNodePool, err := nodePoolsClient.Get(ctx, currentNodePoolId)
 			if err != nil {
-				return fmt.Errorf("retrieving Default Node Pool %s: %+v", defaultNodePoolId, err)
+				return fmt.Errorf("retrieving Default Node Pool %s: %+v", currentNodePoolId, err)
 			}
 			currentNodePoolVersion := pointer.From(existingNodePool.Model.Properties.OrchestratorVersion)
 
-			if err := helpers.ValidateNodePoolSupportsVersion(ctx, containersClient, currentNodePoolVersion, defaultNodePoolId, *nodePoolVersion); err != nil {
+			if err := helpers.ValidateNodePoolSupportsVersion(ctx, containersClient, currentNodePoolVersion, currentNodePoolId, *nodePoolVersion); err != nil {
 				return err
 			}
 		}

@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type DevCenterDevBoxDefinitionTestResource struct{}
+type DevCenterDevBoxDefinitionResource struct{}
 
 func TestAccDevCenterDevBoxDefinition_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_dev_box_definition", "test")
-	r := DevCenterDevBoxDefinitionTestResource{}
+	r := DevCenterDevBoxDefinitionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccDevCenterDevBoxDefinition_basic(t *testing.T) {
 
 func TestAccDevCenterDevBoxDefinition_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_dev_box_definition", "test")
-	r := DevCenterDevBoxDefinitionTestResource{}
+	r := DevCenterDevBoxDefinitionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccDevCenterDevBoxDefinition_requiresImport(t *testing.T) {
 
 func TestAccDevCenterDevBoxDefinition_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_dev_box_definition", "test")
-	r := DevCenterDevBoxDefinitionTestResource{}
+	r := DevCenterDevBoxDefinitionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -65,7 +65,7 @@ func TestAccDevCenterDevBoxDefinition_complete(t *testing.T) {
 
 func TestAccDevCenterDevBoxDefinition_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_dev_box_definition", "test")
-	r := DevCenterDevBoxDefinitionTestResource{}
+	r := DevCenterDevBoxDefinitionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -85,7 +85,7 @@ func TestAccDevCenterDevBoxDefinition_update(t *testing.T) {
 	})
 }
 
-func (r DevCenterDevBoxDefinitionTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r DevCenterDevBoxDefinitionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := devboxdefinitions.ParseDevCenterDevBoxDefinitionID(state.ID)
 	if err != nil {
 		return nil, err
@@ -99,7 +99,7 @@ func (r DevCenterDevBoxDefinitionTestResource) Exists(ctx context.Context, clien
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r DevCenterDevBoxDefinitionTestResource) basic(data acceptance.TestData) string {
+func (r DevCenterDevBoxDefinitionResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -117,7 +117,7 @@ resource "azurerm_dev_center_dev_box_definition" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r DevCenterDevBoxDefinitionTestResource) requiresImport(data acceptance.TestData) string {
+func (r DevCenterDevBoxDefinitionResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -131,7 +131,7 @@ resource "azurerm_dev_center_dev_box_definition" "import" {
 `, r.basic(data))
 }
 
-func (r DevCenterDevBoxDefinitionTestResource) complete(data acceptance.TestData) string {
+func (r DevCenterDevBoxDefinitionResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -154,7 +154,7 @@ resource "azurerm_dev_center_dev_box_definition" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r DevCenterDevBoxDefinitionTestResource) update(data acceptance.TestData) string {
+func (r DevCenterDevBoxDefinitionResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -177,7 +177,7 @@ resource "azurerm_dev_center_dev_box_definition" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r DevCenterDevBoxDefinitionTestResource) template(data acceptance.TestData) string {
+func (r DevCenterDevBoxDefinitionResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-dcet-%d"

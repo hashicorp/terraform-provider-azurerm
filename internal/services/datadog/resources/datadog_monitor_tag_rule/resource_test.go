@@ -17,12 +17,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type TagRulesDatadogMonitorResource struct {
+type DatadogMonitorTagRuleResource struct {
 	datadogApiKey         string
 	datadogApplicationKey string
 }
 
-func (r *TagRulesDatadogMonitorResource) populateFromEnvironment(t *testing.T) {
+func (r *DatadogMonitorTagRuleResource) populateFromEnvironment(t *testing.T) {
 	if os.Getenv("ARM_TEST_DATADOG_API_KEY") == "" {
 		t.Skip("Skipping as ARM_TEST_DATADOG_API_KEY is not specified")
 	}
@@ -35,7 +35,7 @@ func (r *TagRulesDatadogMonitorResource) populateFromEnvironment(t *testing.T) {
 
 func TestAccDatadogMonitorTagRules_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_tag_rule", "test")
-	r := TagRulesDatadogMonitorResource{}
+	r := DatadogMonitorTagRuleResource{}
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -45,7 +45,7 @@ func TestAccDatadogMonitorTagRules_regressionTest(t *testing.T) {
 
 func TestAccDatadogMonitorTagRules_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_tag_rule", "test")
-	r := TagRulesDatadogMonitorResource{}
+	r := DatadogMonitorTagRuleResource{}
 	r.populateFromEnvironment(t)
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -60,7 +60,7 @@ func TestAccDatadogMonitorTagRules_basic(t *testing.T) {
 
 func TestAccDatadogMonitorTagRules_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_tag_rule", "test")
-	r := TagRulesDatadogMonitorResource{}
+	r := DatadogMonitorTagRuleResource{}
 	r.populateFromEnvironment(t)
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -75,7 +75,7 @@ func TestAccDatadogMonitorTagRules_requiresImport(t *testing.T) {
 
 func TestAccDatadogMonitorTagRules_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_tag_rule", "test")
-	r := TagRulesDatadogMonitorResource{}
+	r := DatadogMonitorTagRuleResource{}
 	r.populateFromEnvironment(t)
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -104,7 +104,7 @@ func TestAccDatadogMonitorTagRules_update(t *testing.T) {
 
 func TestAccDatadogMonitorTagRules_emptyBlocks(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_tag_rule", "test")
-	r := TagRulesDatadogMonitorResource{}
+	r := DatadogMonitorTagRuleResource{}
 	r.populateFromEnvironment(t)
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -117,7 +117,7 @@ func TestAccDatadogMonitorTagRules_emptyBlocks(t *testing.T) {
 	})
 }
 
-func (r TagRulesDatadogMonitorResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r DatadogMonitorTagRuleResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := tagrules.ParseTagRuleID(state.ID)
 	if err != nil {
 		return nil, err
@@ -131,7 +131,7 @@ func (r TagRulesDatadogMonitorResource) Exists(ctx context.Context, client *clie
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r TagRulesDatadogMonitorResource) template(data acceptance.TestData) string {
+func (r DatadogMonitorTagRuleResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctest-datadogrg-%[1]d"
@@ -158,7 +158,7 @@ resource "azurerm_datadog_monitor" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, r.datadogApiKey, r.datadogApplicationKey)
 }
 
-func (r TagRulesDatadogMonitorResource) basic(data acceptance.TestData) string {
+func (r DatadogMonitorTagRuleResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -182,7 +182,7 @@ resource "azurerm_datadog_monitor_tag_rule" "test" {
 `, r.template(data))
 }
 
-func (r TagRulesDatadogMonitorResource) requiresImport(data acceptance.TestData) string {
+func (r DatadogMonitorTagRuleResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -203,7 +203,7 @@ resource "azurerm_datadog_monitor_tag_rule" "import" {
 `, r.basic(data))
 }
 
-func (r TagRulesDatadogMonitorResource) update(data acceptance.TestData) string {
+func (r DatadogMonitorTagRuleResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -233,7 +233,7 @@ resource "azurerm_datadog_monitor_tag_rule" "test" {
 `, r.template(data))
 }
 
-func (r TagRulesDatadogMonitorResource) emptyBlocks(data acceptance.TestData) string {
+func (r DatadogMonitorTagRuleResource) emptyBlocks(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

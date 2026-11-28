@@ -44,9 +44,9 @@ func (r KeyVaultManagedHSMRoleAssignmentResource) Arguments() map[string]*plugin
 	return map[string]*pluginsdk.Schema{
 		"managed_hsm_id": {
 			Type:         pluginsdk.TypeString,
+			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: managedhsms.ValidateManagedHSMID,
-			Required:     true,
 		},
 
 		"name": {
@@ -222,7 +222,7 @@ func (r KeyVaultManagedHSMRoleAssignmentResource) Read() sdk.ResourceFunc {
 				if roleDefinitionId := pointer.From(props.RoleDefinitionID); roleDefinitionId != "" {
 					parsed, err := roledefinitions.ParseScopedRoleDefinitionIDInsensitively(roleDefinitionId)
 					if err != nil {
-						return fmt.Errorf("parsing role definition id %q: %v", roleDefinitionId, err)
+						return err
 					}
 
 					model.RoleDefinitionId = parsed.ID()

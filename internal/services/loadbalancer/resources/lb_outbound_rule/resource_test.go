@@ -5,6 +5,7 @@ package lb_outbound_rule_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -17,11 +18,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type LoadBalancerOutboundRule struct{}
+type LbOutboundRuleResource struct{}
 
 func TestAccAzureRMLoadBalancerOutboundRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_outbound_rule", "test")
-	r := LoadBalancerOutboundRule{}
+	r := LbOutboundRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,7 +37,7 @@ func TestAccAzureRMLoadBalancerOutboundRule_basic(t *testing.T) {
 
 func TestAccAzureRMLoadBalancerOutboundRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_outbound_rule", "test")
-	r := LoadBalancerOutboundRule{}
+	r := LbOutboundRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -51,7 +52,7 @@ func TestAccAzureRMLoadBalancerOutboundRule_requiresImport(t *testing.T) {
 
 func TestAccAzureRMLoadBalancerOutboundRule_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_outbound_rule", "test")
-	r := LoadBalancerOutboundRule{}
+	r := LbOutboundRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -87,7 +88,7 @@ func TestAccAzureRMLoadBalancerOutboundRule_complete(t *testing.T) {
 
 func TestAccAzureRMLoadBalancerOutboundRule_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_outbound_rule", "test")
-	r := LoadBalancerOutboundRule{}
+	r := LbOutboundRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
@@ -100,7 +101,7 @@ func TestAccAzureRMLoadBalancerOutboundRule_disappears(t *testing.T) {
 func TestAccAzureRMLoadBalancerOutboundRule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_outbound_rule", "test")
 	data2 := acceptance.BuildTestData(t, "azurerm_lb_outbound_rule", "test2")
-	r := LoadBalancerOutboundRule{}
+	r := LbOutboundRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -126,7 +127,7 @@ func TestAccAzureRMLoadBalancerOutboundRule_update(t *testing.T) {
 
 func TestAccAzureRMLoadBalancerOutboundRule_withPublicIPPrefix(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_outbound_rule", "test")
-	r := LoadBalancerOutboundRule{}
+	r := LbOutboundRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -141,7 +142,7 @@ func TestAccAzureRMLoadBalancerOutboundRule_withPublicIPPrefix(t *testing.T) {
 
 func TestAccAzureRMLoadBalancerOutboundRule_allocatedOutboundPorts(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_outbound_rule", "test")
-	r := LoadBalancerOutboundRule{}
+	r := LbOutboundRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -161,7 +162,7 @@ func TestAccAzureRMLoadBalancerOutboundRule_allocatedOutboundPorts(t *testing.T)
 	})
 }
 
-func (r LoadBalancerOutboundRule) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r LbOutboundRuleResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := loadbalancers.ParseOutboundRuleID(state.ID)
 	if err != nil {
 		return nil, err
@@ -192,7 +193,7 @@ func (r LoadBalancerOutboundRule) Exists(ctx context.Context, client *clients.Cl
 	return pointer.To(found), nil
 }
 
-func (r LoadBalancerOutboundRule) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r LbOutboundRuleResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := loadbalancers.ParseOutboundRuleID(state.ID)
 	if err != nil {
 		return nil, err
@@ -203,13 +204,13 @@ func (r LoadBalancerOutboundRule) Destroy(ctx context.Context, client *clients.C
 		return nil, fmt.Errorf("retrieving %s: %+v", plbId, err)
 	}
 	if lb.Model == nil {
-		return nil, fmt.Errorf("`model` was nil")
+		return nil, errors.New("`model` was nil")
 	}
 	if lb.Model.Properties == nil {
-		return nil, fmt.Errorf("`properties` was nil")
+		return nil, errors.New("`properties` was nil")
 	}
 	if lb.Model.Properties.OutboundRules == nil {
-		return nil, fmt.Errorf("`properties.OutboundRules` was nil")
+		return nil, errors.New("`properties.OutboundRules` was nil")
 	}
 
 	outboundRules := make([]loadbalancers.OutboundRule, 0)
@@ -229,7 +230,7 @@ func (r LoadBalancerOutboundRule) Destroy(ctx context.Context, client *clients.C
 	return pointer.To(true), nil
 }
 
-func (r LoadBalancerOutboundRule) basic(data acceptance.TestData) string {
+func (r LbOutboundRuleResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -278,7 +279,7 @@ resource "azurerm_lb_outbound_rule" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (r LoadBalancerOutboundRule) complete(data acceptance.TestData) string {
+func (r LbOutboundRuleResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -331,7 +332,7 @@ resource "azurerm_lb_outbound_rule" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r LoadBalancerOutboundRule) completeUpdate(data acceptance.TestData) string {
+func (r LbOutboundRuleResource) completeUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -384,7 +385,7 @@ resource "azurerm_lb_outbound_rule" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r LoadBalancerOutboundRule) requiresImport(data acceptance.TestData) string {
+func (r LbOutboundRuleResource) requiresImport(data acceptance.TestData) string {
 	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -402,7 +403,7 @@ resource "azurerm_lb_outbound_rule" "import" {
 `, template)
 }
 
-func (r LoadBalancerOutboundRule) multipleRules(data, data2 acceptance.TestData) string {
+func (r LbOutboundRuleResource) multipleRules(data, data2 acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -475,7 +476,7 @@ resource "azurerm_lb_outbound_rule" "test2" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data2.RandomInteger, data.RandomInteger)
 }
 
-func (r LoadBalancerOutboundRule) multipleRulesUpdate(data, data2 acceptance.TestData) string {
+func (r LbOutboundRuleResource) multipleRulesUpdate(data, data2 acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -548,7 +549,7 @@ resource "azurerm_lb_outbound_rule" "test2" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data2.RandomInteger, data.RandomInteger)
 }
 
-func (r LoadBalancerOutboundRule) withPublicIPPrefix(data acceptance.TestData) string {
+func (r LbOutboundRuleResource) withPublicIPPrefix(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -596,7 +597,7 @@ resource "azurerm_lb_outbound_rule" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (r LoadBalancerOutboundRule) allocatedOutboundPortsDefault(data acceptance.TestData) string {
+func (r LbOutboundRuleResource) allocatedOutboundPortsDefault(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -645,7 +646,7 @@ resource "azurerm_lb_outbound_rule" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (r LoadBalancerOutboundRule) allocatedOutboundPortsUpdated(data acceptance.TestData) string {
+func (r LbOutboundRuleResource) allocatedOutboundPortsUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -4,6 +4,7 @@
 package managed_disk
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -70,7 +71,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta any) error {
 
 	if d.HasChange("tier") {
 		if storageAccountType != string(disks.DiskStorageAccountTypesPremiumZRS) && storageAccountType != string(disks.DiskStorageAccountTypesPremiumLRS) {
-			return fmt.Errorf("`tier` can only be specified when `storage_account_type` is set to `Premium_LRS` or `Premium_ZRS`")
+			return errors.New("`tier` can only be specified when `storage_account_type` is set to `Premium_LRS` or `Premium_ZRS`")
 		}
 		shouldShutDown = true
 		tier := d.Get("tier").(string)
@@ -108,7 +109,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta any) error {
 
 		if d.HasChange("disk_iops_read_only") {
 			if maxShares == 0 {
-				return fmt.Errorf("[ERROR] disk_iops_read_only is only available for UltraSSD disks with shared disk enabled")
+				return errors.New("[ERROR] disk_iops_read_only is only available for UltraSSD disks with shared disk enabled")
 			}
 
 			v := d.Get("disk_iops_read_only")
@@ -117,14 +118,14 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta any) error {
 
 		if d.HasChange("disk_mbps_read_only") {
 			if maxShares == 0 {
-				return fmt.Errorf("[ERROR] disk_mbps_read_only is only available for UltraSSD disks with shared disk enabled")
+				return errors.New("[ERROR] disk_mbps_read_only is only available for UltraSSD disks with shared disk enabled")
 			}
 
 			v := d.Get("disk_mbps_read_only")
 			diskUpdate.Properties.DiskMBpsReadOnly = pointer.To(int64(v.(int)))
 		}
 	} else if d.HasChanges("disk_iops_read_write", "disk_mbps_read_write", "disk_iops_read_only", "disk_mbps_read_only") {
-		return fmt.Errorf("[ERROR] disk_iops_read_write, disk_mbps_read_write, disk_iops_read_only and disk_mbps_read_only are only available for UltraSSD disks and PremiumV2 disks")
+		return errors.New("[ERROR] disk_iops_read_write, disk_mbps_read_write, disk_iops_read_only and disk_mbps_read_only are only available for UltraSSD disks and PremiumV2 disks")
 	}
 
 	if d.HasChange("optimized_frequent_attach_enabled") {
@@ -156,7 +157,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta any) error {
 			}
 			diskUpdate.Properties.DiskSizeGB = pointer.To(int64(newSize.(int)))
 		} else {
-			return fmt.Errorf("- New size must be greater than original size. Shrinking disks is not supported on Azure")
+			return errors.New("- New size must be greater than original size. Shrinking disks is not supported on Azure")
 		}
 	}
 
@@ -177,7 +178,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta any) error {
 				DiskEncryptionSetId: pointer.To(diskEncryptionSetId),
 			}
 		} else {
-			return fmt.Errorf("once a customer-managed key is used, you can’t change the selection back to a platform-managed key")
+			return errors.New("once a customer-managed key is used, you can’t change the selection back to a platform-managed key")
 		}
 	}
 
@@ -191,7 +192,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta any) error {
 		case networkAccessPolicy == disks.NetworkAccessPolicyAllowPrivate:
 			diskUpdate.Properties.DiskAccessId = pointer.To(diskAccessID)
 		case diskAccessID != "" && networkAccessPolicy != disks.NetworkAccessPolicyAllowPrivate:
-			return fmt.Errorf("[ERROR] disk_access_id is only available when network_access_policy is set to AllowPrivate")
+			return errors.New("[ERROR] disk_access_id is only available when network_access_policy is set to AllowPrivate")
 		default:
 			diskUpdate.Properties.DiskAccessId = nil
 		}
@@ -210,11 +211,11 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta any) error {
 		case string(disks.DiskStorageAccountTypesPremiumLRS):
 		case string(disks.DiskStorageAccountTypesPremiumZRS):
 		default:
-			return fmt.Errorf("`on_demand_bursting_enabled` can only be set to true when `storage_account_type` is set to `Premium_LRS` or `Premium_ZRS`")
+			return errors.New("`on_demand_bursting_enabled` can only be set to true when `storage_account_type` is set to `Premium_LRS` or `Premium_ZRS`")
 		}
 
 		if diskSizeGB != 0 && diskSizeGB <= 512 {
-			return fmt.Errorf("`on_demand_bursting_enabled` can only be set to true when `disk_size_gb` is larger than 512GB")
+			return errors.New("`on_demand_bursting_enabled` can only be set to true when `disk_size_gb` is larger than 512GB")
 		}
 	}
 
@@ -232,7 +233,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta any) error {
 	if shouldShutDown {
 		virtualMachineId, err := virtualmachines.ParseVirtualMachineID(*disk.Model.ManagedBy)
 		if err != nil {
-			return fmt.Errorf("parsing VMID %q for disk attachment: %+v", *disk.Model.ManagedBy, err)
+			return err
 		}
 		// check instanceView State
 

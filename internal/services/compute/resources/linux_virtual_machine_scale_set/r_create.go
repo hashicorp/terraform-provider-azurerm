@@ -4,6 +4,7 @@
 package linux_virtual_machine_scale_set
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -103,7 +104,7 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta a
 
 	canHaveAutomaticOsUpgradePolicy := upgradeMode == virtualmachinescalesets.UpgradeModeAutomatic || upgradeMode == virtualmachinescalesets.UpgradeModeRolling
 	if !canHaveAutomaticOsUpgradePolicy && len(automaticOSUpgradePolicyRaw) > 0 {
-		return fmt.Errorf("an `automatic_os_upgrade_policy` block cannot be specified when `upgrade_mode` is not set to `Automatic` or `Rolling`")
+		return errors.New("an `automatic_os_upgrade_policy` block cannot be specified when `upgrade_mode` is not set to `Automatic` or `Rolling`")
 	}
 
 	shouldHaveRollingUpgradePolicy := upgradeMode == virtualmachinescalesets.UpgradeModeAutomatic || upgradeMode == virtualmachinescalesets.UpgradeModeRolling
@@ -176,9 +177,6 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta a
 	}
 
 	if v, ok := d.GetOk("capacity_reservation_group_id"); ok {
-		if d.Get("single_placement_group").(bool) {
-			return fmt.Errorf("`single_placement_group` must be set to `false` when `capacity_reservation_group_id` is specified")
-		}
 		virtualMachineProfile.CapacityReservation = &virtualmachinescalesets.CapacityReservationProfile{
 			CapacityReservationGroup: &virtualmachinescalesets.SubResource{
 				Id: pointer.To(v.(string)),
@@ -196,7 +194,7 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta a
 
 	if v, ok := d.Get("extension_operations_enabled").(bool); ok {
 		if v && !provisionVMAgent {
-			return fmt.Errorf("`extension_operations_enabled` cannot be set to `true` when `provision_vm_agent` is set to `false`")
+			return errors.New("`extension_operations_enabled` cannot be set to `true` when `provision_vm_agent` is set to `false`")
 		}
 
 		virtualMachineProfile.OsProfile.AllowExtensionOperations = pointer.To(v)
@@ -221,7 +219,7 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta a
 
 	if v, ok := d.Get("max_bid_price").(float64); ok && v > 0 {
 		if priority != virtualmachinescalesets.VirtualMachinePriorityTypesSpot {
-			return fmt.Errorf("`max_bid_price` can only be configured when `priority` is set to `Spot`")
+			return errors.New("`max_bid_price` can only be configured when `priority` is set to `Spot`")
 		}
 
 		virtualMachineProfile.BillingProfile = &virtualmachinescalesets.BillingProfile{
@@ -243,10 +241,10 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta a
 	vtpmEnabled := d.Get("vtpm_enabled").(bool)
 	if securityEncryptionType != "" {
 		if virtualmachinescalesets.SecurityEncryptionTypesDiskWithVMGuestState == virtualmachinescalesets.SecurityEncryptionTypes(securityEncryptionType) && !secureBootEnabled {
-			return fmt.Errorf("`secure_boot_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
+			return errors.New("`secure_boot_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
 		}
 		if !vtpmEnabled {
-			return fmt.Errorf("`vtpm_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is set")
+			return errors.New("`vtpm_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is set")
 		}
 
 		if virtualMachineProfile.SecurityProfile == nil {
@@ -289,16 +287,16 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta a
 
 	// Azure API: "Authentication using either SSH or by user name and password must be enabled in Linux profile."
 	if disablePasswordAuthentication && virtualMachineProfile.OsProfile.AdminPassword == nil && len(sshKeys) == 0 {
-		return fmt.Errorf("at least one SSH key must be specified if `disable_password_authentication` is enabled")
+		return errors.New("at least one SSH key must be specified if `disable_password_authentication` is enabled")
 	}
 
 	if evictionPolicyRaw, ok := d.GetOk("eviction_policy"); ok {
 		if *virtualMachineProfile.Priority != virtualmachinescalesets.VirtualMachinePriorityTypesSpot {
-			return fmt.Errorf("an `eviction_policy` can only be specified when `priority` is set to `Spot`")
+			return errors.New("an `eviction_policy` can only be specified when `priority` is set to `Spot`")
 		}
 		virtualMachineProfile.EvictionPolicy = pointer.ToEnum[virtualmachinescalesets.VirtualMachineEvictionPolicyTypes](evictionPolicyRaw.(string))
 	} else if priority == virtualmachinescalesets.VirtualMachinePriorityTypesSpot {
-		return fmt.Errorf("an `eviction_policy` must be specified when `priority` is set to `Spot`")
+		return errors.New("an `eviction_policy` must be specified when `priority` is set to `Spot`")
 	}
 
 	if v, ok := d.GetOk("termination_notification"); ok {
@@ -309,7 +307,7 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta a
 	automaticRepairsPolicy := helpers.ExpandVirtualMachineScaleSetAutomaticRepairsPolicy(automaticRepairsPolicyRaw)
 
 	if automaticRepairsPolicy != nil && healthProbeId == "" && !hasHealthExtension {
-		return fmt.Errorf("`automatic_instance_repair` can only be set if there is an application Health extension or a `health_probe_id` defined")
+		return errors.New("`automatic_instance_repair` can only be set if there is an application Health extension or a `health_probe_id` defined")
 	}
 
 	props := virtualmachinescalesets.VirtualMachineScaleSet{
@@ -374,7 +372,7 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta a
 
 	if v, ok := d.GetOk("zone_balance"); ok && v.(bool) {
 		if props.Zones == nil || len(*props.Zones) == 0 {
-			return fmt.Errorf("`zone_balance` can only be set to `true` when zones are specified")
+			return errors.New("`zone_balance` can only be set to `true` when zones are specified")
 		}
 
 		props.Properties.ZoneBalance = pointer.To(v.(bool))

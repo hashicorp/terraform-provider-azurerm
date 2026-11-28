@@ -12,6 +12,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Application Insights Workbook Template.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -23,6 +24,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"template_data": {
+			Description:      "Valid JSON object containing workbook template payload.",
 			Type:             pluginsdk.TypeString,
 			Required:         true,
 			ValidateFunc:     validation.StringIsJSON,
@@ -36,56 +38,64 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "Name of the workbook template in the gallery.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"category": {
+						Description:  "Category for the gallery.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"order": {
-						Type:     pluginsdk.TypeInt,
-						Optional: true,
-						Default:  0,
+						Description: "Order of the template within the gallery.",
+						Type:        pluginsdk.TypeInt,
+						Optional:    true,
+						Default:     0,
 					},
 
 					"resource_type": {
+						Description:  "Azure resource type supported by the gallery.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
 						Default:      "Azure Monitor",
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"type": {
+						Description:  "Type of workbook supported by the workbook template.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
 						Default:      "workbook",
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
 			},
 		},
 
 		"author": {
+			Description:  "Information about the author of the workbook template.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"localized": {
+			Description:  "Key value pairs of localized gallery. Each key is the locale code of languages supported by the Azure portal.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"priority": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
-			Default:  0,
+			Description: "Priority of the template. Determines which template to open when a workbook gallery is opened in viewer mode.",
+			Type:        pluginsdk.TypeInt,
+			Optional:    true,
+			Default:     0,
 		},
 
 		"tags": commonschema.Tags(),

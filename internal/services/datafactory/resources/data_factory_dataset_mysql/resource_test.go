@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type DatasetMySQLResource struct{}
+type DataFactoryDatasetMysqlResource struct{}
 
 func TestAccDataFactoryDatasetMySQL_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_mysql", "test")
-	r := DatasetMySQLResource{}
+	r := DataFactoryDatasetMysqlResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccDataFactoryDatasetMySQL_regressionTest(t *testing.T) {
 
 func TestAccDataFactoryDatasetMySQL_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_mysql", "test")
-	r := DatasetMySQLResource{}
+	r := DataFactoryDatasetMysqlResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,7 +46,7 @@ func TestAccDataFactoryDatasetMySQL_basic(t *testing.T) {
 
 func TestAccDataFactoryDatasetMySQL_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_mysql", "test")
-	r := DatasetMySQLResource{}
+	r := DataFactoryDatasetMysqlResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -75,7 +75,7 @@ func TestAccDataFactoryDatasetMySQL_update(t *testing.T) {
 	})
 }
 
-func (t DatasetMySQLResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t DataFactoryDatasetMysqlResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.DataSetID(state.ID)
 	if err != nil {
 		return nil, err
@@ -89,7 +89,7 @@ func (t DatasetMySQLResource) Exists(ctx context.Context, clients *clients.Clien
 	return pointer.To(resp.ID != nil), nil
 }
 
-func (DatasetMySQLResource) basic(data acceptance.TestData) string {
+func (DataFactoryDatasetMysqlResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -120,7 +120,7 @@ resource "azurerm_data_factory_dataset_mysql" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (DatasetMySQLResource) update1(data acceptance.TestData) string {
+func (DataFactoryDatasetMysqlResource) update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -172,7 +172,7 @@ resource "azurerm_data_factory_dataset_mysql" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (DatasetMySQLResource) update2(data acceptance.TestData) string {
+func (DataFactoryDatasetMysqlResource) update2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

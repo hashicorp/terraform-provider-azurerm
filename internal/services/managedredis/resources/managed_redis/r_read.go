@@ -78,7 +78,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					databaseId, err := redisenterprise.ParseDatabaseID(pointer.From(model.Id))
 					if err != nil {
-						return fmt.Errorf("parsing Managed Redis Database ID %q: %+v", pointer.From(model.Id), err)
+						return err
 					}
 
 					defaultDb := DefaultDatabaseModel{

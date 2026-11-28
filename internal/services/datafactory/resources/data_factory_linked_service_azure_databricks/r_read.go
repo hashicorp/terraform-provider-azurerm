@@ -168,7 +168,7 @@ func buildNumberOfWorkersProperties(minWorkersProperty any, maxWorkersProperty a
 
 	// Default settings
 	minWorkers := minWorkersProperty.(int)
-	workersConfig := fmt.Sprintf("%d", minWorkers)
+	workersConfig := strconv.Itoa(minWorkers)
 
 	// If max workers are set, we'll assume they want to setup autoscaling and throw an error if the configuration looks invalid
 	if maxWorkers := maxWorkersProperty.(int); maxWorkers > 0 {

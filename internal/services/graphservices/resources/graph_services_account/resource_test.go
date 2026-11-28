@@ -31,11 +31,11 @@ func TestAccGraphServicesAccount_sequential(t *testing.T) {
 	})
 }
 
-type AccountTestResource struct{}
+type GraphServicesAccountResource struct{}
 
 func testAccGraphServicesAccount_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_graph_services_account", "test")
-	r := AccountTestResource{}
+	r := GraphServicesAccountResource{}
 
 	data.ResourceSequentialRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -46,7 +46,7 @@ func testAccGraphServicesAccount_regressionTest(t *testing.T) {
 
 func testAccGraphServicesAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_graph_services_account", "test")
-	r := AccountTestResource{}
+	r := GraphServicesAccountResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -61,7 +61,7 @@ func testAccGraphServicesAccount_basic(t *testing.T) {
 
 func testAccGraphServicesAccount_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_graph_services_account", "test")
-	r := AccountTestResource{}
+	r := GraphServicesAccountResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -76,7 +76,7 @@ func testAccGraphServicesAccount_requiresImport(t *testing.T) {
 
 func testAccGraphServicesAccount_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_graph_services_account", "test")
-	r := AccountTestResource{}
+	r := GraphServicesAccountResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -91,7 +91,7 @@ func testAccGraphServicesAccount_complete(t *testing.T) {
 
 func testAccGraphServicesAccount_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_graph_services_account", "test")
-	r := AccountTestResource{}
+	r := GraphServicesAccountResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -118,7 +118,7 @@ func testAccGraphServicesAccount_update(t *testing.T) {
 	})
 }
 
-func (r AccountTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r GraphServicesAccountResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := graphservicesprods.ParseAccountID(state.ID)
 	if err != nil {
 		return nil, err
@@ -132,7 +132,7 @@ func (r AccountTestResource) Exists(ctx context.Context, clients *clients.Client
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r AccountTestResource) basic(data acceptance.TestData) string {
+func (r GraphServicesAccountResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -144,7 +144,7 @@ resource "azurerm_graph_services_account" "test" {
 `, r.template(data), data.RandomInteger, os.Getenv("ARM_CLIENT_ID"))
 }
 
-func (r AccountTestResource) requiresImport(data acceptance.TestData) string {
+func (r GraphServicesAccountResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -156,7 +156,7 @@ resource "azurerm_graph_services_account" "import" {
 `, r.basic(data))
 }
 
-func (r AccountTestResource) complete(data acceptance.TestData) string {
+func (r GraphServicesAccountResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -172,7 +172,7 @@ resource "azurerm_graph_services_account" "test" {
 `, r.template(data), data.RandomInteger, os.Getenv("ARM_CLIENT_ID"))
 }
 
-func (r AccountTestResource) template(data acceptance.TestData) string {
+func (r GraphServicesAccountResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azuread" {}
 

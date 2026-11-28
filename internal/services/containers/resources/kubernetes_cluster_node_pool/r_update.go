@@ -4,6 +4,7 @@
 package kubernetes_cluster_node_pool
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -78,7 +79,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta any
 	if d.HasChange("linux_os_config") {
 		linuxOSConfigRaw := d.Get("linux_os_config").([]any)
 		if d.Get("os_type").(string) != string(managedclusters.OSTypeLinux) {
-			return fmt.Errorf("`linux_os_config` can only be configured when `os_type` is set to `linux`")
+			return errors.New("`linux_os_config` can only be configured when `os_type` is set to `linux`")
 		}
 		linuxOSConfig, err := expandAgentPoolLinuxOSConfig(linuxOSConfigRaw)
 		if err != nil {
@@ -204,6 +205,20 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta any
 		props.NetworkProfile = expandAgentPoolNetworkProfile(d.Get("node_network_profile").([]any))
 	}
 
+	if d.HasChange("security") {
+		securityProfile := expandAgentPoolSecurityProfile(d.Get("security").([]any))
+		if securityProfile == nil {
+			securityProfile = &agentpools.AgentPoolSecurityProfile{
+				EnableSecureBoot: pointer.To(false),
+				EnableVTPM:       pointer.To(false),
+			}
+		}
+		if props.SecurityProfile != nil {
+			securityProfile.SshAccess = props.SecurityProfile.SshAccess
+		}
+		props.SecurityProfile = securityProfile
+	}
+
 	if d.HasChange("zones") {
 		zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
 		props.AvailabilityZones = &zones
@@ -220,15 +235,15 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta any
 	}
 	if enableAutoScaling {
 		if maxCount == 0 {
-			return fmt.Errorf("`max_count` must be configured when `auto_scaling_enabled` is set to `true`")
+			return errors.New("`max_count` must be configured when `auto_scaling_enabled` is set to `true`")
 		}
 
 		if minCount > maxCount {
-			return fmt.Errorf("`max_count` must be >= `min_count`")
+			return errors.New("`max_count` must be >= `min_count`")
 		}
 	} else {
 		if minCount > 0 || maxCount > 0 {
-			return fmt.Errorf("`max_count` and `min_count` must be set to `nil` when `auto_scaling_enabled` is set to `false`")
+			return errors.New("`max_count` and `min_count` must be set to `nil` when `auto_scaling_enabled` is set to `false`")
 		}
 
 		// @tombuildsstuff: as of API version 2019-11-01 we need to explicitly nil these out

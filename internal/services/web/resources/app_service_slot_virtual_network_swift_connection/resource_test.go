@@ -1,0 +1,442 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
+package app_service_slot_virtual_network_swift_connection_test
+
+import (
+	"context"
+	"fmt"
+	"testing"
+	"time"
+
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+)
+
+type AppServiceSlotVirtualNetworkSwiftConnectionResource struct{}
+
+func TestAccAppServiceSlotVirtualNetworkSwiftConnection_app_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot_virtual_network_swift_connection", "test")
+	r := AppServiceSlotVirtualNetworkSwiftConnectionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.app_basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("subnet_id").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAppServiceSlotVirtualNetworkSwiftConnection_app_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot_virtual_network_swift_connection", "test")
+	r := AppServiceSlotVirtualNetworkSwiftConnectionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.app_basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.app_requiresImport),
+	})
+}
+
+func TestAccAppServiceSlotVirtualNetworkSwiftConnection_app_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot_virtual_network_swift_connection", "test")
+	r := AppServiceSlotVirtualNetworkSwiftConnectionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.app_basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("subnet_id").Exists(),
+			),
+		},
+		{
+			Config: r.app_update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("subnet_id").Exists(),
+			),
+		},
+	})
+}
+
+func TestAccAppServiceSlotVirtualNetworkSwiftConnection_app_disappears(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot_virtual_network_swift_connection", "test")
+	r := AppServiceSlotVirtualNetworkSwiftConnectionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.app_basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("subnet_id").Exists(),
+				data.CheckWithClient(r.disappears),
+			),
+			ExpectNonEmptyPlan: true,
+		},
+	})
+}
+
+func TestAccAppServiceSlotVirtualNetworkSwiftConnection_function_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot_virtual_network_swift_connection", "test")
+	r := AppServiceSlotVirtualNetworkSwiftConnectionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.function_basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAppServiceSlotVirtualNetworkSwiftConnection_function_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot_virtual_network_swift_connection", "test")
+	r := AppServiceSlotVirtualNetworkSwiftConnectionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.function_basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.function_requiresImport),
+	})
+}
+
+func TestAccAppServiceSlotVirtualNetworkSwiftConnection_function_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot_virtual_network_swift_connection", "test")
+	r := AppServiceSlotVirtualNetworkSwiftConnectionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.function_basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.function_update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
+func TestAccAppServiceSlotVirtualNetworkSwiftConnection_function_disappears(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot_virtual_network_swift_connection", "test")
+	r := AppServiceSlotVirtualNetworkSwiftConnectionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.function_basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				data.CheckWithClient(r.disappears),
+			),
+			ExpectNonEmptyPlan: true,
+		},
+	})
+}
+
+func (r AppServiceSlotVirtualNetworkSwiftConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := parse.SlotVirtualNetworkSwiftConnectionID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := clients.Web.WebAppsClient.GetSwiftVirtualNetworkConnectionSlot(ctx, webapps.NewSlotID(id.SubscriptionId, id.ResourceGroup, id.SiteName, id.SlotName))
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			return pointer.To(false), nil
+		}
+		return nil, fmt.Errorf("retrieving %s: %+v", id.String(), err)
+	}
+
+	return pointer.To(resp.Model != nil && resp.Model.Properties != nil), nil
+}
+
+func (r AppServiceSlotVirtualNetworkSwiftConnectionResource) disappears(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
+	id, err := parse.SlotVirtualNetworkSwiftConnectionID(state.ID)
+	if err != nil {
+		return err
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Minute)
+	defer cancel()
+
+	appSlotID := webapps.NewSlotID(id.SubscriptionId, id.ResourceGroup, id.SiteName, id.SlotName)
+	if _, err := clients.Web.WebAppsClient.DeleteSwiftVirtualNetworkSlot(ctx, appSlotID); err != nil {
+		return fmt.Errorf("deleting %s: %+v", id, err)
+	}
+
+	return nil
+}
+
+func (AppServiceSlotVirtualNetworkSwiftConnectionResource) app_base(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-appservice-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctest-VNET-%[1]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  lifecycle {
+    ignore_changes = ["ddos_protection_plan"]
+  }
+}
+
+resource "azurerm_subnet" "test1" {
+  name                 = "acctestSubnet1"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+
+  delegation {
+    name = "acctestdelegation"
+
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+
+resource "azurerm_subnet" "test2" {
+  name                 = "acctestSubnet2"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+
+  delegation {
+    name = "acctestdelegation"
+
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+
+resource "azurerm_service_plan" "test" {
+  name                = "acctest-ASP-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  os_type             = "Windows"
+  sku_name            = "S1"
+}
+
+resource "azurerm_windows_web_app" "test" {
+  name                = "acctest-AS-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {}
+}
+
+resource "azurerm_windows_web_app_slot" "test-staging" {
+  name           = "acctest-AS-%[1]d-staging"
+  app_service_id = azurerm_windows_web_app.test.id
+
+  site_config {}
+
+  lifecycle {
+    ignore_changes = [virtual_network_subnet_id]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r AppServiceSlotVirtualNetworkSwiftConnectionResource) app_basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_app_service_slot_virtual_network_swift_connection" "test" {
+  slot_name      = azurerm_windows_web_app_slot.test-staging.name
+  app_service_id = azurerm_windows_web_app.test.id
+  subnet_id      = azurerm_subnet.test1.id
+}
+`, r.app_base(data))
+}
+
+func (r AppServiceSlotVirtualNetworkSwiftConnectionResource) app_update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_app_service_slot_virtual_network_swift_connection" "test" {
+  slot_name      = azurerm_windows_web_app_slot.test-staging.name
+  app_service_id = azurerm_windows_web_app.test.id
+  subnet_id      = azurerm_subnet.test2.id
+}
+`, r.app_base(data))
+}
+
+func (r AppServiceSlotVirtualNetworkSwiftConnectionResource) app_requiresImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_app_service_slot_virtual_network_swift_connection" "import" {
+  slot_name      = azurerm_app_service_slot_virtual_network_swift_connection.test.slot_name
+  app_service_id = azurerm_app_service_slot_virtual_network_swift_connection.test.app_service_id
+  subnet_id      = azurerm_app_service_slot_virtual_network_swift_connection.test.subnet_id
+}
+`, r.app_basic(data))
+}
+
+func (AppServiceSlotVirtualNetworkSwiftConnectionResource) function_base(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-functionapp-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctest-VNET-%[1]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  lifecycle {
+    ignore_changes = ["ddos_protection_plan"]
+  }
+}
+
+resource "azurerm_subnet" "test1" {
+  name                 = "acctestSubnet1"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+
+  delegation {
+    name = "acctestdelegation"
+
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+
+resource "azurerm_subnet" "test2" {
+  name                 = "acctestSubnet2"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+
+  delegation {
+    name = "acctestdelegation"
+
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_service_plan" "test" {
+  name                = "acctest-ASP-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  os_type             = "Windows"
+  sku_name            = "S1"
+}
+
+resource "azurerm_windows_function_app" "test" {
+  name                       = "acctest-FA-%[1]d"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  service_plan_id            = azurerm_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {}
+}
+
+resource "azurerm_windows_function_app_slot" "test-staging" {
+  name                       = "acctest-slot-%[1]d"
+  function_app_id            = azurerm_windows_function_app.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {}
+
+  lifecycle {
+    ignore_changes = [virtual_network_subnet_id]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r AppServiceSlotVirtualNetworkSwiftConnectionResource) function_basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_app_service_slot_virtual_network_swift_connection" "test" {
+  slot_name      = azurerm_windows_function_app_slot.test-staging.name
+  app_service_id = azurerm_windows_function_app.test.id
+  subnet_id      = azurerm_subnet.test1.id
+}
+`, r.function_base(data))
+}
+
+func (r AppServiceSlotVirtualNetworkSwiftConnectionResource) function_update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_app_service_slot_virtual_network_swift_connection" "test" {
+  slot_name      = azurerm_windows_function_app_slot.test-staging.name
+  app_service_id = azurerm_windows_function_app.test.id
+  subnet_id      = azurerm_subnet.test2.id
+}
+`, r.function_base(data))
+}
+
+func (r AppServiceSlotVirtualNetworkSwiftConnectionResource) function_requiresImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_app_service_slot_virtual_network_swift_connection" "import" {
+  slot_name      = azurerm_app_service_slot_virtual_network_swift_connection.test.slot_name
+  app_service_id = azurerm_app_service_slot_virtual_network_swift_connection.test.app_service_id
+  subnet_id      = azurerm_app_service_slot_virtual_network_swift_connection.test.subnet_id
+}
+`, r.function_basic(data))
+}

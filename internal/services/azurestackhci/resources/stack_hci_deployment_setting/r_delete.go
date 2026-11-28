@@ -44,7 +44,7 @@ func (Resource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
-			applianceName := fmt.Sprintf("%s-arcbridge", id.ClusterName)
+			applianceName := id.ClusterName + "-arcbridge"
 			applianceId := appliances.NewApplianceID(id.SubscriptionId, id.ResourceGroupName, applianceName)
 
 			applianceClient := metadata.Client.ArcResourceBridge.AppliancesClient
@@ -77,7 +77,7 @@ func (Resource) Delete() sdk.ResourceFunc {
 					if v.Id != nil && v.ExtendedLocation != nil && v.ExtendedLocation.Name != nil && strings.EqualFold(*v.ExtendedLocation.Name, customLocationId.ID()) && v.Name != nil && storageContainerNamePattern.MatchString(*v.Name) {
 						storageContainerId, err := storagecontainers.ParseStorageContainerIDInsensitively(*v.Id)
 						if err != nil {
-							return fmt.Errorf("parsing the Stack HCI Storage Path ID generated during deployment: %+v", err)
+							return err
 						}
 
 						if err := storageContainerClient.DeleteThenPoll(ctx, *storageContainerId); err != nil {

@@ -4,6 +4,7 @@
 package role_assignment
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -11,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roleassignments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-05-01-preview/roledefinitions"
-	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/helpers"
@@ -32,7 +32,7 @@ func resourceArmRoleAssignmentCreate(d *pluginsdk.ResourceData, meta any) error 
 	scope := d.Get("scope").(string)
 	scopeId, err := commonids.ParseScopeID(scope)
 	if err != nil {
-		return fmt.Errorf("parsing %s: %+v", scopeId, err)
+		return err
 	}
 
 	var roleDefinitionId string
@@ -58,12 +58,10 @@ func resourceArmRoleAssignmentCreate(d *pluginsdk.ResourceData, meta any) error 
 	principalId := d.Get("principal_id").(string)
 
 	if name == "" {
-		generatedUUID, err := uuid.GenerateUUID()
+		name, err = parse.RoleAssignmentName(scopeId.Scope, principalId, roleDefinitionId)
 		if err != nil {
-			return fmt.Errorf("generating UUID for Role Assignment: %+v", err)
+			return fmt.Errorf("generating role assignment name: %+v", err)
 		}
-
-		name = generatedUUID
 	}
 
 	tenantId := ""
@@ -117,7 +115,7 @@ func resourceArmRoleAssignmentCreate(d *pluginsdk.ResourceData, meta any) error 
 		props.Condition = pointer.To(condition)
 		props.ConditionVersion = pointer.To("2.0")
 	case conditionVersion != "":
-		return fmt.Errorf("`condition_version` should not be set without `condition`")
+		return errors.New("`condition_version` should not be set without `condition`")
 	}
 
 	skipPrincipalCheck := d.Get("skip_service_principal_aad_check").(bool)

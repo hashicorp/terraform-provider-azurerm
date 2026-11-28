@@ -37,9 +37,9 @@ func (m *Action) Schema(_ context.Context, _ action.SchemaRequest, response *act
 	response.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"managed_redis_database_id": schema.StringAttribute{
-				Required:            true,
 				Description:         "The ID of the Managed Redis Database where the keys will be flushed.",
 				MarkdownDescription: "The ID of the Managed Redis Database where the keys will be flushed.",
+				Required:            true,
 				Validators: []validator.String{
 					typehelpers.WrappedStringValidator{
 						Func: redisenterprise.ValidateRedisEnterpriseID,
@@ -48,10 +48,10 @@ func (m *Action) Schema(_ context.Context, _ action.SchemaRequest, response *act
 			},
 
 			"linked_database_ids": schema.ListAttribute{
-				Optional:            true,
 				Description:         "The IDs of any Linked Databases where the keys will be flushed.",
 				MarkdownDescription: "The IDs of any Linked Databases where the keys will be flushed.",
 				ElementType:         types.StringType,
+				Optional:            true,
 				Validators: []validator.List{
 					typehelpers.WrappedListValidator{
 						Func: redisenterprise.ValidateRedisEnterpriseID,
@@ -60,9 +60,9 @@ func (m *Action) Schema(_ context.Context, _ action.SchemaRequest, response *act
 			},
 
 			"timeout": schema.StringAttribute{
+				Description:         "Timeout duration for the Managed Redis Databases Flush action to complete. Defaults to 30m.", // azignore:AZS014 - an action cannot set a Default in its schema
+				MarkdownDescription: "Timeout duration for the Managed Redis Databases Flush action to complete. Defaults to 30m.", // azignore:AZS014 - an action cannot set a Default in its schema
 				Optional:            true,
-				Description:         "Timeout duration for the Managed Redis Databases Flush action to complete. Defaults to 30m.",
-				MarkdownDescription: "Timeout duration for the Managed Redis Databases Flush action to complete. Defaults to 30m.",
 			},
 		},
 	}
@@ -120,7 +120,7 @@ func (m *Action) Invoke(ctx context.Context, request action.InvokeRequest, respo
 	}
 
 	response.SendProgress(action.InvokeProgressEvent{
-		Message: fmt.Sprintf("flushing completed for %s", id.ID()),
+		Message: "flushing completed for " + id.ID(),
 	})
 }
 

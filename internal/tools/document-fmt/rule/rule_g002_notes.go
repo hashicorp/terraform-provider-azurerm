@@ -68,7 +68,7 @@ func (r G002) Run(data *data.TerraformNodeData, fix bool) []error {
 				}.string()
 
 				if current != expected {
-					errs = append(errs, differror.New(fmt.Sprintf("%s: Note not in expected format", IdAndName(r)), current, expected))
+					errs = append(errs, differror.New(IdAndName(r)+": Note not in expected format", current, expected))
 
 					if fix {
 						data.Document.HasChange = true

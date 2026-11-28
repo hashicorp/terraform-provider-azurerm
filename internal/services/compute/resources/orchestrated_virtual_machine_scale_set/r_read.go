@@ -4,6 +4,7 @@
 package orchestrated_virtual_machine_scale_set
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -272,13 +273,13 @@ func flattenOrchestratedVirtualMachineScaleSetSku(input *virtualmachinescalesets
 		if strings.HasPrefix(strings.ToLower(*input.Name), "standard") || *input.Name == SkuNameMix {
 			skuName = *input.Name
 		} else {
-			skuName = fmt.Sprintf("Standard_%s", *input.Name)
+			skuName = "Standard_" + *input.Name
 		}
 
 		return &skuName, nil
 	}
 
-	return nil, fmt.Errorf("sku struct `name` is nil")
+	return nil, errors.New("sku struct `name` is nil")
 }
 
 const (

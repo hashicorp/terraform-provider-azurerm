@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type DataFlowResource struct{}
+type DataFactoryDataFlowResource struct{}
 
 func TestAccDataFactoryDataFlow_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_data_flow", "test")
-	r := DataFlowResource{}
+	r := DataFactoryDataFlowResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccDataFactoryDataFlow_regressionTest(t *testing.T) {
 
 func TestAccDataFactoryDataFlow_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_data_flow", "test")
-	r := DataFlowResource{}
+	r := DataFactoryDataFlowResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,7 +46,7 @@ func TestAccDataFactoryDataFlow_basic(t *testing.T) {
 
 func TestAccDataFactoryDataFlow_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_data_flow", "test")
-	r := DataFlowResource{}
+	r := DataFactoryDataFlowResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -61,7 +61,7 @@ func TestAccDataFactoryDataFlow_requiresImport(t *testing.T) {
 
 func TestAccDataFactoryDataFlow_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_data_flow", "test")
-	r := DataFlowResource{}
+	r := DataFactoryDataFlowResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -76,7 +76,7 @@ func TestAccDataFactoryDataFlow_complete(t *testing.T) {
 
 func TestAccDataFactoryDataFlow_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_data_flow", "test")
-	r := DataFlowResource{}
+	r := DataFactoryDataFlowResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -103,7 +103,7 @@ func TestAccDataFactoryDataFlow_update(t *testing.T) {
 	})
 }
 
-func (r DataFlowResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r DataFactoryDataFlowResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := dataflows.ParseDataflowID(state.ID)
 	if err != nil {
 		return nil, err
@@ -117,7 +117,7 @@ func (r DataFlowResource) Exists(ctx context.Context, clients *clients.Client, s
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r DataFlowResource) basic(data acceptance.TestData) string {
+func (r DataFactoryDataFlowResource) basic(data acceptance.TestData) string {
 	//nolint:dupword
 	return fmt.Sprintf(`
 %s
@@ -159,7 +159,7 @@ EOT
 `, r.template(data), data.RandomInteger)
 }
 
-func (r DataFlowResource) requiresImport(data acceptance.TestData) string {
+func (r DataFactoryDataFlowResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -184,7 +184,7 @@ resource "azurerm_data_factory_data_flow" "import" {
 `, r.basic(data))
 }
 
-func (r DataFlowResource) complete(data acceptance.TestData) string {
+func (r DataFactoryDataFlowResource) complete(data acceptance.TestData) string {
 	//nolint:dupword
 	return fmt.Sprintf(`
 %s
@@ -343,7 +343,7 @@ EOT
 `, r.template(data), data.RandomInteger)
 }
 
-func (DataFlowResource) template(data acceptance.TestData) string {
+func (DataFactoryDataFlowResource) template(data acceptance.TestData) string {
 	//nolint:dupword
 	return fmt.Sprintf(`
 provider "azurerm" {

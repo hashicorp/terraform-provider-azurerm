@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type LinkedServicePostgreSQLResource struct{}
+type DataFactoryLinkedServicePostgresqlResource struct{}
 
 func TestAccDataFactoryLinkedServicePostgreSQL_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_postgresql", "test")
-	r := LinkedServicePostgreSQLResource{}
+	r := DataFactoryLinkedServicePostgresqlResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccDataFactoryLinkedServicePostgreSQL_regressionTest(t *testing.T) {
 
 func TestAccDataFactoryLinkedServicePostgreSQL_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_postgresql", "test")
-	r := LinkedServicePostgreSQLResource{}
+	r := DataFactoryLinkedServicePostgresqlResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,7 +46,7 @@ func TestAccDataFactoryLinkedServicePostgreSQL_basic(t *testing.T) {
 
 func TestAccDataFactoryLinkedServicePostgreSQL_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_postgresql", "test")
-	r := LinkedServicePostgreSQLResource{}
+	r := DataFactoryLinkedServicePostgresqlResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -73,7 +73,7 @@ func TestAccDataFactoryLinkedServicePostgreSQL_update(t *testing.T) {
 	})
 }
 
-func (t LinkedServicePostgreSQLResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t DataFactoryLinkedServicePostgresqlResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.LinkedServiceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -87,7 +87,7 @@ func (t LinkedServicePostgreSQLResource) Exists(ctx context.Context, clients *cl
 	return pointer.To(resp.ID != nil), nil
 }
 
-func (LinkedServicePostgreSQLResource) basic(data acceptance.TestData) string {
+func (DataFactoryLinkedServicePostgresqlResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -112,7 +112,7 @@ resource "azurerm_data_factory_linked_service_postgresql" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServicePostgreSQLResource) update1(data acceptance.TestData) string {
+func (DataFactoryLinkedServicePostgresqlResource) update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -149,7 +149,7 @@ resource "azurerm_data_factory_linked_service_postgresql" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServicePostgreSQLResource) update2(data acceptance.TestData) string {
+func (DataFactoryLinkedServicePostgresqlResource) update2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

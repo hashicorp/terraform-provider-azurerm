@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type LinkedServiceAzureFunctionResource struct{}
+type DataFactoryLinkedServiceAzureFunctionResource struct{}
 
 func TestAccDataFactoryLinkedServiceAzureFunction_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_function", "test")
-	r := LinkedServiceAzureFunctionResource{}
+	r := DataFactoryLinkedServiceAzureFunctionResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccDataFactoryLinkedServiceAzureFunction_regressionTest(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceAzureFunction_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_function", "test")
-	r := LinkedServiceAzureFunctionResource{}
+	r := DataFactoryLinkedServiceAzureFunctionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,7 +46,7 @@ func TestAccDataFactoryLinkedServiceAzureFunction_basic(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceAzureFunction_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_function", "test")
-	r := LinkedServiceAzureFunctionResource{}
+	r := DataFactoryLinkedServiceAzureFunctionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -76,7 +76,7 @@ func TestAccDataFactoryLinkedServiceAzureFunction_update(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceAzureFunction_KeyVaultReference(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_function", "test")
-	r := LinkedServiceAzureFunctionResource{}
+	r := DataFactoryLinkedServiceAzureFunctionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -91,7 +91,7 @@ func TestAccDataFactoryLinkedServiceAzureFunction_KeyVaultReference(t *testing.T
 	})
 }
 
-func (t LinkedServiceAzureFunctionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t DataFactoryLinkedServiceAzureFunctionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.LinkedServiceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -105,7 +105,7 @@ func (t LinkedServiceAzureFunctionResource) Exists(ctx context.Context, clients 
 	return pointer.To(resp.ID != nil), nil
 }
 
-func (LinkedServiceAzureFunctionResource) basic(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceAzureFunctionResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -131,7 +131,7 @@ resource "azurerm_data_factory_linked_service_azure_function" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceAzureFunctionResource) update1(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceAzureFunctionResource) update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -169,7 +169,7 @@ resource "azurerm_data_factory_linked_service_azure_function" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceAzureFunctionResource) update2(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceAzureFunctionResource) update2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -208,7 +208,7 @@ resource "azurerm_data_factory_linked_service_azure_function" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceAzureFunctionResource) key_vault_reference(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceAzureFunctionResource) key_vault_reference(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

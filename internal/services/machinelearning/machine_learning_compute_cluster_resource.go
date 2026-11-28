@@ -98,15 +98,15 @@ func resourceComputeCluster() *pluginsdk.Resource {
 			"local_auth_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  true,
 				ForceNew: true,
+				Default:  true,
 			},
 
 			"node_public_ip_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  true,
 				ForceNew: true,
+				Default:  true,
 			},
 
 			"ssh": {
@@ -268,7 +268,7 @@ func resourceComputeClusterRead(d *pluginsdk.ResourceData, meta any) error {
 
 	id, err := machinelearningcomputes.ParseComputeID(d.Id())
 	if err != nil {
-		return fmt.Errorf("parsing Compute Cluster ID `%q`: %+v", d.Id(), err)
+		return err
 	}
 
 	computeResource, err := client.ComputeGet(ctx, *id)

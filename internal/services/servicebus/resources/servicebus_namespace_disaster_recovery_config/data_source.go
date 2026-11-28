@@ -1,0 +1,138 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
+package servicebus_namespace_disaster_recovery_config
+
+import (
+	"fmt"
+	"log"
+	"time"
+
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/armdisasterrecoveries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/disasterrecoveryconfigs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/namespaces"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+)
+
+func RegisterDataSource() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Read: dataSourceServiceBusNamespaceDisasterRecoveryConfigRead,
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
+		},
+
+		Schema: map[string]*pluginsdk.Schema{
+			"name": {
+				Type:     pluginsdk.TypeString,
+				Required: true,
+			},
+
+			"namespace_id": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: namespaces.ValidateNamespaceID,
+			},
+
+			"alias_authorization_rule_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"partner_namespace_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_connection_string_alias": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"secondary_connection_string_alias": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"default_primary_key": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"default_secondary_key": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+		},
+	}
+}
+
+func dataSourceServiceBusNamespaceDisasterRecoveryConfigRead(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).ServiceBus.ArmDisasterRecoveriesClient
+	authRuleClient := meta.(*clients.Client).ServiceBus.DisasterRecoveryConfigsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	var resourceGroup string
+	var namespaceName string
+	if v, ok := d.Get("namespace_id").(string); ok && v != "" {
+		namespaceId, err := armdisasterrecoveries.ParseNamespaceID(v)
+		if err != nil {
+			return err
+		}
+		resourceGroup = namespaceId.ResourceGroupName
+		namespaceName = namespaceId.NamespaceName
+	}
+
+	id := armdisasterrecoveries.NewDisasterRecoveryConfigID(subscriptionId, resourceGroup, namespaceName, d.Get("name").(string))
+	resp, err := client.DisasterRecoveryConfigsGet(ctx, id)
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("%s was not found", id)
+		}
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	d.Set("name", id.DisasterRecoveryConfigName)
+
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("partner_namespace_id", props.PartnerNamespace)
+		}
+	}
+
+	d.SetId(id.ID())
+
+	// the auth rule cannot be retrieved by dr config name, the shared access policy should either be specified by user or using the default one which is `RootManageSharedAccessKey`
+	authRuleId := disasterrecoveryconfigs.NewDisasterRecoveryConfigAuthorizationRuleID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, id.DisasterRecoveryConfigName, serviceBusNamespaceDefaultAuthorizationRule)
+	if input := d.Get("alias_authorization_rule_id").(string); input != "" {
+		ruleId, err := disasterrecoveryconfigs.ParseDisasterRecoveryConfigAuthorizationRuleID(input)
+		if err != nil {
+			return err
+		}
+		authRuleId = *ruleId
+	}
+
+	keys, err := authRuleClient.ListKeys(ctx, authRuleId)
+	if err != nil {
+		log.Printf("[WARN] listing default keys for %s: %+v", id, err)
+	} else {
+		if keysModel := keys.Model; keysModel != nil {
+			d.Set("primary_connection_string_alias", keysModel.AliasPrimaryConnectionString)
+			d.Set("secondary_connection_string_alias", keysModel.AliasSecondaryConnectionString)
+			d.Set("default_primary_key", keysModel.PrimaryKey)
+			d.Set("default_secondary_key", keysModel.SecondaryKey)
+		}
+	}
+	return nil
+}

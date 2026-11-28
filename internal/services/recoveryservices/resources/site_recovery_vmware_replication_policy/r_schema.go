@@ -1,0 +1,69 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
+package site_recovery_vmware_replication_policy
+
+import (
+	"context"
+	"errors"
+	"fmt"
+
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2025-08-01/vaults"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+)
+
+func (r Resource) Arguments() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Description:  "The name which should be used for this Classic Replication Policy.",
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringDoesNotContainAny("<>~',\"!@$^#_ (){}[]|`+=;,.*%&:\\?/"),
+		},
+
+		"recovery_vault_id": {
+			Description:  "ID of the Recovery Services Vault.",
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: vaults.ValidateVaultID,
+		},
+
+		"recovery_point_retention_in_minutes": {
+			Description:  "The period up to which the recovery points will be retained. Must between `0` to `21600`.",
+			Type:         pluginsdk.TypeInt,
+			Required:     true,
+			ValidateFunc: validation.IntBetween(0, 15*24*60),
+		},
+
+		"application_consistent_snapshot_frequency_in_minutes": {
+			Description:  "The frequency at which to create application consistent recovery points. Must between `0` to `720`.",
+			Type:         pluginsdk.TypeInt,
+			Required:     true,
+			ValidateFunc: validation.IntBetween(0, 12*60),
+		},
+	}
+}
+
+func (r Resource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{}
+}
+
+func (r Resource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			var plan SiteRecoveryReplicationPolicyVmwareModel
+			if err := metadata.DecodeDiff(&plan); err != nil {
+				return fmt.Errorf("decoding %+v", err)
+			}
+			if plan.RecoveryPointRetentionInMinutes == 0 && plan.ApplicationConsistentSnapshotFrequencyInMinutes > 0 {
+				return errors.New("application_consistent_snapshot_frequency_in_minutes cannot be greater than zero when recovery_point_retention_in_minutes is set to zero")
+			}
+
+			return nil
+		},
+	}
+}

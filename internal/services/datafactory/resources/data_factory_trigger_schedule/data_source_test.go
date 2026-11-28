@@ -46,5 +46,5 @@ data "azurerm_data_factory_trigger_schedule" "test" {
   name            = azurerm_data_factory_trigger_schedule.test.name
   data_factory_id = azurerm_data_factory.test.id
 }
-`, TriggerScheduleResource{}.basic(data))
+`, DataFactoryTriggerScheduleResource{}.basic(data))
 }

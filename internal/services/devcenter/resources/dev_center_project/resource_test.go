@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type DevCenterProjectTestResource struct{}
+type DevCenterProjectResource struct{}
 
 func TestAccDevCenterProject_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_project", "test")
-	r := DevCenterProjectTestResource{}
+	r := DevCenterProjectResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,7 +36,7 @@ func TestAccDevCenterProject_basic(t *testing.T) {
 
 func TestAccDevCenterProject_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_project", "test")
-	r := DevCenterProjectTestResource{}
+	r := DevCenterProjectResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -51,7 +51,7 @@ func TestAccDevCenterProject_requiresImport(t *testing.T) {
 
 func TestAccDevCenterProject_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_project", "test")
-	r := DevCenterProjectTestResource{}
+	r := DevCenterProjectResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -66,7 +66,7 @@ func TestAccDevCenterProject_complete(t *testing.T) {
 
 func TestAccDevCenterProject_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_project", "test")
-	r := DevCenterProjectTestResource{}
+	r := DevCenterProjectResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -95,7 +95,7 @@ func TestAccDevCenterProject_update(t *testing.T) {
 
 func TestAccDevCenterProject_identity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_project", "test")
-	r := DevCenterProjectTestResource{}
+	r := DevCenterProjectResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -129,7 +129,7 @@ func TestAccDevCenterProject_identity(t *testing.T) {
 	})
 }
 
-func (r DevCenterProjectTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r DevCenterProjectResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := projects.ParseProjectID(state.ID)
 	if err != nil {
 		return nil, err
@@ -143,7 +143,7 @@ func (r DevCenterProjectTestResource) Exists(ctx context.Context, clients *clien
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r DevCenterProjectTestResource) basic(data acceptance.TestData) string {
+func (r DevCenterProjectResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -160,7 +160,7 @@ resource "azurerm_dev_center_project" "test" {
 `, r.template(data))
 }
 
-func (r DevCenterProjectTestResource) requiresImport(data acceptance.TestData) string {
+func (r DevCenterProjectResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -173,7 +173,7 @@ resource "azurerm_dev_center_project" "import" {
 `, r.basic(data))
 }
 
-func (r DevCenterProjectTestResource) complete(data acceptance.TestData) string {
+func (r DevCenterProjectResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -196,7 +196,7 @@ resource "azurerm_dev_center_project" "test" {
 `, r.template(data))
 }
 
-func (r DevCenterProjectTestResource) update(data acceptance.TestData) string {
+func (r DevCenterProjectResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -214,7 +214,7 @@ resource "azurerm_dev_center_project" "test" {
 `, r.template(data))
 }
 
-func (r DevCenterProjectTestResource) identity(data acceptance.TestData, identityType identity.Type) string {
+func (r DevCenterProjectResource) identity(data acceptance.TestData, identityType identity.Type) string {
 	var identityBlock string
 	switch identityType {
 	case identity.TypeSystemAssigned:
@@ -262,7 +262,7 @@ resource "azurerm_dev_center_project" "test" {
 `, r.template(data), identityBlock)
 }
 
-func (r DevCenterProjectTestResource) template(data acceptance.TestData) string {
+func (r DevCenterProjectResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 variable "primary_location" {
   default = %q

@@ -19,11 +19,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type KubernetesClusterTrustedAccessRoleBindingTestResource struct{}
+type KubernetesClusterTrustedAccessRoleBindingResource struct{}
 
 func TestAccKubernetesClusterTrustedAccessRoleBinding_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_trusted_access_role_binding", "test")
-	r := KubernetesClusterTrustedAccessRoleBindingTestResource{}
+	r := KubernetesClusterTrustedAccessRoleBindingResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -34,7 +34,7 @@ func TestAccKubernetesClusterTrustedAccessRoleBinding_regressionTest(t *testing.
 
 func TestAccKubernetesClusterTrustedAccessRoleBinding_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_trusted_access_role_binding", "test")
-	r := KubernetesClusterTrustedAccessRoleBindingTestResource{}
+	r := KubernetesClusterTrustedAccessRoleBindingResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -49,7 +49,7 @@ func TestAccKubernetesClusterTrustedAccessRoleBinding_basic(t *testing.T) {
 
 func TestAccKubernetesClusterTrustedAccessRoleBinding_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_trusted_access_role_binding", "test")
-	r := KubernetesClusterTrustedAccessRoleBindingTestResource{}
+	r := KubernetesClusterTrustedAccessRoleBindingResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -62,7 +62,7 @@ func TestAccKubernetesClusterTrustedAccessRoleBinding_requiresImport(t *testing.
 	})
 }
 
-func (r KubernetesClusterTrustedAccessRoleBindingTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r KubernetesClusterTrustedAccessRoleBindingResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := trustedaccess.ParseTrustedAccessRoleBindingID(state.ID)
 	if err != nil {
 		return nil, err
@@ -76,7 +76,7 @@ func (r KubernetesClusterTrustedAccessRoleBindingTestResource) Exists(ctx contex
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r KubernetesClusterTrustedAccessRoleBindingTestResource) basic(data acceptance.TestData) string {
+func (r KubernetesClusterTrustedAccessRoleBindingResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -93,7 +93,7 @@ resource "azurerm_kubernetes_cluster_trusted_access_role_binding" "test" {
 `, r.template(data))
 }
 
-func (r KubernetesClusterTrustedAccessRoleBindingTestResource) requiresImport(data acceptance.TestData) string {
+func (r KubernetesClusterTrustedAccessRoleBindingResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -106,7 +106,7 @@ resource "azurerm_kubernetes_cluster_trusted_access_role_binding" "import" {
 `, r.basic(data))
 }
 
-func (r KubernetesClusterTrustedAccessRoleBindingTestResource) template(data acceptance.TestData) string {
+func (r KubernetesClusterTrustedAccessRoleBindingResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 variable "primary_location" {
   default = %q

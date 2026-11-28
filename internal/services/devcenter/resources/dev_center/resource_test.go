@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type DevCenterTestResource struct{}
+type DevCenterResource struct{}
 
 func TestAccDevCenter_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center", "test")
-	r := DevCenterTestResource{}
+	r := DevCenterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccDevCenter_basic(t *testing.T) {
 
 func TestAccDevCenter_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center", "test")
-	r := DevCenterTestResource{}
+	r := DevCenterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccDevCenter_requiresImport(t *testing.T) {
 
 func TestAccDevCenter_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center", "test")
-	r := DevCenterTestResource{}
+	r := DevCenterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -65,7 +65,7 @@ func TestAccDevCenter_complete(t *testing.T) {
 
 func TestAccDevCenter_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center", "test")
-	r := DevCenterTestResource{}
+	r := DevCenterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -92,7 +92,7 @@ func TestAccDevCenter_update(t *testing.T) {
 	})
 }
 
-func (r DevCenterTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r DevCenterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := devcenters.ParseDevCenterID(state.ID)
 	if err != nil {
 		return nil, err
@@ -106,7 +106,7 @@ func (r DevCenterTestResource) Exists(ctx context.Context, clients *clients.Clie
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r DevCenterTestResource) basic(data acceptance.TestData) string {
+func (r DevCenterResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -122,7 +122,7 @@ resource "azurerm_dev_center" "test" {
 `, r.template(data))
 }
 
-func (r DevCenterTestResource) requiresImport(data acceptance.TestData) string {
+func (r DevCenterResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -134,7 +134,7 @@ resource "azurerm_dev_center" "import" {
 `, r.basic(data))
 }
 
-func (r DevCenterTestResource) complete(data acceptance.TestData) string {
+func (r DevCenterResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -159,7 +159,7 @@ resource "azurerm_dev_center" "test" {
 `, r.template(data))
 }
 
-func (r DevCenterTestResource) template(data acceptance.TestData) string {
+func (r DevCenterResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 variable "primary_location" {
   default = %q

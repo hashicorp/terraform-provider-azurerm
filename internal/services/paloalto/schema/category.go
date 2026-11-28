@@ -24,9 +24,10 @@ func CategorySchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"feeds": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					MinItems: 1,
+					Description: "A list of feeds to match.",
+					Type:        pluginsdk.TypeList,
+					Optional:    true,
+					MinItems:    1,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -34,9 +35,10 @@ func CategorySchema() *pluginsdk.Schema {
 				},
 
 				"custom_urls": {
-					Type:     pluginsdk.TypeList,
-					Required: true,
-					MinItems: 1,
+					Description: "A list of URL categories to match.",
+					Type:        pluginsdk.TypeList,
+					Required:    true,
+					MinItems:    1,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validate.CategoryNames,

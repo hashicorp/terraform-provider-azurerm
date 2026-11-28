@@ -29,7 +29,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			virtualMachineID, err := virtualmachines.ParseVirtualMachineID(state.VirtualMachineId)
 			if err != nil {
-				return fmt.Errorf("parsing `virtual_machine_id`, %+v", err)
+				return err
 			}
 
 			locks.ByID(virtualMachineID.ID())
@@ -57,7 +57,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			galleryApplicationVersionId, err := galleryapplicationversions.ParseApplicationVersionID(state.GalleryApplicationVersionId)
 			if err != nil {
-				return fmt.Errorf("parsing `gallery_application_version_id`: %+v", err)
+				return err
 			}
 
 			applications := virtualMachine.Properties.ApplicationProfile.GalleryApplications

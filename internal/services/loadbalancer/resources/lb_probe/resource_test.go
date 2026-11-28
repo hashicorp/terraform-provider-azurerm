@@ -5,6 +5,7 @@ package lb_probe_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -171,13 +172,13 @@ func (r LbProbeResource) Destroy(ctx context.Context, client *clients.Client, st
 		return nil, fmt.Errorf("retrieving Load Balancer %q (Resource Group %q)", id.LoadBalancerName, id.ResourceGroupName)
 	}
 	if lb.Model == nil {
-		return nil, fmt.Errorf("`model` was nil")
+		return nil, errors.New("`model` was nil")
 	}
 	if lb.Model.Properties == nil {
-		return nil, fmt.Errorf("`properties` was nil")
+		return nil, errors.New("`properties` was nil")
 	}
 	if lb.Model.Properties.Probes == nil {
-		return nil, fmt.Errorf("`properties.Probes` was nil")
+		return nil, errors.New("`properties.Probes` was nil")
 	}
 
 	probes := make([]loadbalancers.Probe, 0)

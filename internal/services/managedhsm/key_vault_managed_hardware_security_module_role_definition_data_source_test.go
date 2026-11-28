@@ -25,7 +25,7 @@ func testAccDataSourceKeyVaultManagedHardwareSecurityModuleRoleDefinition_basic(
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("managed_hsm_id").Exists(),
-				check.That(data.ResourceName).Key("role_name").HasValue(fmt.Sprintf("myRole%s", data.RandomString)),
+				check.That(data.ResourceName).Key("role_name").HasValue("myRole"+data.RandomString),
 				check.That(data.ResourceName).Key("description").HasValue("desc foo"),
 				check.That(data.ResourceName).Key("permission.#").HasValue("1"),
 				check.That(data.ResourceName).Key("permission.0.data_actions.#").HasValue("5"),
@@ -43,5 +43,5 @@ data "azurerm_key_vault_managed_hardware_security_module_role_definition" "test"
   managed_hsm_id = azurerm_key_vault_managed_hardware_security_module.test.id
   name           = azurerm_key_vault_managed_hardware_security_module_role_definition.test.name
 }
-`, KeyVaultMHSMRoleDefinitionResource{}.basic(data))
+`, KeyVaultManagedHardwareSecurityModuleRoleDefinitionResource{}.basic(data))
 }

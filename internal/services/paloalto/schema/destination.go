@@ -25,13 +25,21 @@ func DestinationSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Required: true,
-		MaxItems: 1,
 		MinItems: 1,
+		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"cidrs": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
+					Description: "A list of CIDR ranges.",
+					Type:        pluginsdk.TypeList,
+					Optional:    true,
+					AtLeastOneOf: []string{
+						"destination.0.cidrs",
+						"destination.0.countries",
+						"destination.0.feeds",
+						"destination.0.local_rulestack_fqdn_list_ids",
+						"destination.0.local_rulestack_prefix_list_ids",
+					},
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 						ValidateFunc: validation.Any(
@@ -39,6 +47,12 @@ func DestinationSchema() *pluginsdk.Schema {
 							validation.StringInSlice([]string{"any"}, false),
 						),
 					},
+				},
+
+				"countries": {
+					Description: "A list of ISO3361-1 Alpha-2 Country codes.",
+					Type:        pluginsdk.TypeList,
+					Optional:    true,
 					AtLeastOneOf: []string{
 						"destination.0.cidrs",
 						"destination.0.countries",
@@ -46,15 +60,16 @@ func DestinationSchema() *pluginsdk.Schema {
 						"destination.0.local_rulestack_fqdn_list_ids",
 						"destination.0.local_rulestack_prefix_list_ids",
 					},
-				},
-
-				"countries": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validate.ISO3361CountryCode,
 					},
+				},
+
+				"feeds": {
+					Description: "A list of Feeds.",
+					Type:        pluginsdk.TypeList,
+					Optional:    true,
 					AtLeastOneOf: []string{
 						"destination.0.cidrs",
 						"destination.0.countries",
@@ -62,15 +77,16 @@ func DestinationSchema() *pluginsdk.Schema {
 						"destination.0.local_rulestack_fqdn_list_ids",
 						"destination.0.local_rulestack_prefix_list_ids",
 					},
-				},
-
-				"feeds": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
+				},
+
+				"local_rulestack_fqdn_list_ids": {
+					Description: "A list of FQDN lists.",
+					Type:        pluginsdk.TypeList,
+					Optional:    true,
 					AtLeastOneOf: []string{
 						"destination.0.cidrs",
 						"destination.0.countries",
@@ -78,37 +94,26 @@ func DestinationSchema() *pluginsdk.Schema {
 						"destination.0.local_rulestack_fqdn_list_ids",
 						"destination.0.local_rulestack_prefix_list_ids",
 					},
-				},
-
-				"local_rulestack_fqdn_list_ids": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: fqdnlistlocalrulestackresources.ValidateLocalRulestackFqdnListID,
 					},
-					AtLeastOneOf: []string{
-						"destination.0.cidrs",
-						"destination.0.countries",
-						"destination.0.feeds",
-						"destination.0.local_rulestack_fqdn_list_ids",
-						"destination.0.local_rulestack_prefix_list_ids",
-					},
 				},
 
 				"local_rulestack_prefix_list_ids": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					Elem: &pluginsdk.Schema{
-						Type:         pluginsdk.TypeString,
-						ValidateFunc: prefixlistresources.ValidateLocalRulestackPrefixListID,
-					},
+					Description: "A list of Prefix Lists.",
+					Type:        pluginsdk.TypeList,
+					Optional:    true,
 					AtLeastOneOf: []string{
 						"destination.0.cidrs",
 						"destination.0.countries",
 						"destination.0.feeds",
 						"destination.0.local_rulestack_fqdn_list_ids",
 						"destination.0.local_rulestack_prefix_list_ids",
+					},
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: prefixlistresources.ValidateLocalRulestackPrefixListID,
 					},
 				},
 			},

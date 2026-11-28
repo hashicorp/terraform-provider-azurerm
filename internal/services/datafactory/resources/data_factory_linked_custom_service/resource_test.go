@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type LinkedCustomServiceResource struct{}
+type DataFactoryLinkedCustomServiceResource struct{}
 
 func TestAccDataFactoryLinkedCustomService_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_custom_service", "test")
-	r := LinkedCustomServiceResource{}
+	r := DataFactoryLinkedCustomServiceResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccDataFactoryLinkedCustomService_regressionTest(t *testing.T) {
 
 func TestAccDataFactoryLinkedCustomService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_custom_service", "test")
-	r := LinkedCustomServiceResource{}
+	r := DataFactoryLinkedCustomServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,7 +46,7 @@ func TestAccDataFactoryLinkedCustomService_basic(t *testing.T) {
 
 func TestAccDataFactoryLinkedCustomService_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_custom_service", "test")
-	r := LinkedCustomServiceResource{}
+	r := DataFactoryLinkedCustomServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -61,7 +61,7 @@ func TestAccDataFactoryLinkedCustomService_requiresImport(t *testing.T) {
 
 func TestAccDataFactoryLinkedCustomService_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_custom_service", "test")
-	r := LinkedCustomServiceResource{}
+	r := DataFactoryLinkedCustomServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -76,7 +76,7 @@ func TestAccDataFactoryLinkedCustomService_complete(t *testing.T) {
 
 func TestAccDataFactoryLinkedCustomService_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_custom_service", "test")
-	r := LinkedCustomServiceResource{}
+	r := DataFactoryLinkedCustomServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -105,7 +105,7 @@ func TestAccDataFactoryLinkedCustomService_update(t *testing.T) {
 
 func TestAccDataFactoryLinkedCustomService_web(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_custom_service", "test")
-	r := LinkedCustomServiceResource{}
+	r := DataFactoryLinkedCustomServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -120,7 +120,7 @@ func TestAccDataFactoryLinkedCustomService_web(t *testing.T) {
 
 func TestAccDataFactoryLinkedCustomService_search(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_custom_service", "test")
-	r := LinkedCustomServiceResource{}
+	r := DataFactoryLinkedCustomServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -133,7 +133,7 @@ func TestAccDataFactoryLinkedCustomService_search(t *testing.T) {
 	})
 }
 
-func (t LinkedCustomServiceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t DataFactoryLinkedCustomServiceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.LinkedServiceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -147,7 +147,7 @@ func (t LinkedCustomServiceResource) Exists(ctx context.Context, clients *client
 	return pointer.To(resp.ID != nil), nil
 }
 
-func (r LinkedCustomServiceResource) basic(data acceptance.TestData) string {
+func (r DataFactoryLinkedCustomServiceResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -164,7 +164,7 @@ JSON
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LinkedCustomServiceResource) requiresImport(data acceptance.TestData) string {
+func (r DataFactoryLinkedCustomServiceResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -177,7 +177,7 @@ resource "azurerm_data_factory_linked_custom_service" "import" {
 `, r.basic(data))
 }
 
-func (r LinkedCustomServiceResource) complete(data acceptance.TestData) string {
+func (r DataFactoryLinkedCustomServiceResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -225,7 +225,7 @@ JSON
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LinkedCustomServiceResource) web(data acceptance.TestData) string {
+func (r DataFactoryLinkedCustomServiceResource) web(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -259,7 +259,7 @@ JSON
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (r LinkedCustomServiceResource) search(data acceptance.TestData) string {
+func (r DataFactoryLinkedCustomServiceResource) search(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -300,7 +300,7 @@ JSON
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedCustomServiceResource) template(data acceptance.TestData) string {
+func (DataFactoryLinkedCustomServiceResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

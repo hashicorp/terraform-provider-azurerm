@@ -27,6 +27,10 @@ func (Resource) ResourceType() string {
 	return "azurerm_email_communication_service_domain"
 }
 
+func (Resource) Description() string {
+	return "Manages an Email Communication Service Domain."
+}
+
 func (Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return domains.ValidateDomainID
 }

@@ -37,5 +37,5 @@ data "azurerm_dev_center_gallery" "test" {
   name          = azurerm_dev_center_gallery.test.name
   dev_center_id = azurerm_dev_center_gallery.test.dev_center_id
 }
-`, DevCenterGalleryTestResource{}.basic(data))
+`, DevCenterGalleryResource{}.basic(data))
 }

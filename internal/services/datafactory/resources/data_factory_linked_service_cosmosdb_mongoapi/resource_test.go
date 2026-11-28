@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type LinkedServiceCosmosDBMongoAPIResource struct{}
+type DataFactoryLinkedServiceCosmosdbMongoapiResource struct{}
 
 func TestAccDataFactoryLinkedServiceCosmosDbMongoAPI_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_cosmosdb_mongoapi", "test")
-	r := LinkedServiceCosmosDBMongoAPIResource{}
+	r := DataFactoryLinkedServiceCosmosdbMongoapiResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccDataFactoryLinkedServiceCosmosDbMongoAPI_regressionTest(t *testing.T
 
 func TestAccDataFactoryLinkedServiceCosmosDbMongoAPI_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_cosmosdb_mongoapi", "test")
-	r := LinkedServiceCosmosDBMongoAPIResource{}
+	r := DataFactoryLinkedServiceCosmosdbMongoapiResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,7 +46,7 @@ func TestAccDataFactoryLinkedServiceCosmosDbMongoAPI_basic(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceCosmosDbMongoAPI_serverVersionAbove32(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_cosmosdb_mongoapi", "test")
-	r := LinkedServiceCosmosDBMongoAPIResource{}
+	r := DataFactoryLinkedServiceCosmosdbMongoapiResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -61,7 +61,7 @@ func TestAccDataFactoryLinkedServiceCosmosDbMongoAPI_serverVersionAbove32(t *tes
 
 func TestAccDataFactoryLinkedServiceCosmosDbMongoAPI_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_cosmosdb_mongoapi", "test")
-	r := LinkedServiceCosmosDBMongoAPIResource{}
+	r := DataFactoryLinkedServiceCosmosdbMongoapiResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -89,7 +89,7 @@ func TestAccDataFactoryLinkedServiceCosmosDbMongoAPI_update(t *testing.T) {
 	})
 }
 
-func (t LinkedServiceCosmosDBMongoAPIResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t DataFactoryLinkedServiceCosmosdbMongoapiResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.LinkedServiceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -103,7 +103,7 @@ func (t LinkedServiceCosmosDBMongoAPIResource) Exists(ctx context.Context, clien
 	return pointer.To(resp.ID != nil), nil
 }
 
-func (LinkedServiceCosmosDBMongoAPIResource) basic(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceCosmosdbMongoapiResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -128,7 +128,7 @@ resource "azurerm_data_factory_linked_service_cosmosdb_mongoapi" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceCosmosDBMongoAPIResource) serverVersionAbove32(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceCosmosdbMongoapiResource) serverVersionAbove32(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -154,7 +154,7 @@ resource "azurerm_data_factory_linked_service_cosmosdb_mongoapi" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceCosmosDBMongoAPIResource) update1(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceCosmosdbMongoapiResource) update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -191,7 +191,7 @@ resource "azurerm_data_factory_linked_service_cosmosdb_mongoapi" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceCosmosDBMongoAPIResource) update2(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceCosmosdbMongoapiResource) update2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

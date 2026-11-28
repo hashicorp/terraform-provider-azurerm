@@ -40,7 +40,7 @@ func resourceApiConnectionCreate(d *schema.ResourceData, meta any) error {
 
 	managedAppId, err := managedapis.ParseManagedApiID(d.Get("managed_api_id").(string))
 	if err != nil {
-		return fmt.Errorf("parsing `managed_app_id`: %+v", err)
+		return err
 	}
 	location := location.Normalize(managedAppId.LocationName)
 	model := connections.ApiConnectionDefinition{

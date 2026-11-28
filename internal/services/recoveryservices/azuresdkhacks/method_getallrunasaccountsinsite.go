@@ -40,7 +40,7 @@ func (c RunAsAccountsClient) GetAllRunAsAccountsInSite(ctx context.Context, id r
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
-		Path:       fmt.Sprintf("%s/runAsAccounts", id.ID()),
+		Path:       id.ID() + "/runAsAccounts",
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

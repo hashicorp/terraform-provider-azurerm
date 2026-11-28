@@ -5,6 +5,7 @@ package cdn_endpoint_custom_domain
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 
@@ -13,8 +14,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/customdomains"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/endpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/customdomains"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/endpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	keyvaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -103,26 +104,26 @@ func flattenArmCdnEndpointCustomDomainCdnManagedHttpsSettings(input cdn.ManagedH
 func flattenArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx context.Context, input cdn.UserManagedHTTPSParameters, keyVaultsClient *keyvaultClient.Client, isVersioned bool) ([]any, error) {
 	params := input.CertificateSourceParameters
 	if params == nil {
-		return nil, fmt.Errorf("unexpected nil Certificate Source Parameters from API")
+		return nil, errors.New("unexpected nil Certificate Source Parameters from API")
 	}
 
 	if params.SubscriptionID == nil {
-		return nil, fmt.Errorf("unexpected nil `subscriptionId` in the Certificate Source Parameters from API")
+		return nil, errors.New("unexpected nil `subscriptionId` in the Certificate Source Parameters from API")
 	}
 	subscriptionId := *params.SubscriptionID
 
 	if params.ResourceGroupName == nil {
-		return nil, fmt.Errorf("unexpected nil `resourceGroupName` in the Certificate Source Parameters from API")
+		return nil, errors.New("unexpected nil `resourceGroupName` in the Certificate Source Parameters from API")
 	}
 	resourceGroupName := *params.ResourceGroupName
 
 	if params.VaultName == nil {
-		return nil, fmt.Errorf("unexpected nil `vaultName` in the Certificate Source Parameters from API")
+		return nil, errors.New("unexpected nil `vaultName` in the Certificate Source Parameters from API")
 	}
 	vaultName := *params.VaultName
 
 	if params.SecretName == nil {
-		return nil, fmt.Errorf("unexpected nil `secretName` in the Certificate Source Parameters from API")
+		return nil, errors.New("unexpected nil `secretName` in the Certificate Source Parameters from API")
 	}
 	secretName := *params.SecretName
 

@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type LinkedServiceSearchResource struct{}
+type DataFactoryLinkedServiceAzureSearchResource struct{}
 
 func TestAccDataFactoryLinkedServiceAzureSearch_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_search", "test")
-	r := LinkedServiceSearchResource{}
+	r := DataFactoryLinkedServiceAzureSearchResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccDataFactoryLinkedServiceAzureSearch_regressionTest(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceAzureSearch_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_search", "test")
-	r := LinkedServiceSearchResource{}
+	r := DataFactoryLinkedServiceAzureSearchResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -47,7 +47,7 @@ func TestAccDataFactoryLinkedServiceAzureSearch_basic(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceAzureSearch_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_search", "test")
-	r := LinkedServiceSearchResource{}
+	r := DataFactoryLinkedServiceAzureSearchResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -62,7 +62,7 @@ func TestAccDataFactoryLinkedServiceAzureSearch_requiresImport(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceAzureSearch_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_search", "test")
-	r := LinkedServiceSearchResource{}
+	r := DataFactoryLinkedServiceAzureSearchResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -77,7 +77,7 @@ func TestAccDataFactoryLinkedServiceAzureSearch_complete(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceAzureSearch_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_search", "test")
-	r := LinkedServiceSearchResource{}
+	r := DataFactoryLinkedServiceAzureSearchResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -104,7 +104,7 @@ func TestAccDataFactoryLinkedServiceAzureSearch_update(t *testing.T) {
 	})
 }
 
-func (t LinkedServiceSearchResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t DataFactoryLinkedServiceAzureSearchResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.LinkedServiceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -118,7 +118,7 @@ func (t LinkedServiceSearchResource) Exists(ctx context.Context, clients *client
 	return pointer.To(resp.ID != nil), nil
 }
 
-func (r LinkedServiceSearchResource) basic(data acceptance.TestData) string {
+func (r DataFactoryLinkedServiceAzureSearchResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -131,7 +131,7 @@ resource "azurerm_data_factory_linked_service_azure_search" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LinkedServiceSearchResource) requiresImport(data acceptance.TestData) string {
+func (r DataFactoryLinkedServiceAzureSearchResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -144,7 +144,7 @@ resource "azurerm_data_factory_linked_service_azure_search" "import" {
 `, r.basic(data))
 }
 
-func (r LinkedServiceSearchResource) complete(data acceptance.TestData) string {
+func (r DataFactoryLinkedServiceAzureSearchResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -170,7 +170,7 @@ resource "azurerm_data_factory_linked_service_azure_search" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (LinkedServiceSearchResource) template(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceAzureSearchResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

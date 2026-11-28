@@ -49,7 +49,7 @@ func resourceApplicationInsightsWebTestsCreate(d *pluginsdk.ResourceData, meta a
 	// user-supplied tags map before sending the request. It is generally undocumented but can be seen in
 	// https://learn.microsoft.com/azure/azure-monitor/app/availability?tabs=standard
 	t := d.Get("tags").(map[string]any)
-	tagKey := fmt.Sprintf("hidden-link:%s", appInsightsId.ID())
+	tagKey := "hidden-link:" + appInsightsId.ID()
 	t[tagKey] = "Resource"
 
 	webTest := webtestsapis.WebTest{

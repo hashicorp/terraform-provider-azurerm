@@ -4,6 +4,7 @@
 package data
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -41,7 +42,7 @@ func newTerraformNodeData(fs afero.Fs, providerDir string, service Service, name
 
 	result := TerraformNodeData{
 		Name:         name,
-		ShortName:    strings.TrimPrefix(name, fmt.Sprintf("%s_", providerName)),
+		ShortName:    strings.TrimPrefix(name, providerName+"_"),
 		ProviderName: providerName,
 		Service:      service,
 		Type:         resourceType,
@@ -50,7 +51,7 @@ func newTerraformNodeData(fs afero.Fs, providerDir string, service Service, name
 
 	// skip if generated resource
 	if util.FileExists(fs, expectedResourceCodePath(fs, resourceFileGenPathPattern, result.ShortName, service, resourceType)) {
-		return nil, fmt.Errorf("skipping generated resource") // TODO debug msg, no error?
+		return nil, errors.New("skipping generated resource") // TODO debug msg, no error?
 	}
 
 	result.Document = markdown.NewDocument(expectedDocumentationPath(providerDir, result.ShortName, result.Type))

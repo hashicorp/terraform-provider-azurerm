@@ -4,6 +4,7 @@
 package orchestrated_virtual_machine_scale_set
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strconv"
@@ -89,7 +90,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 			if !pluginsdk.IsExplicitlyNullInConfig(d, "single_placement_group") {
 				singlePlacementGroup := d.Get("single_placement_group").(bool)
 				if singlePlacementGroup {
-					return fmt.Errorf("`single_placement_group` cannot be changed from `false` to `true`")
+					return errors.New("`single_placement_group` cannot be changed from `false` to `true`")
 				}
 				updateProps.SinglePlacementGroup = pointer.To(singlePlacementGroup)
 			}
@@ -378,7 +379,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 				}
 
 				if !hasHealthExtension {
-					return fmt.Errorf("`automatic_instance_repair` can only be enabled when an application health extension is configured")
+					return errors.New("`automatic_instance_repair` can only be enabled when an application health extension is configured")
 				}
 			}
 			updateProps.AutomaticRepairsPolicy = automaticRepairsPolicy
@@ -435,7 +436,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 			}
 
 			if isHotpatchEnabledImage && !hasHealthExtension {
-				return fmt.Errorf("when using a hotpatching enabled image, an application health extension must be configured")
+				return errors.New("when using a hotpatching enabled image, an application health extension must be configured")
 			}
 
 			if linuxAutomaticVMGuestPatchingEnabled && !hasHealthExtension {

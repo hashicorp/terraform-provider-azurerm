@@ -76,7 +76,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 				model.Tags = make(map[string]string)
 			}
 			t := model.Tags
-			t[fmt.Sprintf("hidden-link:%s", appInsightsId.ID())] = "Resource"
+			t["hidden-link:"+appInsightsId.ID()] = "Resource"
 			existing.Model.Tags = pointer.To(t)
 
 			if _, err := client.WebTestsCreateOrUpdate(ctx, *id, *existing.Model); err != nil {

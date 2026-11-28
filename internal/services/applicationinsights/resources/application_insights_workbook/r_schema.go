@@ -13,9 +13,10 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of this Workbook as a UUID/GUID. It should not contain any uppercase letters.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.All(
 				validation.IsUUID,
 				validate.StringDoesNotContainUpperCaseLetter,
@@ -27,12 +28,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"display_name": {
+			Description:  "The user-defined name (display name) of the workbook.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"data_json": {
+			Description:      "Configuration of this particular workbook. Configuration data is a string containing valid JSON.",
 			Type:             pluginsdk.TypeString,
 			Required:         true,
 			ValidateFunc:     validation.StringIsJSON,
@@ -40,6 +43,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"source_id": {
+			Description:  "Resource ID for a source resource. It should not contain any uppercase letters.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      "azure monitor",
@@ -47,6 +51,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"category": {
+			Description:  "Workbook category, as defined by the user at creation time. There may be additional category types beyond the following: `workbook`, `sentinel`.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      "workbook",
@@ -54,6 +59,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"description": {
+			Description:  "The description of the workbook.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -62,6 +68,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptionalForceNew(),
 
 		"storage_container_id": {
+			Description:  "The Resource Manager ID of the Storage Container when bring your own storage is used.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -72,6 +79,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"tags": {
+			Description:  "A mapping of tags which should be assigned to the Workbook.",
 			Type:         pluginsdk.TypeMap,
 			Optional:     true,
 			ValidateFunc: validate.WorkbookTags,

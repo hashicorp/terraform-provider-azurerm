@@ -6,6 +6,7 @@ package windows_virtual_machine_scale_set_test
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
@@ -32,7 +33,7 @@ func (r WindowsVirtualMachineScaleSetResource) Exists(ctx context.Context, clien
 
 func (WindowsVirtualMachineScaleSetResource) vmName(data acceptance.TestData) string {
 	// windows VM names can be up to 15 chars, however the prefix can only be 9 chars
-	return fmt.Sprintf("acctvm%s", fmt.Sprintf("%d", data.RandomInteger)[0:2])
+	return "acctvm" + strconv.Itoa(data.RandomInteger)[0:2]
 }
 
 func (r WindowsVirtualMachineScaleSetResource) template(data acceptance.TestData) string {

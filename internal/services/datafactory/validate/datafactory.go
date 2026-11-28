@@ -5,7 +5,7 @@ package validate
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"regexp"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -13,11 +13,11 @@ import (
 )
 
 func DataFactoryPipelineAndTriggerName() pluginsdk.SchemaValidateFunc {
-	return validation.StringMatch(regexp.MustCompile(`^[A-Za-z0-9_][^<>*#.%&:\\+?/]*$`), "invalid name, see https://docs.microsoft.com/azure/data-factory/naming-rules")
+	return validation.StringMatch(regexp.MustCompile(`^[A-Za-z0-9_][^<>*#.%&:\\+?/]*$`), "invalid name, see https://learn.microsoft.com/azure/data-factory/naming-rules")
 }
 
 func DataFactoryName() pluginsdk.SchemaValidateFunc {
-	return validation.StringMatch(regexp.MustCompile(`^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$`), "invalid data_factory_name, see https://docs.microsoft.com/azure/data-factory/naming-rules")
+	return validation.StringMatch(regexp.MustCompile(`^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$`), "invalid data_factory_name, see https://learn.microsoft.com/azure/data-factory/naming-rules")
 }
 
 func DataFactoryManagedPrivateEndpointName() pluginsdk.SchemaValidateFunc {
@@ -32,7 +32,7 @@ func CMKIdentityIdRequiredAtCreation(ctx context.Context, d *pluginsdk.ResourceD
 		rawCMKIdentity := rawConfig["customer_managed_key_identity_id"]
 
 		if !rawCMK.IsNull() && rawCMKIdentity.IsNull() {
-			return fmt.Errorf("`customer_managed_key_identity_id` is required when creating a new Data Factory with `customer_managed_key_id`")
+			return errors.New("`customer_managed_key_identity_id` is required when creating a new Data Factory with `customer_managed_key_id`")
 		}
 	}
 	return nil

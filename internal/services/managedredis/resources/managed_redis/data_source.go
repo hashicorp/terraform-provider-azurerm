@@ -60,6 +60,7 @@ type DefaultDatabaseDataSourceModel struct {
 func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Managed Redis instance.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.ManagedRedisClusterName,
@@ -77,13 +78,15 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"key_vault_key_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The ID of the Key Vault Key used for encryption.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"user_assigned_identity_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The ID of the User Assigned Identity that has access to the Key Vault Key.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},
@@ -95,38 +98,45 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The ID of the Managed Redis Database Instance.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"access_keys_authentication_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Computed: true,
+						Description: "Whether access key authentication is enabled for the database.",
+						Type:        pluginsdk.TypeBool,
+						Computed:    true,
 					},
 
 					"client_protocol": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The client protocol used by the database (either `Encrypted` or `Plaintext`).",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"clustering_policy": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The clustering policy used by the database.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"eviction_policy": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The Redis eviction policy used by the database.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"geo_replication_group_name": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The name of the geo-replication group.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"geo_replication_linked_database_ids": {
-						Type:     pluginsdk.TypeSet,
-						Computed: true,
+						Description: "A list of linked database IDs for geo-replication.",
+						Type:        pluginsdk.TypeSet,
+						Computed:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
@@ -138,61 +148,71 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The name of the Redis module.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 
 								"args": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The configuration options for the module.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 
 								"version": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The version of the module.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 							},
 						},
 					},
 
 					"persistence_append_only_file_backup_frequency": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The frequency of Append Only File (AOF) backups.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"persistence_redis_database_backup_frequency": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The frequency of Redis Database (RDB) backups.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"port": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "The TCP port of the database endpoint.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 
 					"primary_access_key": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
+						Description: "The Primary Access Key for the Managed Redis Database instance.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
+						Sensitive:   true,
 					},
 
 					"secondary_access_key": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
+						Description: "The Secondary Access Key for the Managed Redis Database instance.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
+						Sensitive:   true,
 					},
 				},
 			},
 		},
 
 		"high_availability_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether high availability is enabled for the Managed Redis instance.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"hostname": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The DNS hostname of the Managed Redis instance.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
@@ -200,13 +220,15 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"location": commonschema.LocationComputed(),
 
 		"public_network_access": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The public network access setting for the Managed Redis instance.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"sku_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The SKU name of the Managed Redis instance.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"tags": commonschema.TagsDataSource(),
@@ -219,6 +241,10 @@ func (r DataSource) ModelObject() any {
 
 func (r DataSource) ResourceType() string {
 	return "azurerm_managed_redis"
+}
+
+func (r DataSource) Description() string {
+	return "Use this data source to access information about an existing Managed Redis instance."
 }
 
 func (r DataSource) Read() sdk.ResourceFunc {
@@ -277,7 +303,7 @@ func (r DataSource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					databaseId, err := redisenterprise.ParseDatabaseID(pointer.From(model.Id))
 					if err != nil {
-						return fmt.Errorf("parsing Managed Redis Database ID %q: %+v", pointer.From(model.Id), err)
+						return err
 					}
 
 					defaultDb := DefaultDatabaseDataSourceModel{

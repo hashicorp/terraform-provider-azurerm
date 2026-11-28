@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type LinkedServiceCosmosDBResource struct{}
+type DataFactoryLinkedServiceCosmosdbResource struct{}
 
 func TestAccDataFactoryLinkedServiceCosmosDb_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_cosmosdb", "test")
-	r := LinkedServiceCosmosDBResource{}
+	r := DataFactoryLinkedServiceCosmosdbResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccDataFactoryLinkedServiceCosmosDb_regressionTest(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceCosmosDb_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_cosmosdb", "test")
-	r := LinkedServiceCosmosDBResource{}
+	r := DataFactoryLinkedServiceCosmosdbResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,7 +46,7 @@ func TestAccDataFactoryLinkedServiceCosmosDb_basic(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceCosmosDb_accountkey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_cosmosdb", "test")
-	r := LinkedServiceCosmosDBResource{}
+	r := DataFactoryLinkedServiceCosmosdbResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -61,7 +61,7 @@ func TestAccDataFactoryLinkedServiceCosmosDb_accountkey(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceCosmosDb_accountkey_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_cosmosdb", "test")
-	r := LinkedServiceCosmosDBResource{}
+	r := DataFactoryLinkedServiceCosmosdbResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -85,7 +85,7 @@ func TestAccDataFactoryLinkedServiceCosmosDb_accountkey_update(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceCosmosDb_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_cosmosdb", "test")
-	r := LinkedServiceCosmosDBResource{}
+	r := DataFactoryLinkedServiceCosmosdbResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -113,7 +113,7 @@ func TestAccDataFactoryLinkedServiceCosmosDb_update(t *testing.T) {
 	})
 }
 
-func (t LinkedServiceCosmosDBResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t DataFactoryLinkedServiceCosmosdbResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.LinkedServiceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -127,7 +127,7 @@ func (t LinkedServiceCosmosDBResource) Exists(ctx context.Context, clients *clie
 	return pointer.To(resp.ID != nil), nil
 }
 
-func (LinkedServiceCosmosDBResource) basic(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceCosmosdbResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -152,7 +152,7 @@ resource "azurerm_data_factory_linked_service_cosmosdb" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceCosmosDBResource) accountkey(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceCosmosdbResource) accountkey(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -179,7 +179,7 @@ resource "azurerm_data_factory_linked_service_cosmosdb" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceCosmosDBResource) accountkey_update1(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceCosmosdbResource) accountkey_update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -206,7 +206,7 @@ resource "azurerm_data_factory_linked_service_cosmosdb" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceCosmosDBResource) update1(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceCosmosdbResource) update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -243,7 +243,7 @@ resource "azurerm_data_factory_linked_service_cosmosdb" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceCosmosDBResource) update2(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceCosmosdbResource) update2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -31,7 +31,7 @@ func resourceLogAnalyticsClusterCustomerManagedKeyUpdate(d *pluginsdk.ResourceDa
 
 	keyId, err := keyvault.ParseNestedItemID(d.Get("key_vault_key_id").(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
 	if err != nil {
-		return fmt.Errorf("parsing Key Vault Key ID: %+v", err)
+		return err
 	}
 
 	resp, err := client.Get(ctx, *id)

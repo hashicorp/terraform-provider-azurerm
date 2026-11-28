@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type LinkedServiceMySQLResource struct{}
+type DataFactoryLinkedServiceMysqlResource struct{}
 
 func TestAccDataFactoryLinkedServiceMySQL_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_mysql", "test")
-	r := LinkedServiceMySQLResource{}
+	r := DataFactoryLinkedServiceMysqlResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -32,7 +32,7 @@ func TestAccDataFactoryLinkedServiceMySQL_regressionTest(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceMySQL_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_mysql", "test")
-	r := LinkedServiceMySQLResource{}
+	r := DataFactoryLinkedServiceMysqlResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -47,7 +47,7 @@ func TestAccDataFactoryLinkedServiceMySQL_basic(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceMySQL_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_mysql", "test")
-	r := LinkedServiceMySQLResource{}
+	r := DataFactoryLinkedServiceMysqlResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -69,7 +69,7 @@ func TestAccDataFactoryLinkedServiceMySQL_update(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceMySQL_driverVersionV1NotSupportedForNewResources(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_mysql", "test")
-	r := LinkedServiceMySQLResource{}
+	r := DataFactoryLinkedServiceMysqlResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -79,7 +79,7 @@ func TestAccDataFactoryLinkedServiceMySQL_driverVersionV1NotSupportedForNewResou
 	})
 }
 
-func (t LinkedServiceMySQLResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t DataFactoryLinkedServiceMysqlResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.LinkedServiceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -93,7 +93,7 @@ func (t LinkedServiceMySQLResource) Exists(ctx context.Context, clients *clients
 	return pointer.To(resp.ID != nil), nil
 }
 
-func (LinkedServiceMySQLResource) basic(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceMysqlResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -119,7 +119,7 @@ resource "azurerm_data_factory_linked_service_mysql" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceMySQLResource) update1(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceMysqlResource) update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -157,7 +157,7 @@ resource "azurerm_data_factory_linked_service_mysql" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceMySQLResource) update2(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceMysqlResource) update2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -194,7 +194,7 @@ resource "azurerm_data_factory_linked_service_mysql" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceMySQLResource) withDriverVersionV1(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceMysqlResource) withDriverVersionV1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

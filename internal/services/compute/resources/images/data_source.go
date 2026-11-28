@@ -4,8 +4,10 @@
 package images
 
 import (
+	"errors"
 	"fmt"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -29,7 +31,8 @@ type Output struct {
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceImagesRead,
+		Description: "Use this data source to access information about existing Images within a Resource Group.",
+		Read:        dataSourceImagesRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -46,15 +49,17 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of the Image.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"location": commonschema.LocationComputed(),
 
 						"zone_resilient": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Whether zone resiliency is enabled.",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 
 						"os_disk": {
@@ -63,33 +68,40 @@ func RegisterDataSource() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"blob_uri": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The URI in Azure storage of the blob used to create the image.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 									"caching": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The caching mode for the OS Disk.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 									"managed_disk_id": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The ID of the Managed Disk used as the OS Disk Image.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 									"os_state": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The State of the OS used in the Image.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 									"os_type": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The type of Operating System used on the OS Disk.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 									"size_gb": {
-										Type:     pluginsdk.TypeInt,
-										Computed: true,
+										Description: "The size of the OS Disk in GB.",
+										Type:        pluginsdk.TypeInt,
+										Computed:    true,
 									},
 
 									"disk_encryption_set_id": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The ID of the Disk Encryption Set used to encrypt this image.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 								},
 							},
@@ -101,24 +113,29 @@ func RegisterDataSource() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"blob_uri": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The URI in Azure storage of the blob used to create the image.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 									"caching": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The caching mode for the Data Disk.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 									"lun": {
-										Type:     pluginsdk.TypeInt,
-										Computed: true,
+										Description: "The logical unit number of the data disk.",
+										Type:        pluginsdk.TypeInt,
+										Computed:    true,
 									},
 									"managed_disk_id": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The ID of the Managed Disk used as the Data Disk Image.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 									"size_gb": {
-										Type:     pluginsdk.TypeInt,
-										Computed: true,
+										Description: "The size of this Data Disk in GB.",
+										Type:        pluginsdk.TypeInt,
+										Computed:    true,
 									},
 								},
 							},
@@ -151,7 +168,7 @@ func dataSourceImagesRead(d *pluginsdk.ResourceData, meta any) error {
 		virtualMachineImages = filterToImagesMatchingTags(virtualMachineImages, *filterTags)
 	}
 	if len(virtualMachineImages) == 0 {
-		return fmt.Errorf("no images were found that match the specified tags")
+		return errors.New("no images were found that match the specified tags")
 	}
 	if err := d.Set("images", flattenImages(virtualMachineImages)); err != nil {
 		return fmt.Errorf("setting `images`: %+v", err)
@@ -165,22 +182,26 @@ func dataSourceImagesRead(d *pluginsdk.ResourceData, meta any) error {
 }
 
 func resourceIdForImagesDataSource(resourceGroupId commonids.ResourceGroupId, filterTags map[string]string) string {
-	tagsId := ""
 	tagKeys := make([]string, 0)
 	for key := range filterTags {
 		tagKeys = append(tagKeys, key)
 	}
 	sort.Strings(tagKeys)
+
+	var tagsIdBuilder strings.Builder
 	for _, key := range tagKeys {
 		value := ""
 		if v, ok := filterTags[key]; ok {
 			value = v
 		}
-		tagsId += fmt.Sprintf("[%s:%s]", key, value)
+		fmt.Fprintf(&tagsIdBuilder, "[%s:%s]", key, value)
 	}
+
+	tagsId := tagsIdBuilder.String()
 	if tagsId == "" {
 		tagsId = "[]"
 	}
+
 	return fmt.Sprintf("resourceGroups/%s/tags/%s/images", resourceGroupId.ResourceGroupName, tagsId)
 }
 

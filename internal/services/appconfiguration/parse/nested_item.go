@@ -4,6 +4,7 @@
 package parse
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -40,9 +41,9 @@ func (id NestedItemId) ID() string {
 	u := &url.URL{
 		Scheme:   baseURL.Scheme,
 		Host:     baseURL.Host,
-		Path:     fmt.Sprintf("kv/%s", id.Key),
-		RawPath:  fmt.Sprintf("kv/%s", url.PathEscape(id.Key)),
-		RawQuery: fmt.Sprintf("label=%s", url.QueryEscape(id.Label)),
+		Path:     "kv/" + id.Key,
+		RawPath:  "kv/" + url.PathEscape(id.Key),
+		RawQuery: "label=" + url.QueryEscape(id.Label),
 	}
 
 	return u.String()
@@ -54,7 +55,7 @@ func (id NestedItemId) String() string {
 		fmt.Sprintf("Key %q", id.Key),
 		fmt.Sprintf("Label %q", id.Label),
 	}
-	return fmt.Sprintf("AppConfiguration Nested Item %s", strings.Join(components, " / "))
+	return "AppConfiguration Nested Item " + strings.Join(components, " / ")
 }
 
 // ParseNestedItemID parses an App Configuration Nested Item ID (such as a Key or Feature)
@@ -95,7 +96,7 @@ func ParseNestedItemID(input string) (*NestedItemId, error) {
 	}
 
 	if label == "" && !strings.HasSuffix(input, "label=") {
-		return nil, fmt.Errorf("only 'label=' is accepted for empty label in Azure App Configuration Nested Item URL query")
+		return nil, errors.New("only 'label=' is accepted for empty label in Azure App Configuration Nested Item URL query")
 	}
 
 	childId := NestedItemId{

@@ -28,7 +28,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			workspaceId, err := workspaces.ParseWorkspaceID(model.WorkspaceId)
 			if err != nil {
-				return fmt.Errorf("invalid workspace object ID for table %s: %s", tableName, err)
+				return err
 			}
 
 			// TODO: Import check

@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ComputeClusterResource struct{}
+type MachineLearningComputeClusterResource struct{}
 
 func TestAccComputeCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_compute_cluster", "test")
-	r := ComputeClusterResource{}
+	r := MachineLearningComputeClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -44,7 +44,7 @@ func TestAccComputeCluster_basic(t *testing.T) {
 
 func TestAccComputeCluster_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_compute_cluster", "test")
-	r := ComputeClusterResource{}
+	r := MachineLearningComputeClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -67,7 +67,7 @@ func TestAccComputeCluster_complete(t *testing.T) {
 
 func TestAccComputeCluster_subnetResourceId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_compute_cluster", "test")
-	r := ComputeClusterResource{}
+	r := MachineLearningComputeClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -82,7 +82,7 @@ func TestAccComputeCluster_subnetResourceId(t *testing.T) {
 
 func TestAccComputeCluster_recreateVmSize(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_compute_cluster", "test")
-	r := ComputeClusterResource{}
+	r := MachineLearningComputeClusterResource{}
 
 	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
@@ -104,7 +104,7 @@ func TestAccComputeCluster_recreateVmSize(t *testing.T) {
 
 func TestAccComputeCluster_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_compute_cluster", "test")
-	r := ComputeClusterResource{}
+	r := MachineLearningComputeClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -127,7 +127,7 @@ func TestAccComputeCluster_requiresImport(t *testing.T) {
 
 func TestAccComputeCluster_identity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_compute_cluster", "test")
-	r := ComputeClusterResource{}
+	r := MachineLearningComputeClusterResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -167,7 +167,7 @@ func TestAccComputeCluster_identity(t *testing.T) {
 
 func TestAccComputeCluster_basicUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_compute_cluster", "test")
-	r := ComputeClusterResource{}
+	r := MachineLearningComputeClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -205,7 +205,7 @@ func TestAccComputeCluster_basicUpdate(t *testing.T) {
 	})
 }
 
-func (r ComputeClusterResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r MachineLearningComputeClusterResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	computeClusterClient := client.MachineLearning.MachineLearningComputes
 	id, err := machinelearningcomputes.ParseComputeID(state.ID)
 	if err != nil {
@@ -222,7 +222,7 @@ func (r ComputeClusterResource) Exists(ctx context.Context, client *clients.Clie
 	return pointer.To(computeResource.Model.Properties != nil), nil
 }
 
-func (r ComputeClusterResource) basic(data acceptance.TestData) string {
+func (r MachineLearningComputeClusterResource) basic(data acceptance.TestData) string {
 	template := r.template_basic(data)
 	return fmt.Sprintf(`
 %s
@@ -247,7 +247,7 @@ resource "azurerm_machine_learning_compute_cluster" "test" {
 `, template, data.RandomIntOfLength(8))
 }
 
-func (r ComputeClusterResource) basicUpdate(data acceptance.TestData) string {
+func (r MachineLearningComputeClusterResource) basicUpdate(data acceptance.TestData) string {
 	template := r.template_basic(data)
 	return fmt.Sprintf(`
 %s
@@ -274,7 +274,7 @@ resource "azurerm_machine_learning_compute_cluster" "test" {
 `, template, data.RandomIntOfLength(8))
 }
 
-func (r ComputeClusterResource) complete(data acceptance.TestData) string {
+func (r MachineLearningComputeClusterResource) complete(data acceptance.TestData) string {
 	template := r.template_complete(data)
 	return fmt.Sprintf(`
 %s
@@ -317,7 +317,7 @@ resource "azurerm_machine_learning_compute_cluster" "test" {
 `, template, data.RandomIntOfLength(8))
 }
 
-func (r ComputeClusterResource) noSubnetResourceId(data acceptance.TestData) string {
+func (r MachineLearningComputeClusterResource) noSubnetResourceId(data acceptance.TestData) string {
 	template := r.template_complete(data)
 	return fmt.Sprintf(`
 %s
@@ -359,7 +359,7 @@ resource "azurerm_machine_learning_compute_cluster" "test" {
 `, template, data.RandomIntOfLength(8))
 }
 
-func (r ComputeClusterResource) recreateVmSize(data acceptance.TestData) string {
+func (r MachineLearningComputeClusterResource) recreateVmSize(data acceptance.TestData) string {
 	template := r.template_basic(data)
 	return fmt.Sprintf(`
 %s
@@ -385,7 +385,7 @@ resource "azurerm_machine_learning_compute_cluster" "test" {
 `, template, data.RandomIntOfLength(8))
 }
 
-func (r ComputeClusterResource) requiresImport(data acceptance.TestData) string {
+func (r MachineLearningComputeClusterResource) requiresImport(data acceptance.TestData) string {
 	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -410,7 +410,7 @@ resource "azurerm_machine_learning_compute_cluster" "import" {
 `, template)
 }
 
-func (r ComputeClusterResource) identitySystemAssigned(data acceptance.TestData) string {
+func (r MachineLearningComputeClusterResource) identitySystemAssigned(data acceptance.TestData) string {
 	template := r.template_basic(data)
 	return fmt.Sprintf(`
 %s
@@ -432,7 +432,7 @@ resource "azurerm_machine_learning_compute_cluster" "test" {
 `, template, data.RandomIntOfLength(8))
 }
 
-func (r ComputeClusterResource) identityUserAssigned(data acceptance.TestData) string {
+func (r MachineLearningComputeClusterResource) identityUserAssigned(data acceptance.TestData) string {
 	template := r.template_basic(data)
 	return fmt.Sprintf(`
 %s
@@ -463,7 +463,7 @@ resource "azurerm_machine_learning_compute_cluster" "test" {
 `, template, data.RandomInteger, data.RandomIntOfLength(8))
 }
 
-func (r ComputeClusterResource) identitySystemAssignedUserAssigned(data acceptance.TestData) string {
+func (r MachineLearningComputeClusterResource) identitySystemAssignedUserAssigned(data acceptance.TestData) string {
 	template := r.template_basic(data)
 	return fmt.Sprintf(`
 %s
@@ -497,7 +497,7 @@ resource "azurerm_machine_learning_compute_cluster" "test" {
 `, template, data.RandomInteger, data.RandomIntOfLength(8))
 }
 
-func (r ComputeClusterResource) template_basic(data acceptance.TestData) string {
+func (r MachineLearningComputeClusterResource) template_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -560,7 +560,7 @@ resource "azurerm_machine_learning_workspace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomIntOfLength(16))
 }
 
-func (r ComputeClusterResource) template_complete(data acceptance.TestData) string {
+func (r MachineLearningComputeClusterResource) template_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {

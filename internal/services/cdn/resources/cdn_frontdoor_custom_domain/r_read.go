@@ -9,8 +9,8 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afddomains"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/profiles"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/afddomains"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/profiles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -160,15 +160,15 @@ func frontDoorCustomDomainTlsCustomizeDiff(_ context.Context, diff *pluginsdk.Re
 
 	if !rawConfig.IsNull() {
 		tlsConfig := rawConfig.GetAttr("tls")
-		if !tlsConfig.IsNull() && tlsConfig.LengthInt() > 0 {
+		if !tlsConfig.IsNull() && tlsConfig.IsKnown() && tlsConfig.LengthInt() > 0 {
 			tlsBlock := tlsConfig.AsValueSlice()[0]
 			if !tlsBlock.IsNull() {
 				cipherConfig := tlsBlock.GetAttr("cipher_suite")
-				if !cipherConfig.IsNull() && cipherConfig.LengthInt() > 0 {
+				if !cipherConfig.IsNull() && cipherConfig.IsKnown() && cipherConfig.LengthInt() > 0 {
 					cipherBlock := cipherConfig.AsValueSlice()[0]
 					if !cipherBlock.IsNull() {
 						customCiphersConfig := cipherBlock.GetAttr("custom_ciphers")
-						if !customCiphersConfig.IsNull() && customCiphersConfig.LengthInt() > 0 {
+						if !customCiphersConfig.IsNull() && customCiphersConfig.IsKnown() && customCiphersConfig.LengthInt() > 0 {
 							customCiphersBlock := customCiphersConfig.AsValueSlice()[0]
 							if !customCiphersBlock.IsNull() {
 								tls13Config := customCiphersBlock.GetAttr("tls13")

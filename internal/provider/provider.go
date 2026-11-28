@@ -5,6 +5,7 @@ package provider
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"regexp"
@@ -113,17 +114,17 @@ func azureProvider(supportLegacyTestSuite bool, testName string) *schema.Provide
 	p := &schema.Provider{
 		Schema: map[string]*schema.Schema{
 			"subscription_id": {
+				Description: "The Subscription ID which should be used.",
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_SUBSCRIPTION_ID", nil),
-				Description: "The Subscription ID which should be used.",
 			},
 
 			"tenant_id": {
+				Description: "The Tenant ID which should be used.",
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_TENANT_ID", nil),
-				Description: "The Tenant ID which should be used.",
 			},
 
 			"auxiliary_tenant_ids": {
@@ -136,183 +137,183 @@ func azureProvider(supportLegacyTestSuite bool, testName string) *schema.Provide
 			},
 
 			"environment": {
+				Description: "The Cloud Environment which should be used. Possible values are public, usgovernment, and china. Defaults to public. Not used and should not be specified when `metadata_host` is specified.", // azignore:AZS014 - the default is set by DefaultFunc
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_ENVIRONMENT", "public"),
-				Description: "The Cloud Environment which should be used. Possible values are public, usgovernment, and china. Defaults to public. Not used and should not be specified when `metadata_host` is specified.",
 			},
 
 			"metadata_host": {
+				Description: "The Hostname which should be used for the Azure Metadata Service.",
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_METADATA_HOSTNAME", nil),
-				Description: "The Hostname which should be used for the Azure Metadata Service.",
 			},
 
 			"client_id": {
+				Description: "The Client ID which should be used.",
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_ID", nil),
-				Description: "The Client ID which should be used.",
 			},
 
 			"client_id_file_path": {
+				Description: "The path to a file containing the Client ID which should be used.",
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_ID_FILE_PATH", nil),
-				Description: "The path to a file containing the Client ID which should be used.",
 			},
 
 			// Client Certificate specific fields
 			"client_certificate": {
+				Description: "Base64 encoded PKCS#12 certificate bundle to use when authenticating as a Service Principal using a Client Certificate.",
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_CERTIFICATE", nil),
-				Description: "Base64 encoded PKCS#12 certificate bundle to use when authenticating as a Service Principal using a Client Certificate",
 			},
 
 			"client_certificate_path": {
+				Description: "The path to the Client Certificate associated with the Service Principal for use when authenticating as a Service Principal using a Client Certificate.",
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_CERTIFICATE_PATH", nil),
-				Description: "The path to the Client Certificate associated with the Service Principal for use when authenticating as a Service Principal using a Client Certificate.",
 			},
 
 			"client_certificate_password": {
+				Description: "The password associated with the Client Certificate. For use when authenticating as a Service Principal using a Client Certificate.",
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_CERTIFICATE_PASSWORD", nil),
-				Description: "The password associated with the Client Certificate. For use when authenticating as a Service Principal using a Client Certificate",
 			},
 
 			// Client Secret specific fields
 			"client_secret": {
+				Description: "The Client Secret which should be used. For use When authenticating as a Service Principal using a Client Secret.",
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_SECRET", nil),
-				Description: "The Client Secret which should be used. For use When authenticating as a Service Principal using a Client Secret.",
 			},
 
 			"client_secret_file_path": {
+				Description: "The path to a file containing the Client Secret which should be used. For use When authenticating as a Service Principal using a Client Secret.",
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_SECRET_FILE_PATH", nil),
-				Description: "The path to a file containing the Client Secret which should be used. For use When authenticating as a Service Principal using a Client Secret.",
 			},
 
 			// OIDC specific fields
 			"use_oidc": {
+				Description: "Allow OpenID Connect to be used for authentication.",
 				Type:        schema.TypeBool,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_USE_OIDC", false),
-				Description: "Allow OpenID Connect to be used for authentication",
 			},
 
 			"ado_pipeline_service_connection_id": {
+				Description: "The Azure DevOps Pipeline Service Connection ID.",
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.MultiEnvDefaultFunc([]string{"ARM_ADO_PIPELINE_SERVICE_CONNECTION_ID", "ARM_OIDC_AZURE_SERVICE_CONNECTION_ID"}, nil),
-				Description: "The Azure DevOps Pipeline Service Connection ID.",
 			},
 
 			"oidc_request_token": {
+				Description: "The bearer token for the request to the OIDC provider. For use when authenticating as a Service Principal using OpenID Connect.",
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.MultiEnvDefaultFunc([]string{"ARM_OIDC_REQUEST_TOKEN", "ACTIONS_ID_TOKEN_REQUEST_TOKEN", "SYSTEM_ACCESSTOKEN"}, nil),
-				Description: "The bearer token for the request to the OIDC provider. For use when authenticating as a Service Principal using OpenID Connect.",
 			},
 
 			"oidc_request_url": {
+				Description: "The URL for the OIDC provider from which to request an ID token. For use when authenticating as a Service Principal using OpenID Connect.",
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.MultiEnvDefaultFunc([]string{"ARM_OIDC_REQUEST_URL", "ACTIONS_ID_TOKEN_REQUEST_URL", "SYSTEM_OIDCREQUESTURI"}, nil),
-				Description: "The URL for the OIDC provider from which to request an ID token. For use when authenticating as a Service Principal using OpenID Connect.",
 			},
 
 			"oidc_token": {
+				Description: "The OIDC ID token for use when authenticating as a Service Principal using OpenID Connect.",
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_OIDC_TOKEN", nil),
-				Description: "The OIDC ID token for use when authenticating as a Service Principal using OpenID Connect.",
 			},
 
 			"oidc_token_file_path": {
+				Description: "The path to a file containing an OIDC ID token for use when authenticating as a Service Principal using OpenID Connect.",
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_OIDC_TOKEN_FILE_PATH", nil),
-				Description: "The path to a file containing an OIDC ID token for use when authenticating as a Service Principal using OpenID Connect.",
 			},
 
 			// Managed Service Identity specific fields
 			"use_msi": {
+				Description: "Allow Managed Service Identity to be used for Authentication.",
 				Type:        schema.TypeBool,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_USE_MSI", false),
-				Description: "Allow Managed Service Identity to be used for Authentication.",
 			},
 
 			"msi_endpoint": {
+				Description: "The path to a custom endpoint for Managed Service Identity - in most circumstances this should be detected automatically.",
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_MSI_ENDPOINT", nil),
-				Description: "The path to a custom endpoint for Managed Service Identity - in most circumstances this should be detected automatically.",
 			},
 
 			"msi_api_version": {
+				Description: "The API version to use for Managed Service Identity (IMDS) - for cases where the default API version is not supported by the endpoint. e.g. for Azure Container Apps.",
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_MSI_API_VERSION", nil),
-				Description: "The API version to use for Managed Service Identity (IMDS) - for cases where the default API version is not supported by the endpoint. e.g. for Azure Container Apps.",
 			},
 
 			// Azure CLI specific fields
 			"use_cli": {
+				Description: "Allow Azure CLI to be used for Authentication.",
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_USE_CLI", true),
-				Description: "Allow Azure CLI to be used for Authentication.",
 			},
 
 			// Azure AKS Workload Identity fields
 			"use_aks_workload_identity": {
+				Description: "Allow Azure AKS Workload Identity to be used for Authentication.",
 				Type:        schema.TypeBool,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_USE_AKS_WORKLOAD_IDENTITY", false),
-				Description: "Allow Azure AKS Workload Identity to be used for Authentication.",
 			},
 
 			// Managed Tracking GUID for User-agent
 			"partner_id": {
+				Description:  "A GUID/UUID that is registered with Microsoft to facilitate partner resource usage attribution.",
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.Any(ValidatePartnerID, validation.StringIsEmpty),
 				DefaultFunc:  schema.EnvDefaultFunc("ARM_PARTNER_ID", nil),
-				Description:  "A GUID/UUID that is registered with Microsoft to facilitate partner resource usage attribution.",
+				ValidateFunc: validation.Any(ValidatePartnerID, validation.StringIsEmpty),
 			},
 
 			"disable_correlation_request_id": {
+				Description: "This will disable the x-ms-correlation-request-id header.",
 				Type:        schema.TypeBool,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_DISABLE_CORRELATION_REQUEST_ID", false),
-				Description: "This will disable the x-ms-correlation-request-id header.",
 			},
 
 			"disable_terraform_partner_id": {
+				Description: "This will disable the Terraform Partner ID which is used if a custom `partner_id` isn't specified.",
 				Type:        schema.TypeBool,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_DISABLE_TERRAFORM_PARTNER_ID", false),
-				Description: "This will disable the Terraform Partner ID which is used if a custom `partner_id` isn't specified.",
 			},
 
 			"features": schemaFeatures(supportLegacyTestSuite),
 
 			// Advanced feature flags
 			"resource_provider_registrations": {
+				Description: "The set of Resource Providers which should be automatically registered for the subscription.",
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_RESOURCE_PROVIDER_REGISTRATIONS", resourceproviders.ProviderRegistrationsNone),
-				Description: "The set of Resource Providers which should be automatically registered for the subscription.",
 				ValidateFunc: validation.StringInSlice([]string{
 					resourceproviders.ProviderRegistrationsCore,
 					resourceproviders.ProviderRegistrationsExtended,
@@ -323,9 +324,9 @@ func azureProvider(supportLegacyTestSuite bool, testName string) *schema.Provide
 			},
 
 			"resource_providers_to_register": {
+				Description: "A list of Resource Providers to explicitly register for the subscription, in addition to those specified by the `resource_provider_registrations` property.",
 				Type:        schema.TypeList,
 				Optional:    true,
-				Description: "A list of Resource Providers to explicitly register for the subscription, in addition to those specified by the `resource_provider_registrations` property.",
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
 					ValidateFunc: resourceproviders.EnhancedValidate,
@@ -333,10 +334,10 @@ func azureProvider(supportLegacyTestSuite bool, testName string) *schema.Provide
 			},
 
 			"storage_use_azuread": {
+				Description: "Whether the AzureRM Provider should use Azure AD Authentication when accessing the Storage Data Plane APIs.",
 				Type:        schema.TypeBool,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_STORAGE_USE_AZUREAD", false),
-				Description: "Should the AzureRM Provider use Azure AD Authentication when accessing the Storage Data Plane APIs?",
 			},
 		},
 
@@ -357,7 +358,7 @@ func providerConfigure(p *schema.Provider, testName string) schema.ConfigureCont
 		subscriptionId := d.Get("subscription_id").(string)
 		if subscriptionId == "" {
 			if !d.Get("use_cli").(bool) {
-				return nil, diag.FromErr(fmt.Errorf("`subscription_id` is a required provider property when performing a plan/apply operation"))
+				return nil, diag.FromErr(errors.New("`subscription_id` is a required provider property when performing a plan/apply operation"))
 			}
 		}
 
@@ -410,7 +411,7 @@ func providerConfigure(p *schema.Provider, testName string) schema.ConfigureCont
 
 		if metadataHost != "" {
 			logEntry("[DEBUG] Configuring cloud environment from Metadata Service at %q", metadataHost)
-			if env, err = environments.FromEndpoint(ctx, fmt.Sprintf("https://%s", metadataHost)); err != nil {
+			if env, err = environments.FromEndpoint(ctx, "https://"+metadataHost); err != nil {
 				return nil, diag.FromErr(err)
 			}
 		} else {

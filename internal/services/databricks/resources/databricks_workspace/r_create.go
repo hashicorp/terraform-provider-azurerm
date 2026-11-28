@@ -4,6 +4,7 @@
 package databricks_workspace
 
 import (
+	"errors"
 	"fmt"
 	"log"
 
@@ -78,7 +79,7 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta any) erro
 
 	if managedResourceGroupName == "" {
 		log.Printf("[DEBUG] no managed resource group name was provided, using the default pattern")
-		managedResourceGroupName = fmt.Sprintf("databricks-rg-%s", id.ResourceGroupName)
+		managedResourceGroupName = "databricks-rg-" + id.ResourceGroupName
 	}
 
 	publicNetworkAccess := workspaces.PublicNetworkAccessDisabled
@@ -96,16 +97,16 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta any) erro
 		vnetID := config["virtual_network_id"].(string)
 
 		if config["virtual_network_id"].(string) == "" && (pubSub != "" || priSub != "") {
-			return fmt.Errorf("`public_subnet_name` and/or `private_subnet_name` cannot be defined if `virtual_network_id` is not set")
+			return errors.New("`public_subnet_name` and/or `private_subnet_name` cannot be defined if `virtual_network_id` is not set")
 		}
 		if config["virtual_network_id"].(string) != "" && (pubSub == "" || priSub == "") {
-			return fmt.Errorf("`public_subnet_name` and `private_subnet_name` must both have values if `virtual_network_id` is set")
+			return errors.New("`public_subnet_name` and `private_subnet_name` must both have values if `virtual_network_id` is set")
 		}
 		if pubSub != "" && pubSubAssoc == nil {
-			return fmt.Errorf("you must define a value for `public_subnet_network_security_group_association_id` if `public_subnet_name` is set")
+			return errors.New("you must define a value for `public_subnet_network_security_group_association_id` if `public_subnet_name` is set")
 		}
 		if priSub != "" && priSubAssoc == nil {
-			return fmt.Errorf("you must define a value for `private_subnet_network_security_group_association_id` if `private_subnet_name` is set")
+			return errors.New("you must define a value for `private_subnet_network_security_group_association_id` if `private_subnet_name` is set")
 		}
 
 		if subnetDelegationErr := checkSubnetDelegations(ctx, subnetsClient, vnetID, pubSub, priSub); subnetDelegationErr != nil {

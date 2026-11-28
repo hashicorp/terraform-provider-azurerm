@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceEventGridSystemTopicCreateUpdate,
-		Read:   resourceEventGridSystemTopicRead,
-		Update: resourceEventGridSystemTopicCreateUpdate,
-		Delete: resourceEventGridSystemTopicDelete,
+		Description: "Manages an Event Grid System Topic.",
+		Create:      resourceEventGridSystemTopicCreateUpdate,
+		Read:        resourceEventGridSystemTopicRead,
+		Update:      resourceEventGridSystemTopicCreateUpdate,
+		Delete:      resourceEventGridSystemTopicDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

@@ -4,7 +4,6 @@
 package md
 
 import (
-	"fmt"
 	"os"
 	"path"
 	"regexp"
@@ -25,7 +24,7 @@ var (
 // MDPathFor return full path of markdown file of resource
 func MDPathFor(resourceType string) string {
 	// find source
-	fullPath := path.Join(ResourceDir(), fmt.Sprintf("%s.html.markdown", strings.TrimPrefix(resourceType, "azurerm_")))
+	fullPath := path.Join(ResourceDir(), strings.TrimPrefix(resourceType, "azurerm_")+".html.markdown")
 	// check if file exists
 	if _, err := os.Stat(fullPath); os.IsNotExist(err) {
 		return getMappingPath(resourceType)

@@ -1,0 +1,357 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
+package service_fabric_managed_cluster_test
+
+import (
+	"context"
+	"fmt"
+	"testing"
+
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicefabricmanagedcluster/2024-04-01/managedcluster"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+)
+
+type ServiceFabricManagedClusterResource struct{}
+
+func TestAccServiceFabricManagedCluster_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_service_fabric_managed_cluster", "test")
+	r := ServiceFabricManagedClusterResource{}
+	nodeTypeData1 := r.nodeType("test1", true, 130)
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, nodeTypeData1),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.Test").HasValue("value"),
+			),
+		},
+		data.ImportStep("password"),
+	})
+}
+
+func TestAccServiceFabricManagedCluster_withCustomSettings(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_service_fabric_managed_cluster", "test")
+	r := ServiceFabricManagedClusterResource{}
+	nodeTypeData1 := r.nodeType("test1", true, 130)
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withCustomSettings(data, nodeTypeData1),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.Test").HasValue("value"),
+			),
+		},
+		data.ImportStep("password"),
+	})
+}
+
+func TestAccServiceFabricManagedCluster_importError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_service_fabric_managed_cluster", "test")
+
+	r := ServiceFabricManagedClusterResource{}
+	nodeTypeData1 := r.nodeType("test1", true, 130)
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, nodeTypeData1),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.Test").HasValue("value"),
+			),
+		},
+		{
+			Config:      r.requiresImport(data, nodeTypeData1),
+			ExpectError: acceptance.RequiresImportError(data.ResourceType),
+		},
+	})
+}
+
+func TestAccServiceFabricManagedCluster_full(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_service_fabric_managed_cluster", "test")
+	r := ServiceFabricManagedClusterResource{}
+	nodeTypeData1 := r.nodeType("test1", true, 130)
+	nodeTypeData1Altered := r.nodeType("test1", true, 140)
+	nodeTypeData2 := r.nodeType("test2", false, 130)
+	nodeTypeDataBoth := fmt.Sprintf("%s\n%s", nodeTypeData1, nodeTypeData2)
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, nodeTypeData1),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.Test").HasValue("value"),
+			),
+		},
+		data.ImportStep("password"),
+		{
+			Config: r.basic(data, nodeTypeDataBoth),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("node_type.#").HasValue("2"),
+				check.That(data.ResourceName).Key("node_type.0.name").HasValue("test1"),
+				check.That(data.ResourceName).Key("node_type.1.name").HasValue("test2"),
+			),
+		},
+		{
+			Config: r.basic(data, nodeTypeData1),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("node_type.#").HasValue("1"),
+				check.That(data.ResourceName).Key("node_type.0.name").HasValue("test1"),
+			),
+		},
+		{
+			Config: r.basic(data, nodeTypeData1Altered),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("node_type.#").HasValue("1"),
+				check.That(data.ResourceName).Key("node_type.0.data_disk_size_gb").HasValue("140"),
+			),
+		},
+	})
+}
+
+func TestAccServiceFabricManagedCluster_authentication(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_service_fabric_managed_cluster", "test")
+	r := ServiceFabricManagedClusterResource{}
+	nodeTypeData1 := r.nodeType("test1", true, 130)
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.authentication(data, nodeTypeData1),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("password"),
+	})
+}
+
+func (r ServiceFabricManagedClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := managedcluster.ParseManagedClusterID(state.ID)
+	if err != nil {
+		return nil, fmt.Errorf("while parsing resource ID: %+v", err)
+	}
+
+	resp, err := clients.ServiceFabricManaged.ManagedClusterClient.Get(ctx, *id)
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			return pointer.To(false), nil
+		}
+		return nil, fmt.Errorf("while checking for cluster's %q existence: %+v", id.String(), err)
+	}
+	return pointer.To(resp.Model != nil), nil
+}
+
+func (r ServiceFabricManagedClusterResource) basic(data acceptance.TestData, nodeTypeData string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-sfmc-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_service_fabric_managed_cluster" "test" {
+  name                = "testacc-sfmc-%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard"
+  username            = "testUser"
+  password            = "NotV3ryS3cur3P@$$w0rd"
+  dns_service_enabled = true
+
+  client_connection_port = 12345
+  http_gateway_port      = 23456
+
+  lb_rule {
+    backend_port       = 8000
+    frontend_port      = 443
+    probe_protocol     = "http"
+    protocol           = "tcp"
+    probe_request_path = "/"
+  }
+
+  %[4]s
+
+  tags = {
+    Test = "value"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, nodeTypeData)
+}
+
+func (r ServiceFabricManagedClusterResource) withCustomSettings(data acceptance.TestData, nodeTypeData string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azuread_service_principal" "test" {
+  display_name = "Azure Service Fabric Resource Provider"
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-sfmc-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%[1]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_subnet.test.id
+  role_definition_name = "Network Contributor"
+  principal_id         = data.azuread_service_principal.test.object_id
+}
+
+resource "azurerm_service_fabric_managed_cluster" "test" {
+  name                = "testacc-sfmc-%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard"
+  username            = "testUser"
+  password            = "NotV3ryS3cur3P@$$w0rd"
+  dns_service_enabled = true
+  subnet_id           = azurerm_subnet.test.id
+
+  client_connection_port = 12345
+  http_gateway_port      = 23456
+
+  lb_rule {
+    backend_port       = 8000
+    frontend_port      = 443
+    probe_protocol     = "http"
+    protocol           = "tcp"
+    probe_request_path = "/"
+  }
+
+  custom_fabric_setting {
+    section   = "ClusterManager"
+    parameter = "EnableDefaultServicesUpgrade"
+    value     = true
+  }
+
+  %[4]s
+
+  tags = {
+    Test = "value"
+  }
+
+  depends_on = [azurerm_role_assignment.test]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, nodeTypeData)
+}
+
+func (r ServiceFabricManagedClusterResource) requiresImport(data acceptance.TestData, nt string) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_service_fabric_managed_cluster" "test1" {
+  name                = "testacc-sfmc-%[2]s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard"
+  username            = "testUser"
+  password            = "NotV3ryS3cur3P@$$w0rd"
+  dns_service_enabled = true
+
+  client_connection_port = 12345
+  http_gateway_port      = 23456
+
+  lb_rule {
+    backend_port       = 8000
+    frontend_port      = 443
+    probe_protocol     = "http"
+    protocol           = "tcp"
+    probe_request_path = "/"
+  }
+
+  %[3]s
+
+  tags = {
+    Test = "value"
+  }
+}
+`, r.basic(data, nt), data.RandomString, nt)
+}
+
+func (r ServiceFabricManagedClusterResource) nodeType(name string, primary bool, diskSize int) string {
+	return fmt.Sprintf(`
+node_type {
+  data_disk_size_gb      = %[1]d
+  name                   = "%[2]s"
+  primary                = %[3]t
+  application_port_range = "7000-9000"
+  ephemeral_port_range   = "10000-20000"
+
+  vm_size            = "Standard_DS2_v2"
+  vm_image_publisher = "MicrosoftWindowsServer"
+  vm_image_sku       = "2016-Datacenter"
+  vm_image_offer     = "WindowsServer"
+  vm_image_version   = "latest"
+  vm_instance_count  = 5
+}
+`, diskSize, name, primary)
+}
+
+func (r ServiceFabricManagedClusterResource) authentication(data acceptance.TestData, nodeTypeData string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-sfmc-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_service_fabric_managed_cluster" "test" {
+  name                = "testacc-sfmc-%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  username            = "testUser"
+  password            = "NotV3ryS3cur3P@$$w0rd"
+
+  client_connection_port = 12345
+  http_gateway_port      = 23456
+
+  lb_rule {
+    backend_port       = 8000
+    frontend_port      = 443
+    probe_protocol     = "http"
+    protocol           = "tcp"
+    probe_request_path = "/"
+  }
+
+  %[4]s
+
+  authentication {
+    certificate {
+      thumbprint = "AAAA0982E0241795C04A61168D95B8DEE1B2CCCC"
+      type       = "AdminClient"
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, nodeTypeData)
+}

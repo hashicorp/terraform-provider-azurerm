@@ -80,7 +80,7 @@ data "azurerm_eventgrid_partner_namespace" "test" {
   name                = azurerm_eventgrid_partner_namespace.test.name
   resource_group_name = azurerm_eventgrid_partner_namespace.test.resource_group_name
 }
-`, EventGridPartnerNamespaceTestResource{}.basic(data))
+`, EventgridPartnerNamespaceResource{}.basic(data))
 }
 
 func (EventGridPartnerNamespaceDataSource) complete(data acceptance.TestData) string {
@@ -91,5 +91,5 @@ data "azurerm_eventgrid_partner_namespace" "test" {
   name                = azurerm_eventgrid_partner_namespace.test.name
   resource_group_name = azurerm_eventgrid_partner_namespace.test.resource_group_name
 }
-`, EventGridPartnerNamespaceTestResource{}.complete(data))
+`, EventgridPartnerNamespaceResource{}.complete(data))
 }

@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type EventHubNamespaceSchemaRegistryResource struct{}
+type EventhubNamespaceSchemaGroupResource struct{}
 
 func TestAccEventHubNamespaceSchemaRegistry_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace_schema_group", "test")
-	r := EventHubNamespaceSchemaRegistryResource{}
+	r := EventhubNamespaceSchemaGroupResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccEventHubNamespaceSchemaRegistry_regressionTest(t *testing.T) {
 
 func TestAccEventHubNamespaceSchemaRegistry_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace_schema_group", "test")
-	r := EventHubNamespaceSchemaRegistryResource{}
+	r := EventhubNamespaceSchemaGroupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,7 +46,7 @@ func TestAccEventHubNamespaceSchemaRegistry_basic(t *testing.T) {
 
 func TestAccEventHubNamespaceSchemaRegistry_schemaTypeJson(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace_schema_group", "test")
-	r := EventHubNamespaceSchemaRegistryResource{}
+	r := EventhubNamespaceSchemaGroupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -59,7 +59,7 @@ func TestAccEventHubNamespaceSchemaRegistry_schemaTypeJson(t *testing.T) {
 	})
 }
 
-func (EventHubNamespaceSchemaRegistryResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (EventhubNamespaceSchemaGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := schemaregistry.ParseSchemaGroupID(state.ID)
 	if err != nil {
 		return nil, err
@@ -73,7 +73,7 @@ func (EventHubNamespaceSchemaRegistryResource) Exists(ctx context.Context, clien
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (EventHubNamespaceSchemaRegistryResource) basic(data acceptance.TestData) string {
+func (EventhubNamespaceSchemaGroupResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -100,7 +100,7 @@ resource "azurerm_eventhub_namespace_schema_group" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (EventHubNamespaceSchemaRegistryResource) schemaType(data acceptance.TestData) string {
+func (EventhubNamespaceSchemaGroupResource) schemaType(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

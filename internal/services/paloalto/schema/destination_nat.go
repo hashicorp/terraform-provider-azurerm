@@ -39,12 +39,14 @@ func DestinationNATSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
+					Description:  "The name of the destination NAT.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validate.DestinationNATName,
 				},
 
 				"protocol": {
+					Description:  "The protocol of the destination NAT.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringInSlice(firewallresources.PossibleValuesForProtocolType(), false),
@@ -61,17 +63,19 @@ func DestinationNATSchema() *pluginsdk.Schema {
 func FrontendEndpointSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		MaxItems: 1,
 		Optional: true,
+		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"public_ip_address_id": {
+					Description:  "The ID of the Public IP Address on which to receive traffic.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: commonids.ValidatePublicIPAddressID,
 				},
 
 				"port": {
+					Description:  "The port on which to receive traffic.",
 					Type:         pluginsdk.TypeInt,
 					Required:     true,
 					ValidateFunc: validation.IntBetween(1, 65535),
@@ -84,17 +88,19 @@ func FrontendEndpointSchema() *pluginsdk.Schema {
 func BackendEndpointSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		MaxItems: 1,
 		Optional: true,
+		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"public_ip_address": {
+					Description:  "The public IP address to send traffic to.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.IsIPv4Address,
 				},
 
 				"port": {
+					Description:  "The port number to send traffic to.",
 					Type:         pluginsdk.TypeInt,
 					Required:     true,
 					ValidateFunc: validation.IntBetween(1, 65535),

@@ -5,7 +5,6 @@ package azuresdkhacks
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"net/url"
 
@@ -35,7 +34,7 @@ func (c MachinesClient) GetAllVMWareMachinesInSite(ctx context.Context, id machi
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/machines", id.ID()),
+		Path:          id.ID() + "/machines",
 		OptionsObject: options,
 	}
 

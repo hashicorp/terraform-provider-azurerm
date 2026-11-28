@@ -7,6 +7,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/resources/app_service_certificate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/resources/app_service_certificate_binding"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/resources/app_service_certificate_order"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/resources/app_service_custom_hostname_binding"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/resources/app_service_managed_certificate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/resources/app_service_public_certificate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/resources/app_service_slot_custom_hostname_binding"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/resources/app_service_slot_virtual_network_swift_connection"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/resources/app_service_virtual_network_swift_connection"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/resources/function_app_host_keys"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -33,24 +43,24 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_app_service_certificate":       dataSourceAppServiceCertificate(),
-		"azurerm_app_service_certificate_order": dataSourceAppServiceCertificateOrder(),
-		"azurerm_function_app_host_keys":        dataSourceFunctionAppHostKeys(),
+		"azurerm_app_service_certificate":       app_service_certificate.RegisterDataSource(),
+		"azurerm_app_service_certificate_order": app_service_certificate_order.RegisterDataSource(),
+		"azurerm_function_app_host_keys":        function_app_host_keys.RegisterDataSource(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_app_service_certificate":                           resourceAppServiceCertificate(),
-		"azurerm_app_service_certificate_binding":                   resourceAppServiceCertificateBinding(),
-		"azurerm_app_service_certificate_order":                     resourceAppServiceCertificateOrder(),
-		"azurerm_app_service_custom_hostname_binding":               resourceAppServiceCustomHostnameBinding(),
-		"azurerm_app_service_managed_certificate":                   resourceAppServiceManagedCertificate(),
-		"azurerm_app_service_public_certificate":                    resourceAppServicePublicCertificate(),
-		"azurerm_app_service_slot_custom_hostname_binding":          resourceAppServiceSlotCustomHostnameBinding(),
-		"azurerm_app_service_slot_virtual_network_swift_connection": resourceAppServiceSlotVirtualNetworkSwiftConnection(),
-		"azurerm_app_service_virtual_network_swift_connection":      resourceAppServiceVirtualNetworkSwiftConnection(),
+		"azurerm_app_service_certificate":                           app_service_certificate.RegisterResource(),
+		"azurerm_app_service_certificate_binding":                   app_service_certificate_binding.RegisterResource(),
+		"azurerm_app_service_certificate_order":                     app_service_certificate_order.RegisterResource(),
+		"azurerm_app_service_custom_hostname_binding":               app_service_custom_hostname_binding.RegisterResource(),
+		"azurerm_app_service_managed_certificate":                   app_service_managed_certificate.RegisterResource(),
+		"azurerm_app_service_public_certificate":                    app_service_public_certificate.RegisterResource(),
+		"azurerm_app_service_slot_custom_hostname_binding":          app_service_slot_custom_hostname_binding.RegisterResource(),
+		"azurerm_app_service_slot_virtual_network_swift_connection": app_service_slot_virtual_network_swift_connection.RegisterResource(),
+		"azurerm_app_service_virtual_network_swift_connection":      app_service_virtual_network_swift_connection.RegisterResource(),
 	}
 }
 
@@ -80,6 +90,6 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
-		AppServiceCustomHostnameBindingListResource{},
+		app_service_custom_hostname_binding.ListResource{},
 	}
 }

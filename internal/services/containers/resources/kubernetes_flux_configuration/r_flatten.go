@@ -4,7 +4,7 @@
 package kubernetes_flux_configuration
 
 import (
-	"fmt"
+	"errors"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2025-04-01/fluxconfiguration"
@@ -20,7 +20,7 @@ func flattenAzureBlobDefinitionModel(input *fluxconfiguration.AzureBlobDefinitio
 
 	accountId, err := accounts.ParseAccountID(pointer.From(input.Url), storageDomainSuffix)
 	if err != nil {
-		return nil, fmt.Errorf("parsing account %q: %+v", pointer.From(input.Url), err)
+		return nil, err
 	}
 
 	id := containers.NewContainerID(*accountId, pointer.From(input.ContainerName))
@@ -215,7 +215,7 @@ func flattenRepositoryRefDefinitionModel(input *fluxconfiguration.RepositoryRefD
 		referenceType = FluxGitReferenceTag
 		referenceValue = *input.Tag
 	default:
-		return "", "", fmt.Errorf("failed to retrieve git reference")
+		return "", "", errors.New("failed to retrieve git reference")
 	}
 
 	return referenceType, referenceValue, nil

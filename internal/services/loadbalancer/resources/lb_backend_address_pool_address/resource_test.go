@@ -5,6 +5,7 @@ package lb_backend_address_pool_address_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -18,13 +19,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-var _ types.TestResourceVerifyingRemoved = BackendAddressPoolAddressResourceTests{}
+var _ types.TestResourceVerifyingRemoved = LbBackendAddressPoolAddressResource{}
 
-type BackendAddressPoolAddressResourceTests struct{}
+type LbBackendAddressPoolAddressResource struct{}
 
 func TestAccBackendAddressPoolAddress_regionalLbBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool_address", "test")
-	r := BackendAddressPoolAddressResourceTests{}
+	r := LbBackendAddressPoolAddressResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -38,7 +39,7 @@ func TestAccBackendAddressPoolAddress_regionalLbBasic(t *testing.T) {
 
 func TestAccBackendAddressPoolAddress_regionalLbRequiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool_address", "test")
-	r := BackendAddressPoolAddressResourceTests{}
+	r := LbBackendAddressPoolAddressResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -52,7 +53,7 @@ func TestAccBackendAddressPoolAddress_regionalLbRequiresImport(t *testing.T) {
 
 func TestAccBackendAddressPoolAddress_regionalLbDisappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool_address", "test")
-	r := BackendAddressPoolAddressResourceTests{}
+	r := LbBackendAddressPoolAddressResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
 			Config:       r.basic,
@@ -63,7 +64,7 @@ func TestAccBackendAddressPoolAddress_regionalLbDisappears(t *testing.T) {
 
 func TestAccBackendAddressPoolAddress_regionalLbUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool_address", "test")
-	r := BackendAddressPoolAddressResourceTests{}
+	r := LbBackendAddressPoolAddressResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -84,7 +85,7 @@ func TestAccBackendAddressPoolAddress_regionalLbUpdate(t *testing.T) {
 
 func TestAccBackendAddressPoolAddress_globalLbUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool_address", "test1")
-	r := BackendAddressPoolAddressResourceTests{}
+	r := LbBackendAddressPoolAddressResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.crossRegionLoadBalancer(data),
@@ -105,7 +106,7 @@ func TestAccBackendAddressPoolAddress_globalLbUpdate(t *testing.T) {
 
 func TestAccBackendAddressPoolAddress_globalLbRemoval(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool_address", "test1")
-	r := BackendAddressPoolAddressResourceTests{}
+	r := LbBackendAddressPoolAddressResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.crossRegionLoadBalancer(data),
@@ -124,7 +125,7 @@ func TestAccBackendAddressPoolAddress_globalLbRemoval(t *testing.T) {
 	})
 }
 
-func (BackendAddressPoolAddressResourceTests) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (LbBackendAddressPoolAddressResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.BackendAddressPoolAddressID(state.ID)
 	if err != nil {
 		return nil, err
@@ -157,7 +158,7 @@ func (BackendAddressPoolAddressResourceTests) Exists(ctx context.Context, client
 	return pointer.To(false), nil
 }
 
-func (BackendAddressPoolAddressResourceTests) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (LbBackendAddressPoolAddressResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.BackendAddressPoolAddressID(state.ID)
 	if err != nil {
 		return nil, err
@@ -200,7 +201,7 @@ func (BackendAddressPoolAddressResourceTests) Destroy(ctx context.Context, clien
 }
 
 //nolint:unused // for future use
-func (BackendAddressPoolAddressResourceTests) backendAddressPoolHasAddresses(expected int) acceptance.ClientCheckFunc {
+func (LbBackendAddressPoolAddressResource) backendAddressPoolHasAddresses(expected int) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 		id, err := loadbalancers.ParseLoadBalancerBackendAddressPoolID(state.ID)
 		if err != nil {
@@ -212,13 +213,13 @@ func (BackendAddressPoolAddressResourceTests) backendAddressPoolHasAddresses(exp
 			return err
 		}
 		if pool.Model == nil {
-			return fmt.Errorf("`model` is nil")
+			return errors.New("`model` is nil")
 		}
 		if pool.Model.Properties == nil {
-			return fmt.Errorf("`properties` is nil")
+			return errors.New("`properties` is nil")
 		}
 		if pool.Model.Properties.LoadBalancerBackendAddresses == nil {
-			return fmt.Errorf("`properties.loadBalancerBackendAddresses` is nil")
+			return errors.New("`properties.loadBalancerBackendAddresses` is nil")
 		}
 
 		actual := len(*pool.Model.Properties.LoadBalancerBackendAddresses)
@@ -230,7 +231,7 @@ func (BackendAddressPoolAddressResourceTests) backendAddressPoolHasAddresses(exp
 	}
 }
 
-func (t BackendAddressPoolAddressResourceTests) basic(data acceptance.TestData) string {
+func (t LbBackendAddressPoolAddressResource) basic(data acceptance.TestData) string {
 	template := t.templateRegionalLB(data)
 	return fmt.Sprintf(`
 %s
@@ -245,7 +246,7 @@ resource "azurerm_lb_backend_address_pool_address" "test" {
 `, template)
 }
 
-func (t BackendAddressPoolAddressResourceTests) requiresImport(data acceptance.TestData) string {
+func (t LbBackendAddressPoolAddressResource) requiresImport(data acceptance.TestData) string {
 	template := t.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -259,7 +260,7 @@ resource "azurerm_lb_backend_address_pool_address" "import" {
 `, template)
 }
 
-func (t BackendAddressPoolAddressResourceTests) update(data acceptance.TestData) string {
+func (t LbBackendAddressPoolAddressResource) update(data acceptance.TestData) string {
 	template := t.templateRegionalLB(data)
 	return fmt.Sprintf(`
 %s
@@ -274,7 +275,7 @@ resource "azurerm_lb_backend_address_pool_address" "test" {
 `, template)
 }
 
-func (t BackendAddressPoolAddressResourceTests) crossRegionLoadBalancer(data acceptance.TestData) string {
+func (t LbBackendAddressPoolAddressResource) crossRegionLoadBalancer(data acceptance.TestData) string {
 	template := t.templateGlobalLB(data)
 	return fmt.Sprintf(`
 %s
@@ -292,7 +293,7 @@ resource "azurerm_lb_backend_address_pool_address" "test2" {
 `, template)
 }
 
-func (t BackendAddressPoolAddressResourceTests) crossRegionLoadBalancerUpdate(data acceptance.TestData) string {
+func (t LbBackendAddressPoolAddressResource) crossRegionLoadBalancerUpdate(data acceptance.TestData) string {
 	template := t.templateGlobalLB(data)
 	return fmt.Sprintf(`
 %s
@@ -310,7 +311,7 @@ resource "azurerm_lb_backend_address_pool_address" "test2" {
 `, template)
 }
 
-func (t BackendAddressPoolAddressResourceTests) crossRegionLoadBalancerRemoval(data acceptance.TestData) string {
+func (t LbBackendAddressPoolAddressResource) crossRegionLoadBalancerRemoval(data acceptance.TestData) string {
 	template := t.templateGlobalLB(data)
 	return fmt.Sprintf(`
 %s
@@ -324,7 +325,7 @@ resource "azurerm_lb_backend_address_pool_address" "test1" {
 `, template)
 }
 
-func (BackendAddressPoolAddressResourceTests) templateGlobalLB(data acceptance.TestData) string {
+func (LbBackendAddressPoolAddressResource) templateGlobalLB(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -443,7 +444,7 @@ resource "azurerm_lb_backend_address_pool" "backend-pool-cr" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (BackendAddressPoolAddressResourceTests) templateRegionalLB(data acceptance.TestData) string {
+func (LbBackendAddressPoolAddressResource) templateRegionalLB(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {

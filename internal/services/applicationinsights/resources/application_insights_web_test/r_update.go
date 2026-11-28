@@ -83,7 +83,7 @@ func resourceApplicationInsightsWebTestsUpdate(d *pluginsdk.ResourceData, meta a
 		}
 
 		t := d.Get("tags").(map[string]any)
-		tagKey := fmt.Sprintf("hidden-link:%s", appInsightsId.ID())
+		tagKey := "hidden-link:" + appInsightsId.ID()
 		t[tagKey] = "Resource"
 		webTest.Tags = tags.Expand(t)
 	}

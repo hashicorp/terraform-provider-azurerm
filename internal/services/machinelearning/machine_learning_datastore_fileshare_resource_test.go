@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type MachineLearningDataStoreFileShare struct{}
+type MachineLearningDatastoreFileshareResource struct{}
 
 func TestAccMachineLearningDataStoreFileShare_accountKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_datastore_fileshare", "test")
-	r := MachineLearningDataStoreFileShare{}
+	r := MachineLearningDatastoreFileshareResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,7 +36,7 @@ func TestAccMachineLearningDataStoreFileShare_accountKey(t *testing.T) {
 
 func TestAccMachineLearningDataStoreFileShare_sasToken(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_datastore_fileshare", "test")
-	r := MachineLearningDataStoreFileShare{}
+	r := MachineLearningDatastoreFileshareResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -51,7 +51,7 @@ func TestAccMachineLearningDataStoreFileShare_sasToken(t *testing.T) {
 
 func TestAccMachineLearningDataStoreFileShare_Update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_datastore_fileshare", "test")
-	r := MachineLearningDataStoreFileShare{}
+	r := MachineLearningDatastoreFileshareResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -73,7 +73,7 @@ func TestAccMachineLearningDataStoreFileShare_Update(t *testing.T) {
 
 func TestAccMachineLearningDataStoreFileShare_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_datastore_fileshare", "test")
-	r := MachineLearningDataStoreFileShare{}
+	r := MachineLearningDatastoreFileshareResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -86,7 +86,7 @@ func TestAccMachineLearningDataStoreFileShare_requiresImport(t *testing.T) {
 	})
 }
 
-func (r MachineLearningDataStoreFileShare) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r MachineLearningDatastoreFileshareResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	dataStoreClient := client.MachineLearning.Datastore
 	id, err := datastore.ParseDataStoreID(state.ID)
 	if err != nil {
@@ -104,7 +104,7 @@ func (r MachineLearningDataStoreFileShare) Exists(ctx context.Context, client *c
 	return pointer.To(resp.Model.Properties != nil), nil
 }
 
-func (r MachineLearningDataStoreFileShare) fileShareAccountKey(data acceptance.TestData) string {
+func (r MachineLearningDatastoreFileshareResource) fileShareAccountKey(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 	%s
 
@@ -123,7 +123,7 @@ resource "azurerm_machine_learning_datastore_fileshare" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r MachineLearningDataStoreFileShare) fileShareSas(data acceptance.TestData) string {
+func (r MachineLearningDatastoreFileshareResource) fileShareSas(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 	%s
 
@@ -177,7 +177,7 @@ resource "azurerm_machine_learning_datastore_fileshare" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r MachineLearningDataStoreFileShare) requiresImport(data acceptance.TestData) string {
+func (r MachineLearningDatastoreFileshareResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -191,7 +191,7 @@ resource "azurerm_machine_learning_datastore_fileshare" "import" {
 `, r.fileShareAccountKey(data))
 }
 
-func (r MachineLearningDataStoreFileShare) template(data acceptance.TestData) string {
+func (r MachineLearningDatastoreFileshareResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {

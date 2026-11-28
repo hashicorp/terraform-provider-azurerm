@@ -5,6 +5,7 @@ package kubernetes_cluster
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -49,8 +50,8 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"aci_connector_linux": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
 			Optional: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"subnet_name": {
@@ -87,8 +88,8 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 		},
 		"confidential_computing": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
 			Optional: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"sgx_quote_helper_enabled": {
@@ -108,8 +109,8 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 		},
 		"oms_agent": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
 			Optional: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"log_analytics_workspace_id": {
@@ -151,13 +152,14 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 		},
 		"ingress_application_gateway": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
 			Optional: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"gateway_id": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: applicationgateways.ValidateApplicationGatewayID,
 						ConflictsWith: []string{
 							"ingress_application_gateway.0.subnet_cidr",
 							"ingress_application_gateway.0.subnet_id",
@@ -167,7 +169,6 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 							"ingress_application_gateway.0.subnet_cidr",
 							"ingress_application_gateway.0.subnet_id",
 						},
-						ValidateFunc: applicationgateways.ValidateApplicationGatewayID,
 					},
 					"gateway_name": {
 						Type:         pluginsdk.TypeString,
@@ -175,8 +176,9 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"subnet_cidr": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.IsCIDRIPv4,
 						ConflictsWith: []string{
 							"ingress_application_gateway.0.gateway_id",
 							"ingress_application_gateway.0.subnet_id",
@@ -186,11 +188,11 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 							"ingress_application_gateway.0.subnet_cidr",
 							"ingress_application_gateway.0.subnet_id",
 						},
-						ValidateFunc: validation.IsCIDRIPv4,
 					},
 					"subnet_id": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: commonids.ValidateSubnetID,
 						ConflictsWith: []string{
 							"ingress_application_gateway.0.gateway_id",
 							"ingress_application_gateway.0.subnet_cidr",
@@ -200,7 +202,6 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 							"ingress_application_gateway.0.subnet_cidr",
 							"ingress_application_gateway.0.subnet_id",
 						},
-						ValidateFunc: commonids.ValidateSubnetID,
 					},
 					"effective_gateway_id": {
 						Type:     pluginsdk.TypeString,
@@ -235,28 +236,28 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 		},
 		"key_vault_secrets_provider": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
 			Optional: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"secret_rotation_enabled": {
 						Type:     pluginsdk.TypeBool,
-						Default:  false,
 						Optional: true,
+						Default:  false,
 						AtLeastOneOf: []string{
 							"key_vault_secrets_provider.0.secret_rotation_enabled",
 							"key_vault_secrets_provider.0.secret_rotation_interval",
 						},
 					},
 					"secret_rotation_interval": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  "2m",
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Default:      "2m",
+						ValidateFunc: validate.Duration,
 						AtLeastOneOf: []string{
 							"key_vault_secrets_provider.0.secret_rotation_enabled",
 							"key_vault_secrets_provider.0.secret_rotation_interval",
 						},
-						ValidateFunc: validate.Duration,
 					},
 					"secret_identity": {
 						Type:     pluginsdk.TypeList,
@@ -320,17 +321,17 @@ func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]any, env
 		if workspaceID, ok := value["log_analytics_workspace_id"]; ok && workspaceID != "" {
 			lawid, err := workspaces.ParseWorkspaceIDInsensitively(workspaceID.(string))
 			if err != nil {
-				return nil, fmt.Errorf("parsing Log Analytics Workspace ID: %+v", err)
+				return nil, err
 			}
 			config["logAnalyticsWorkspaceResourceID"] = lawid.ID()
 		}
 
 		if useAADAuth, ok := value["msi_auth_for_monitoring_enabled"].(bool); ok {
-			config["useAADAuth"] = fmt.Sprintf("%t", useAADAuth)
+			config["useAADAuth"] = strconv.FormatBool(useAADAuth)
 		}
 
 		if retinaFlowLogsEnabled, ok := value["retina_flow_logs_enabled"].(bool); ok {
-			config["enableRetinaNetworkFlags"] = fmt.Sprintf("%t", retinaFlowLogsEnabled)
+			config["enableRetinaNetworkFlags"] = strconv.FormatBool(retinaFlowLogsEnabled)
 		}
 
 		addonProfiles[omsAgentKey] = managedclusters.ManagedClusterAddonProfile{
@@ -407,7 +408,7 @@ func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]any, env
 		value := azureKeyVaultSecretsProvider[0].(map[string]any)
 		config := make(map[string]string)
 
-		config["enableSecretRotation"] = fmt.Sprintf("%t", value["secret_rotation_enabled"].(bool))
+		config["enableSecretRotation"] = strconv.FormatBool(value["secret_rotation_enabled"].(bool))
 		config["rotationPollInterval"] = value["secret_rotation_interval"].(string)
 
 		addonProfiles[azureKeyvaultSecretsProviderKey] = managedclusters.ManagedClusterAddonProfile{

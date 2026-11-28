@@ -38,7 +38,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 
 			clusterId, err := connectedclusters.ParseConnectedClusterID(id.Scope)
 			if err != nil {
-				return fmt.Errorf("parsing %q as a Connected Cluster ID: %+v", id.Scope, err)
+				return err
 			}
 
 			state := ArcKubernetesClusterExtensionModel{

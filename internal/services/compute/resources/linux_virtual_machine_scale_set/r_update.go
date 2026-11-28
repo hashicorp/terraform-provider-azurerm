@@ -4,6 +4,7 @@
 package linux_virtual_machine_scale_set
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -113,7 +114,7 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta a
 	priority := virtualmachinescalesets.VirtualMachinePriorityTypes(d.Get("priority").(string))
 	if d.HasChange("max_bid_price") {
 		if priority != virtualmachinescalesets.VirtualMachinePriorityTypesSpot {
-			return fmt.Errorf("`max_bid_price` can only be configured when `priority` is set to `Spot`")
+			return errors.New("`max_bid_price` can only be configured when `priority` is set to `Spot`")
 		}
 
 		updateProps.VirtualMachineProfile.BillingProfile = &virtualmachinescalesets.BillingProfile{
@@ -238,6 +239,25 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta a
 		updateProps.VirtualMachineProfile.DiagnosticsProfile = helpers.ExpandBootDiagnosticsVMSS(bootDiagnosticsRaw)
 	}
 
+	if d.HasChange("capacity_reservation_group_id") {
+		updateInstances = true
+
+		// capacityReservation is not exposed on the PATCH update model, so it can only be set via PUT,
+		// which preserves the write-only values omitted from the GET model
+		existing.Model.Properties.VirtualMachineProfile.CapacityReservation = &virtualmachinescalesets.CapacityReservationProfile{
+			CapacityReservationGroup: &virtualmachinescalesets.SubResource{
+				Id: pointer.To(d.Get("capacity_reservation_group_id").(string)),
+			},
+		}
+
+		// The API rejects a CRG unless singlePlacementGroup is false. Existing still holds the stale value
+		// when both change together. So applied the new value here.
+		existing.Model.Properties.SinglePlacementGroup = pointer.To(d.Get("single_placement_group").(bool))
+		if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, virtualmachinescalesets.DefaultCreateOrUpdateOperationOptions()); err != nil {
+			return fmt.Errorf("updating capacity reservation group for Linux %s: %+v", id, err)
+		}
+	}
+
 	if d.HasChange("do_not_run_extensions_on_overprovisioned_machines") {
 		v := d.Get("do_not_run_extensions_on_overprovisioned_machines").(bool)
 		updateProps.DoNotRunExtensionsOnOverprovisionedVMs = pointer.To(v)
@@ -284,7 +304,7 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta a
 			_, hasHealthProbeId := d.GetOk("health_probe_id")
 
 			if !hasHealthProbeId && !hasHealthExtension {
-				return fmt.Errorf("`automatic_instance_repair` can only be set if there is an application Health extension or a `health_probe_id` defined")
+				return errors.New("`automatic_instance_repair` can only be set if there is an application Health extension or a `health_probe_id` defined")
 			}
 		}
 

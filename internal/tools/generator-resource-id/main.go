@@ -5,6 +5,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -63,7 +64,7 @@ func run(servicePackagePath, name, id string, shouldRewrite bool) error {
 	}
 
 	fileName := convertToSnakeCase(name)
-	validatorFileName := fmt.Sprintf("%s_id", fileName)
+	validatorFileName := fileName + "_id"
 	if strings.HasSuffix(fileName, "_test") {
 		// e.g. "webtest" in applicationInsights
 		fileName += "_id"
@@ -124,11 +125,11 @@ func parseServicePackageName(relativePath string) (*string, error) {
 	}
 
 	if serviceIndex == -1 {
-		return nil, fmt.Errorf("`services` segment was not found")
+		return nil, errors.New("`services` segment was not found")
 	}
 
 	if len(segments) <= serviceIndex {
-		return nil, fmt.Errorf("not enough segments")
+		return nil, errors.New("not enough segments")
 	}
 
 	return pointer.To(segments[serviceIndex+1]), nil
@@ -230,7 +231,7 @@ func NewResourceID(typeName, servicePackageName, resourceId string) (*ResourceId
 				return string(out)
 			}
 
-			rewritten := fmt.Sprintf("%sName", key)
+			rewritten := key + "Name"
 			segment := ResourceIdSegment{
 				FieldName:    cases.Title(language.English, cases.NoLower).String(rewritten),
 				ArgumentName: toCamelCase(rewritten),
@@ -256,17 +257,17 @@ func NewResourceID(typeName, servicePackageName, resourceId string) (*ResourceId
 				// handles "GallerieName" and `DataFactoriesName`
 				if before, ok := strings.CutSuffix(key, "ies"); ok {
 					key = before
-					key = fmt.Sprintf("%sy", key)
+					key += "y"
 				}
 				switch {
 				case strings.HasSuffix(key, "sses"):
 					// handles `PublicIPAddressesName`
 					key = strings.TrimSuffix(key, "sses")
-					key = fmt.Sprintf("%sss", key)
+					key += "ss"
 				case strings.HasSuffix(key, "xes"):
 					// handles `CustomIPPrefixeName`
 					key = strings.TrimSuffix(key, "xes")
-					key = fmt.Sprintf("%sx", key)
+					key += "x"
 				default:
 					key = strings.TrimSuffix(key, "s")
 				}
@@ -276,7 +277,7 @@ func NewResourceID(typeName, servicePackageName, resourceId string) (*ResourceId
 					segment.ArgumentName = "name"
 				} else {
 					// remove {Thing}s and make that {Thing}Name
-					rewritten = fmt.Sprintf("%sName", key)
+					rewritten = key + "Name"
 					segment.FieldName = cases.Title(language.English, cases.NoLower).String(rewritten)
 					segment.ArgumentName = toCamelCase(rewritten)
 				}
@@ -440,7 +441,7 @@ func (id %[1]sId) String() string {
 func (id ResourceIdGenerator) codeForFormatter() string {
 	formatKeys := make([]string, 0)
 	for _, segment := range id.Segments {
-		formatKeys = append(formatKeys, fmt.Sprintf("id.%s", segment.FieldName))
+		formatKeys = append(formatKeys, "id."+segment.FieldName)
 	}
 	formatKeysString := strings.Join(formatKeys, ", ")
 	return fmt.Sprintf(`
@@ -660,7 +661,7 @@ func (id ResourceIdGenerator) testCodeForParser() string {
 		// missing the value
 		resourceIdToThisPointIndex = strings.Index(id.IDRaw, segment.SegmentValue)
 		resourceIdToThisPoint = id.IDRaw[0:resourceIdToThisPointIndex]
-		testCases = append(testCases, fmt.Sprintf(testCaseFmt, fmt.Sprintf("value for %s", segment.FieldName), resourceIdToThisPoint))
+		testCases = append(testCases, fmt.Sprintf(testCaseFmt, "value for "+segment.FieldName, resourceIdToThisPoint))
 
 		assignmentsFmt := "\t\tif actual.%[1]s != v.Expected.%[1]s {\n\t\t\tt.Fatalf(\"Expected %%q but got %%q for %[1]s\", v.Expected.%[1]s, actual.%[1]s)\n\t\t}"
 		assignmentChecks = append(assignmentChecks, fmt.Sprintf(assignmentsFmt, segment.FieldName))
@@ -671,9 +672,9 @@ func (id ResourceIdGenerator) testCodeForParser() string {
 	for _, segment := range id.Segments {
 		expectAssignments = append(expectAssignments, fmt.Sprintf("\t\t\t\t%s:\t%q,", segment.FieldName, segment.SegmentValue))
 	}
-	typeName := fmt.Sprintf("%sId", id.TypeName)
+	typeName := id.TypeName + "Id"
 	if id.TestPackageSuffix != "" {
-		typeName = fmt.Sprintf("parse.%s", typeName)
+		typeName = "parse." + typeName
 	}
 	testCases = append(testCases, fmt.Sprintf(`
 		{
@@ -787,7 +788,7 @@ func (id ResourceIdGenerator) testCodeForParserInsensitive() string {
 		// missing the value
 		resourceIdToThisPointIndex = strings.Index(id.IDRaw, segment.SegmentValue)
 		resourceIdToThisPoint = id.IDRaw[0:resourceIdToThisPointIndex]
-		testCases = append(testCases, fmt.Sprintf(testCaseFmt, fmt.Sprintf("value for %s", segment.FieldName), resourceIdToThisPoint))
+		testCases = append(testCases, fmt.Sprintf(testCaseFmt, "value for "+segment.FieldName, resourceIdToThisPoint))
 
 		assignmentsFmt := "\t\tif actual.%[1]s != v.Expected.%[1]s {\n\t\t\tt.Fatalf(\"Expected %%q but got %%q for %[1]s\", v.Expected.%[1]s, actual.%[1]s)\n\t\t}"
 		assignmentChecks = append(assignmentChecks, fmt.Sprintf(assignmentsFmt, segment.FieldName))
@@ -820,9 +821,9 @@ func (id ResourceIdGenerator) testCodeForParserInsensitive() string {
 			resourceIdWithTransform = strings.Replace(resourceIdWithTransform, segment.SegmentKey, transformedKey, 1)
 		}
 
-		typeName := fmt.Sprintf("%sId", id.TypeName)
+		typeName := id.TypeName + "Id"
 		if id.TestPackageSuffix != "" {
-			typeName = fmt.Sprintf("parse.%s", typeName)
+			typeName = "parse." + typeName
 		}
 		return fmt.Sprintf(`
 		{
@@ -967,7 +968,7 @@ func (id ResourceIdGenerator) ValidatorTestCode() string {
 		// missing the value
 		resourceIdToThisPointIndex = strings.Index(id.IDRaw, segment.SegmentValue)
 		resourceIdToThisPoint = id.IDRaw[0:resourceIdToThisPointIndex]
-		testCases = append(testCases, fmt.Sprintf(testCaseFmt, fmt.Sprintf("value for %s", segment.FieldName), resourceIdToThisPoint))
+		testCases = append(testCases, fmt.Sprintf(testCaseFmt, "value for "+segment.FieldName, resourceIdToThisPoint))
 	}
 
 	// add a successful test case

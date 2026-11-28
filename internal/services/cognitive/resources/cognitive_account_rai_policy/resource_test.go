@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type RaiPolicyTestResource struct{}
+type CognitiveAccountRaiPolicyResource struct{}
 
 func TestAccCognitiveAccountRaiPolicy_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_rai_policy", "test")
-	r := RaiPolicyTestResource{}
+	r := CognitiveAccountRaiPolicyResource{}
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -30,7 +30,7 @@ func TestAccCognitiveAccountRaiPolicy_regressionTest(t *testing.T) {
 
 func TestAccCognitiveAccountRaiPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_rai_policy", "test")
-	r := RaiPolicyTestResource{}
+	r := CognitiveAccountRaiPolicyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -45,7 +45,7 @@ func TestAccCognitiveAccountRaiPolicy_basic(t *testing.T) {
 
 func TestAccCognitiveAccountRaiPolicy_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_rai_policy", "test")
-	r := RaiPolicyTestResource{}
+	r := CognitiveAccountRaiPolicyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -63,7 +63,7 @@ func TestAccCognitiveAccountRaiPolicy_requiresImport(t *testing.T) {
 
 func TestAccCognitiveAccountRaiPolicy_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_rai_policy", "test")
-	r := RaiPolicyTestResource{}
+	r := CognitiveAccountRaiPolicyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -93,7 +93,7 @@ func TestAccCognitiveAccountRaiPolicy_update(t *testing.T) {
 
 func TestAccCognitiveAccountRaiPolicy_withoutSeverityThreshold(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_rai_policy", "test")
-	r := RaiPolicyTestResource{}
+	r := CognitiveAccountRaiPolicyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -106,7 +106,7 @@ func TestAccCognitiveAccountRaiPolicy_withoutSeverityThreshold(t *testing.T) {
 	})
 }
 
-func (r RaiPolicyTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r CognitiveAccountRaiPolicyResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := raipolicies.ParseAccountRaiPolicyID(state.ID)
 	if err != nil {
 		return nil, err
@@ -120,7 +120,7 @@ func (r RaiPolicyTestResource) Exists(ctx context.Context, client *clients.Clien
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r RaiPolicyTestResource) basic(data acceptance.TestData) string {
+func (r CognitiveAccountRaiPolicyResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -154,7 +154,7 @@ resource "azurerm_cognitive_account_rai_policy" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }
 
-func (r RaiPolicyTestResource) complete(data acceptance.TestData) string {
+func (r CognitiveAccountRaiPolicyResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -194,7 +194,7 @@ resource "azurerm_cognitive_account_rai_policy" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }
 
-func (r RaiPolicyTestResource) requiresImport(data acceptance.TestData) string {
+func (r CognitiveAccountRaiPolicyResource) requiresImport(data acceptance.TestData) string {
 	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -214,7 +214,7 @@ resource "azurerm_cognitive_account_rai_policy" "import" {
 `, template)
 }
 
-func (r RaiPolicyTestResource) withoutSeverityThreshold(data acceptance.TestData) string {
+func (r CognitiveAccountRaiPolicyResource) withoutSeverityThreshold(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

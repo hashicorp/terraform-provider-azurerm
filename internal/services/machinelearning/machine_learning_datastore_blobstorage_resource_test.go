@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type MachineLearningDataStoreBlobStorage struct{}
+type MachineLearningDatastoreBlobstorageResource struct{}
 
 func TestAccMachineLearningDataStoreBlobStorage_accountKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_datastore_blobstorage", "test")
-	r := MachineLearningDataStoreBlobStorage{}
+	r := MachineLearningDatastoreBlobstorageResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,7 +36,7 @@ func TestAccMachineLearningDataStoreBlobStorage_accountKey(t *testing.T) {
 
 func TestAccMachineLearningDataStoreBlobStorage_serviceDataAuthIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_datastore_blobstorage", "test")
-	r := MachineLearningDataStoreBlobStorage{}
+	r := MachineLearningDatastoreBlobstorageResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -65,7 +65,7 @@ func TestAccMachineLearningDataStoreBlobStorage_serviceDataAuthIdentity(t *testi
 
 func TestAccMachineLearningDataStoreBlobStorage_sasToken(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_datastore_blobstorage", "test")
-	r := MachineLearningDataStoreBlobStorage{}
+	r := MachineLearningDatastoreBlobstorageResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -80,7 +80,7 @@ func TestAccMachineLearningDataStoreBlobStorage_sasToken(t *testing.T) {
 
 func TestAccMachineLearningDataStoreBlobStorage_Update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_datastore_blobstorage", "test")
-	r := MachineLearningDataStoreBlobStorage{}
+	r := MachineLearningDatastoreBlobstorageResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -102,7 +102,7 @@ func TestAccMachineLearningDataStoreBlobStorage_Update(t *testing.T) {
 
 func TestAccMachineLearningDataStoreBlobStorage_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_datastore_blobstorage", "test")
-	r := MachineLearningDataStoreBlobStorage{}
+	r := MachineLearningDatastoreBlobstorageResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -115,7 +115,7 @@ func TestAccMachineLearningDataStoreBlobStorage_requiresImport(t *testing.T) {
 	})
 }
 
-func (r MachineLearningDataStoreBlobStorage) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r MachineLearningDatastoreBlobstorageResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	dataStoreClient := client.MachineLearning.Datastore
 	id, err := datastore.ParseDataStoreID(state.ID)
 	if err != nil {
@@ -133,7 +133,7 @@ func (r MachineLearningDataStoreBlobStorage) Exists(ctx context.Context, client 
 	return pointer.To(resp.Model.Properties != nil), nil
 }
 
-func (r MachineLearningDataStoreBlobStorage) blobStorageAccountKey(data acceptance.TestData) string {
+func (r MachineLearningDatastoreBlobstorageResource) blobStorageAccountKey(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -153,7 +153,7 @@ resource "azurerm_machine_learning_datastore_blobstorage" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r MachineLearningDataStoreBlobStorage) serviceDataAuthIdentity(data acceptance.TestData) string {
+func (r MachineLearningDatastoreBlobstorageResource) serviceDataAuthIdentity(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -173,7 +173,7 @@ resource "azurerm_machine_learning_datastore_blobstorage" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r MachineLearningDataStoreBlobStorage) serviceDataAuthIdentityUpdate(data acceptance.TestData) string {
+func (r MachineLearningDatastoreBlobstorageResource) serviceDataAuthIdentityUpdate(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -231,7 +231,7 @@ resource "azurerm_machine_learning_datastore_blobstorage" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r MachineLearningDataStoreBlobStorage) blobStorageSas(data acceptance.TestData) string {
+func (r MachineLearningDatastoreBlobstorageResource) blobStorageSas(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -286,7 +286,7 @@ resource "azurerm_machine_learning_datastore_blobstorage" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r MachineLearningDataStoreBlobStorage) requiresImport(data acceptance.TestData) string {
+func (r MachineLearningDatastoreBlobstorageResource) requiresImport(data acceptance.TestData) string {
 	template := r.blobStorageAccountKey(data)
 	return fmt.Sprintf(`
 
@@ -302,7 +302,7 @@ resource "azurerm_machine_learning_datastore_blobstorage" "import" {
 `, template)
 }
 
-func (r MachineLearningDataStoreBlobStorage) template(data acceptance.TestData) string {
+func (r MachineLearningDatastoreBlobstorageResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {

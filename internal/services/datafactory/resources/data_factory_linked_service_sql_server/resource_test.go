@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type LinkedServiceSQLServerResource struct{}
+type DataFactoryLinkedServiceSqlServerResource struct{}
 
 func TestAccDataFactoryLinkedServiceSQLServer_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sql_server", "test")
-	r := LinkedServiceSQLServerResource{}
+	r := DataFactoryLinkedServiceSqlServerResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccDataFactoryLinkedServiceSQLServer_regressionTest(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceSQLServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sql_server", "test")
-	r := LinkedServiceSQLServerResource{}
+	r := DataFactoryLinkedServiceSqlServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -62,7 +62,7 @@ func TestAccDataFactoryLinkedServiceSQLServer_basic(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceSQLServer_PasswordKeyVaultReference(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sql_server", "test")
-	r := LinkedServiceSQLServerResource{}
+	r := DataFactoryLinkedServiceSqlServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -80,7 +80,7 @@ func TestAccDataFactoryLinkedServiceSQLServer_PasswordKeyVaultReference(t *testi
 
 func TestAccDataFactoryLinkedServiceSQLServer_ConnectionStringKeyVaultReference(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sql_server", "test")
-	r := LinkedServiceSQLServerResource{}
+	r := DataFactoryLinkedServiceSqlServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -97,7 +97,7 @@ func TestAccDataFactoryLinkedServiceSQLServer_ConnectionStringKeyVaultReference(
 	})
 }
 
-func (t LinkedServiceSQLServerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t DataFactoryLinkedServiceSqlServerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.LinkedServiceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -111,7 +111,7 @@ func (t LinkedServiceSQLServerResource) Exists(ctx context.Context, clients *cli
 	return pointer.To(resp.ID != nil), nil
 }
 
-func (LinkedServiceSQLServerResource) basic(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceSqlServerResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -148,7 +148,7 @@ resource "azurerm_data_factory_linked_service_sql_server" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (LinkedServiceSQLServerResource) update(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceSqlServerResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -185,7 +185,7 @@ resource "azurerm_data_factory_linked_service_sql_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceSQLServerResource) key_vault_reference(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceSqlServerResource) key_vault_reference(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -233,7 +233,7 @@ resource "azurerm_data_factory_linked_service_sql_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (LinkedServiceSQLServerResource) connection_string_key_vault_reference(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceSqlServerResource) connection_string_key_vault_reference(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

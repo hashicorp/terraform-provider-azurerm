@@ -70,7 +70,7 @@ func resourceVirtualDesktopApplicationGroupRead(d *pluginsdk.ResourceData, meta 
 
 		hostPoolId, err := hostpool.ParseHostPoolIDInsensitively(props.HostPoolArmPath)
 		if err != nil {
-			return fmt.Errorf("parsing Host Pool ID %q: %+v", props.HostPoolArmPath, err)
+			return err
 		}
 		d.Set("host_pool_id", hostPoolId.ID())
 

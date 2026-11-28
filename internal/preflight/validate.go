@@ -135,7 +135,7 @@ func parseResourceId(id resourceids.ResourceId) (scope, provider, resourceType, 
 	}
 
 	if providerIdx == -1 {
-		return "", "", "", "", fmt.Errorf("resource ID is missing a resource provider segment")
+		return "", "", "", "", errors.New("resource ID is missing a resource provider segment")
 	}
 
 	var typeSegs []string
@@ -162,7 +162,7 @@ func parseResourceId(id resourceids.ResourceId) (scope, provider, resourceType, 
 	}
 
 	if len(typeSegs) == 0 {
-		return "", "", "", "", fmt.Errorf("resource ID contains no resource type segments after the provider")
+		return "", "", "", "", errors.New("resource ID contains no resource type segments after the provider")
 	}
 
 	resourceType = strings.Join(typeSegs, "/")
@@ -238,7 +238,7 @@ func extractErrorDetail(resp *http.Response) *string {
 		if errorResp.Error.Code != "" {
 			lines = append(lines, fmt.Sprintf("Error (%s): %s", errorResp.Error.Code, errorResp.Error.Message))
 		} else {
-			lines = append(lines, fmt.Sprintf("Error: %s", errorResp.Error.Message))
+			lines = append(lines, "Error: "+errorResp.Error.Message)
 		}
 	}
 

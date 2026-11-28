@@ -4,6 +4,7 @@
 package parse
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -25,10 +26,10 @@ func (v VirtualMachineGalleryApplicationAssignmentId) ID() string {
 
 func (v VirtualMachineGalleryApplicationAssignmentId) String() string {
 	components := []string{
-		fmt.Sprintf("VirtualMachineId %s", v.VirtualMachineId.ID()),
-		fmt.Sprintf("GalleryApplicationVersionId %s", v.GalleryApplicationVersionId.ID()),
+		"VirtualMachineId " + v.VirtualMachineId.ID(),
+		"GalleryApplicationVersionId " + v.GalleryApplicationVersionId.ID(),
 	}
-	return fmt.Sprintf("Virtual Machine Gallery Application Assignment: %s", strings.Join(components, " / "))
+	return "Virtual Machine Gallery Application Assignment: " + strings.Join(components, " / ")
 }
 
 func NewVirtualMachineGalleryApplicationAssignmentID(virtualMachineId virtualmachines.VirtualMachineId, galleryApplicationVersionId galleryapplicationversions.ApplicationVersionId) VirtualMachineGalleryApplicationAssignmentId {
@@ -55,7 +56,7 @@ func VirtualMachineGalleryApplicationAssignmentID(input string) (VirtualMachineG
 	}
 
 	if virtualMachineId == nil || galleryApplicationVersionId == nil {
-		return VirtualMachineGalleryApplicationAssignmentId{}, fmt.Errorf("parse error, both VirtualMachineId and GalleryApplicationVersionId should not be nil")
+		return VirtualMachineGalleryApplicationAssignmentId{}, errors.New("parse error, both VirtualMachineId and GalleryApplicationVersionId should not be nil")
 	}
 
 	return VirtualMachineGalleryApplicationAssignmentId{

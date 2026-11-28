@@ -33,7 +33,7 @@ func resourceDataShareCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	}
 
 	id := share.NewShareID(subscriptionId, accountId.ResourceGroupName, accountId.AccountName, name)
-	if d.IsNewResource() {
+	if d.IsNewResource() && !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {

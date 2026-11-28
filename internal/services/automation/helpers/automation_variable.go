@@ -172,7 +172,7 @@ func ResourceAutomationVariableCreate(d *pluginsdk.ResourceData, meta any, varTy
 		}
 
 		if !response.WasNotFound(resp.HttpResponse) {
-			return tf.ImportAsExistsError(fmt.Sprintf("azurerm_automation_variable_%s", varTypeLower), id.ID())
+			return tf.ImportAsExistsError("azurerm_automation_variable_"+varTypeLower, id.ID())
 		}
 	}
 
@@ -290,7 +290,7 @@ func ResourceAutomationVariableRead(d *pluginsdk.ResourceData, meta any, varType
 			d.Set("description", props.Description)
 			d.Set("encrypted", props.IsEncrypted)
 			if !d.Get("encrypted").(bool) {
-				value, err := ParseAzureAutomationVariableValue(fmt.Sprintf("azurerm_automation_variable_%s", varTypeLower), props.Value)
+				value, err := ParseAzureAutomationVariableValue("azurerm_automation_variable_"+varTypeLower, props.Value)
 				if err != nil {
 					return err
 				}
@@ -337,7 +337,7 @@ func DataSourceAutomationVariableRead(d *pluginsdk.ResourceData, meta any, varTy
 			d.Set("description", props.Description)
 			d.Set("encrypted", props.IsEncrypted)
 			if !d.Get("encrypted").(bool) {
-				value, err := ParseAzureAutomationVariableValue(fmt.Sprintf("azurerm_automation_variable_%s", varTypeLower), props.Value)
+				value, err := ParseAzureAutomationVariableValue("azurerm_automation_variable_"+varTypeLower, props.Value)
 				if err != nil {
 					return err
 				}

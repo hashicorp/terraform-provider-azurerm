@@ -37,5 +37,5 @@ data "azurerm_dev_center_attached_network" "test" {
   name          = azurerm_dev_center_attached_network.test.name
   dev_center_id = azurerm_dev_center_attached_network.test.dev_center_id
 }
-`, DevCenterAttachedNetworkTestResource{}.basic(data))
+`, DevCenterAttachedNetworkResource{}.basic(data))
 }
